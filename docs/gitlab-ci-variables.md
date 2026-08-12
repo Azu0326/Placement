@@ -18,6 +18,6 @@ Set these under **Settings → CI/CD → Variables** in the Scrapos project.
 | `WEB_LOG_GROUP` | no | no | `/ecs/outvier-scrapos-production` |
 | `PRODUCTION_DOMAIN` | no | no | `scrapos.dncouncil.org` |
 | `PRODUCTION_HEALTHCHECK_URL` | no | no | `https://scrapos.dncouncil.org/healthz` |
-| `DJANGO_SECRET_ARN` | yes | no | Secrets Manager ARN for `outvier-scrapos-django-production` |
+| `DJANGO_SECRET_ARN` | yes | no | `arn:aws:secretsmanager:ap-southeast-2:738765516909:secret:outvier-scrapos-django-production-HaeaQZ` |
 
 Production jobs are manual on `main`, matching `dnc_sc`.
