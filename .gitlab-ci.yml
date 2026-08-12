@@ -1,0 +1,224 @@
+# GitLab CI/CD for Scrapos.
+#
+# Flow (mirrors dnc_sc, simplified — no worker/migrations):
+#   validate ─ test ─ build_push_ecr (manual) ─ deploy_production (manual)
+#                     ─ verify_production
+#
+# Production jobs are main-only and manual. The image is tagged with the
+# commit SHA; :scrapos is only a convenience pointer.
+
+stages:
+  - validate
+  - test
+  - build_push_ecr
+  - deploy_production
+  - verify_production
+
+variables:
+  AWS_DEFAULT_REGION: "ap-southeast-2"
+  PYTHON_IMAGE: "python:3.12-slim"
+  BUILD_PLATFORM: "linux/arm64"
+  GIT_DEPTH: "20"
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  DOCKER_DRIVER: overlay2
+
+.ci_django_env: &ci_django_env
+  DJANGO_SETTINGS_MODULE: config.settings
+  SECRET_KEY: "ci-only-throwaway-key-not-used-anywhere-else-0000000000"
+  DEBUG: "False"
+  ALLOWED_HOSTS: "localhost,127.0.0.1"
+  CSRF_TRUSTED_ORIGINS: "http://localhost"
+  DB_ENGINE: django.db.backends.sqlite3
+  DB_NAME: /tmp/ci.sqlite3
+
+.python_job:
+  image: $PYTHON_IMAGE
+  cache:
+    key:
+      files:
+        - requirements.txt
+    paths:
+      - .pip-cache/
+  variables:
+    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.pip-cache"
+  before_script:
+    - python -m pip install --upgrade pip --quiet
+    - pip install -r requirements.txt --quiet
+
+.aws_job:
+  image:
+    name: amazon/aws-cli:2.32.9
+    entrypoint: [""]
+  before_script:
+    - command -v python3 >/dev/null || dnf install -y python3 >/dev/null
+    - command -v curl >/dev/null || dnf install -y curl >/dev/null
+    - chmod +x deploy/scripts/*.sh
+    - aws sts get-caller-identity
+
+.production_manual:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: manual
+      allow_failure: false
+
+validate:
+  extends: .python_job
+  stage: validate
+  variables:
+    <<: *ci_django_env
+  script:
+    - test -f manage.py
+    - test -f requirements.txt
+    - test -f Dockerfile
+    - test -f .env.example
+    - python manage.py check
+    - python manage.py check --deploy --fail-level ERROR
+    - python manage.py collectstatic --noinput
+    - chmod +x deploy/scripts/*.sh
+    - RENDER_ONLY=1 IMAGE_URI=render-check:latest ./deploy/scripts/register-task-definition.sh web
+  rules:
+    - if: "$CI_PIPELINE_SOURCE == 'merge_request_event'"
+    - if: "$CI_COMMIT_BRANCH"
+
+secret_scan:
+  image: alpine:3.20
+  stage: validate
+  before_script:
+    - apk add --no-cache git grep
+  script:
+    - |
+      echo "Checking for committed secrets and environment files"
+      BAD=0
+      if git ls-files | grep -E '(^|/)\.env$|\.env\.(local|prod|production|staging)$'; then
+        echo "✗ An environment file is tracked in git."; BAD=1
+      fi
+      if git ls-files | grep -E '\.(pem|key|p12|pfx)$'; then
+        echo "✗ A key or certificate file is tracked in git."; BAD=1
+      fi
+      if git ls-files | grep -E '(^|/)(venv|\.venv)/'; then
+        echo "✗ A virtualenv is tracked in git."; BAD=1
+      fi
+      if git grep -nIE 'AKIA[0-9A-Z]{16}' -- . ':!*.md'; then
+        echo "✗ An AWS access key id appears in the repository."; BAD=1
+      fi
+      if git grep -nIE "^SECRET_KEY[[:space:]]*=[[:space:]]*['\"]" -- '*.py'; then
+        echo "✗ A hardcoded Django secret key is assigned at module level."; BAD=1
+      fi
+      if [ "$BAD" -eq 0 ]; then echo "✓ No committed secrets found"; fi
+      exit "$BAD"
+  rules:
+    - if: "$CI_PIPELINE_SOURCE == 'merge_request_event'"
+    - if: "$CI_COMMIT_BRANCH"
+
+test:
+  extends: .python_job
+  stage: test
+  needs: ["validate"]
+  variables:
+    <<: *ci_django_env
+  script:
+    - python manage.py migrate --noinput
+    - python tools/smoke_routes.py
+  rules:
+    - if: "$CI_PIPELINE_SOURCE == 'merge_request_event'"
+    - if: "$CI_COMMIT_BRANCH"
+
+build_push_ecr:
+  stage: build_push_ecr
+  needs: ["validate", "test"]
+  image: docker:27-cli
+  services:
+    - docker:27-dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+  before_script:
+    - apk add --no-cache aws-cli
+    - aws sts get-caller-identity
+    - docker run --privileged --rm tonistiigi/binfmt --install arm64
+    - docker buildx create --use --name scrapos || docker buildx use scrapos
+  script:
+    - export ECR_REPOSITORY="${ECR_REPOSITORY:-738765516909.dkr.ecr.ap-southeast-2.amazonaws.com/dncouncil}"
+    - export ECR_IMAGE_TAG="${ECR_IMAGE_TAG:-scrapos}"
+    - export REGISTRY="${ECR_REPOSITORY%%/*}"
+    - export IMAGE_SHA="${ECR_REPOSITORY}:${ECR_IMAGE_TAG}-${CI_COMMIT_SHA}"
+    - export IMAGE_STABLE="${ECR_REPOSITORY}:${ECR_IMAGE_TAG}"
+    - aws ecr get-login-password | docker login --username AWS --password-stdin "$REGISTRY"
+    - |
+      docker buildx build \
+        --platform "$BUILD_PLATFORM" \
+        --tag "$IMAGE_SHA" \
+        --tag "$IMAGE_STABLE" \
+        --cache-from "type=registry,ref=${IMAGE_STABLE}" \
+        --provenance=false \
+        --push \
+        .
+    - |
+      echo "Confirming the immutable tag exists in ECR"
+      aws ecr describe-images \
+        --repository-name "${ECR_REPOSITORY#*/}" \
+        --image-ids "imageTag=${ECR_IMAGE_TAG}-${CI_COMMIT_SHA}" \
+        --query 'imageDetails[0].{digest:imageDigest,pushed:imagePushedAt,size:imageSizeInBytes}' \
+        --output table
+    - echo "IMAGE_URI=$IMAGE_SHA" > build.env
+    - cat build.env
+  artifacts:
+    reports:
+      dotenv: build.env
+  extends: .production_manual
+
+deploy_production:
+  extends:
+    - .aws_job
+    - .production_manual
+  stage: deploy_production
+  needs:
+    - job: build_push_ecr
+      artifacts: true
+  environment:
+    name: production
+    url: https://$PRODUCTION_DOMAIN
+  script:
+    - ./deploy/scripts/deploy-services.sh
+  artifacts:
+    when: always
+    expire_in: 30 days
+    paths:
+      - rollback-state.env
+
+verify_production:
+  extends: .aws_job
+  stage: verify_production
+  needs:
+    - job: deploy_production
+      artifacts: true
+  environment:
+    name: production
+    url: https://$PRODUCTION_DOMAIN
+  script:
+    - ./deploy/scripts/verify-production.sh
+  after_script:
+    - |
+      if [ "$CI_JOB_STATUS" != "success" ]; then
+        chmod +x deploy/scripts/diagnose.sh
+        ./deploy/scripts/diagnose.sh || true
+      fi
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: on_success
+
+rollback_production:
+  extends: .aws_job
+  stage: verify_production
+  needs:
+    - job: deploy_production
+      artifacts: true
+  environment:
+    name: production
+    url: https://$PRODUCTION_DOMAIN
+  script:
+    - ./deploy/scripts/rollback.sh
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: manual
+      allow_failure: true

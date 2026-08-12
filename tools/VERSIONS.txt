@@ -1,0 +1,2 @@
+tailwindcss standalone  v3.4.18  (tools/tailwindcss.exe via fetch-tooling.ps1)
+lucide UMD              0.469.0  (static/vendor/lucide.min.js)

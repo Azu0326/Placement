@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex flex-wrap items-start justify-between gap-4 mb-5">
+    <div><h1 class="text-[24px] sm:text-[27px] font-semibold tracking-[-0.02em]">Channels</h1>
+    <p class="text-ink-mute text-[14px] mt-1">The social accounts and websites your content is distributed to.</p></div>
+    <button onclick="window.location='{% url 'channel_new' %}'" class="h-10 px-4 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-[13.5px] font-medium shadow-lift flex items-center gap-2"><i data-lucide="plus" class="text-[16px]"></i>Add channel</button>
+  </div>
+
+  <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-3 mb-5 flex flex-wrap items-center gap-2.5">
+    <div class="flex items-center gap-2 flex-1 min-w-[200px] h-10 px-3 rounded-xl bg-slate-100/70 border border-transparent focus-within:bg-white focus-within:border-accent-500/40 focus-within:ring-4 focus-within:ring-accent-500/10 transition">
+      <i data-lucide="search" class="text-[16px] text-ink-faint"></i>
+      <input placeholder="Search channels…" class="bg-transparent text-[13px] w-full outline-none placeholder:text-ink-faint"></div>
+    <div class="flex rounded-xl border border-slate-300 overflow-hidden bg-white">
+      <button class="h-10 px-3.5 text-[13px] bg-primary-50 text-primary-600 font-medium">All</button>
+      <button class="h-10 px-3.5 text-[13px] text-ink-mute hover:bg-slate-50 border-l border-slate-300">Social</button>
+      <button class="h-10 px-3.5 text-[13px] text-ink-mute hover:bg-slate-50 border-l border-slate-300">Website</button>
+    </div>
+    <select class="h-10 px-3 pr-8 rounded-xl border border-slate-300 bg-white text-[13px] outline-none hover:bg-slate-50"><option>All statuses</option><option>Active</option><option>Paused</option><option>Needs attention</option></select>
+  </div>
+
+  <h2 class="text-[13px] font-semibold uppercase tracking-wider text-ink-mute mb-3">Social accounts</h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mb-7">
+
+    <article class="bg-white rounded-card border border-slate-200/80 shadow-soft hover:shadow-lift transition p-5">
+      <div class="flex items-start gap-3">
+        <div class="w-11 h-11 rounded-xl bg-accent-50 grid place-items-center text-accent-600 shrink-0"><i data-lucide="linkedin" class="text-[20px]"></i></div>
+        <div class="min-w-0 flex-1">
+          <h3 class="text-[14.5px] font-semibold truncate">DNC company page</h3>
+          <p class="text-[12.5px] text-ink-mute truncate">linkedin.com/company/dncouncil</p>
+        </div>
+        <span class="text-[11px] font-medium text-ok-700 bg-ok-50 border border-ok-500/20 px-2 py-1 rounded-lg flex items-center gap-1.5 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-ok-500"></span>Active</span>
+      </div>
+      <div class="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-slate-100 text-[12px]">
+        <div><span class="text-ink-faint block">Scheduled</span><span class="font-medium tabular-nums">14</span></div>
+        <div><span class="text-ink-faint block">Published</span><span class="font-medium tabular-nums">186</span></div>
+        <div><span class="text-ink-faint block">Last post</span><span class="font-medium">3 hrs ago</span></div>
+      </div>
+      <div class="flex gap-2 mt-4">
+        <button class="flex-1 h-9 rounded-xl border border-slate-300 text-[12.5px] font-medium hover:bg-slate-50">Edit</button>
+        <button onclick="window.location='{% url 'schedule' %}'" class="flex-1 h-9 rounded-xl border border-slate-300 text-[12.5px] font-medium hover:bg-slate-50">View queue</button>
+        <button class="h-9 w-9 grid place-items-center rounded-xl border border-slate-300 hover:bg-slate-50 text-ink-mute"><i data-lucide="ellipsis" class="text-[16px]"></i></button>
+      </div>
+    </article>
+
+    <article class="bg-white rounded-card border border-err-500/30 shadow-soft hover:shadow-lift transition p-5">
+      <div class="flex items-start gap-3">
+        <div class="w-11 h-11 rounded-xl bg-queued-50 grid place-items-center text-queued-500 shrink-0"><i data-lucide="instagram" class="text-[20px]"></i></div>
+        <div class="min-w-0 flex-1">
+          <h3 class="text-[14.5px] font-semibold truncate">@digitalnomadcouncil</h3>
+          <p class="text-[12.5px] text-ink-mute truncate">Instagram business account</p>
+        </div>
+        <span class="text-[11px] font-medium text-err-700 bg-err-50 border border-err-500/25 px-2 py-1 rounded-lg flex items-center gap-1.5 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-err-500"></span>Attention</span>
+      </div>
+      <p class="text-[12.5px] text-err-700 mt-3 flex items-start gap-1.5"><i data-lucide="triangle-alert" class="text-[13px] mt-0.5 shrink-0"></i>Access expired — 2 posts paused.</p>
+      <div class="grid grid-cols-3 gap-3 mt-3 pt-4 border-t border-slate-100 text-[12px]">
+        <div><span class="text-ink-faint block">Scheduled</span><span class="font-medium tabular-nums">9</span></div>
+        <div><span class="text-ink-faint block">Published</span><span class="font-medium tabular-nums">142</span></div>
+        <div><span class="text-ink-faint block">Last post</span><span class="font-medium">Aug 11</span></div>
+      </div>
+      <div class="flex gap-2 mt-4">
+        <button onclick="window.location='{% url 'integrations' %}'" class="flex-1 h-9 rounded-xl bg-primary-500 text-white text-[12.5px] font-medium hover:bg-primary-600">Reconnect</button>
+        <button class="h-9 w-9 grid place-items-center rounded-xl border border-slate-300 hover:bg-slate-50 text-ink-mute"><i data-lucide="ellipsis" class="text-[16px]"></i></button>
+      </div>
+    </article>
+
+    <article class="bg-white rounded-card border border-slate-200/80 shadow-soft hover:shadow-lift transition p-5">
+      <div class="flex items-start gap-3">
+        <div class="w-11 h-11 rounded-xl bg-slate-100 grid place-items-center text-ink-soft shrink-0"><i data-lucide="twitter" class="text-[20px]"></i></div>
+        <div class="min-w-0 flex-1">
+          <h3 class="text-[14.5px] font-semibold truncate">@dncouncil</h3>
+          <p class="text-[12.5px] text-ink-mute truncate">X account</p>
+        </div>
+        <span class="text-[11px] font-medium text-ink-mute bg-slate-100 border border-slate-200 px-2 py-1 rounded-lg shrink-0">Paused</span>
+      </div>
+      <div class="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-slate-100 text-[12px]">
+        <div><span class="text-ink-faint block">Scheduled</span><span class="font-medium tabular-nums">0</span></div>
+        <div><span class="text-ink-faint block">Published</span><span class="font-medium tabular-nums">73</span></div>
+        <div><span class="text-ink-faint block">Last post</span><span class="font-medium">Aug 4</span></div>
+      </div>
+      <div class="flex gap-2 mt-4">
+        <button class="flex-1 h-9 rounded-xl border border-slate-300 text-[12.5px] font-medium hover:bg-slate-50">Resume</button>
+        <button class="flex-1 h-9 rounded-xl border border-slate-300 text-[12.5px] font-medium hover:bg-slate-50">Edit</button>
+        <button class="h-9 w-9 grid place-items-center rounded-xl border border-slate-300 hover:bg-slate-50 text-ink-mute"><i data-lucide="ellipsis" class="text-[16px]"></i></button>
+      </div>
+    </article>
+  </div>
+
+  <h2 class="text-[13px] font-semibold uppercase tracking-wider text-ink-mute mb-3">Websites</h2>
+  <div class="bg-white rounded-card border border-slate-200/80 shadow-soft overflow-hidden">
+    <div class="overflow-x-auto tbl-scroll">
+    <table class="w-full text-[13px]">
+      <thead><tr class="bg-slate-50/80 border-b border-slate-200 text-left">
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Channel</th>
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Destination</th>
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Post type</th>
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Owner</th>
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Last published</th>
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Status</th>
+        <th class="px-5 py-3 w-12"></th>
+      </tr></thead>
+      <tbody class="divide-y divide-slate-100">
+        <tr class="hover:bg-slate-50/70 cursor-pointer">
+          <td class="px-5 py-3.5"><div class="flex items-center gap-2.5">
+            <span class="w-7 h-7 rounded-lg bg-slate-100 grid place-items-center text-ink-soft"><i data-lucide="globe" class="text-[15px]"></i></span>
+            <span class="font-medium">DNC main blog</span></div></td>
+          <td class="px-5 py-3.5 text-ink-soft max-w-[240px]"><div class="truncate">dncouncil.org/blog</div></td>
+          <td class="px-5 py-3.5 text-ink-soft">Article · Guides</td>
+          <td class="px-5 py-3.5"><div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-primary-500 grid place-items-center text-white text-[10px] font-semibold">A</span>Admin</div></td>
+          <td class="px-5 py-3.5 text-ink-mute whitespace-nowrap">Yesterday 23:40</td>
+          <td class="px-5 py-3.5"><span class="text-[11px] font-semibold tracking-wide text-ok-700 bg-ok-50 border border-ok-500/20 px-2.5 py-1 rounded-lg">ACTIVE</span></td>
+          <td class="px-5 py-3.5"><button class="p-1.5 rounded-lg hover:bg-slate-200/70 text-ink-faint"><i data-lucide="ellipsis-vertical" class="text-[16px]"></i></button></td>
+        </tr>
+        <tr class="hover:bg-slate-50/70 cursor-pointer">
+          <td class="px-5 py-3.5"><div class="flex items-center gap-2.5">
+            <span class="w-7 h-7 rounded-lg bg-slate-100 grid place-items-center text-ink-soft"><i data-lucide="globe" class="text-[15px]"></i></span>
+            <span class="font-medium">Study hub</span></div></td>
+          <td class="px-5 py-3.5 text-ink-soft max-w-[240px]"><div class="truncate">study.dncouncil.org/resources</div></td>
+          <td class="px-5 py-3.5 text-ink-soft">Article · Resources</td>
+          <td class="px-5 py-3.5"><div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-accent-500 grid place-items-center text-white text-[10px] font-semibold">M</span>Maya</div></td>
+          <td class="px-5 py-3.5 text-ink-mute whitespace-nowrap">Aug 10 14:22</td>
+          <td class="px-5 py-3.5"><span class="text-[11px] font-semibold tracking-wide text-ok-700 bg-ok-50 border border-ok-500/20 px-2.5 py-1 rounded-lg">ACTIVE</span></td>
+          <td class="px-5 py-3.5"><button class="p-1.5 rounded-lg hover:bg-slate-200/70 text-ink-faint"><i data-lucide="ellipsis-vertical" class="text-[16px]"></i></button></td>
+        </tr>
+        <tr class="hover:bg-slate-50/70 cursor-pointer">
+          <td class="px-5 py-3.5"><div class="flex items-center gap-2.5">
+            <span class="w-7 h-7 rounded-lg bg-slate-100 grid place-items-center text-ink-soft"><i data-lucide="mail" class="text-[15px]"></i></span>
+            <span class="font-medium">Weekly digest</span></div></td>
+          <td class="px-5 py-3.5 text-ink-soft max-w-[240px]"><div class="truncate">Newsletter · 8,400 subscribers</div></td>
+          <td class="px-5 py-3.5 text-ink-soft">Newsletter</td>
+          <td class="px-5 py-3.5"><div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-queued-500 grid place-items-center text-white text-[10px] font-semibold">J</span>Jordan</div></td>
+          <td class="px-5 py-3.5 text-ink-mute whitespace-nowrap">Aug 7 08:00</td>
+          <td class="px-5 py-3.5"><span class="text-[11px] font-semibold tracking-wide text-ink-mute bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-lg">PAUSED</span></td>
+          <td class="px-5 py-3.5"><button class="p-1.5 rounded-lg hover:bg-slate-200/70 text-ink-faint"><i data-lucide="ellipsis-vertical" class="text-[16px]"></i></button></td>
+        </tr>
+      </tbody>
+    </table></div>
+  </div>
+{% endblock %}

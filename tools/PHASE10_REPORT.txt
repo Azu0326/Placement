@@ -1,0 +1,41 @@
+Scrapos frontend — phases 1–10 complete
+=======================================
+
+Stack
+- Django 5.2 TemplateView stubs + frontend_demo/data.py
+- Tailwind v3.4.18 standalone CLI → static/css/app.css (no CDN)
+- Lucide 0.469.0 vendored at static/vendor/lucide.min.js
+
+Screens (17 routes, all HTTP 200)
+- /                          Dashboard
+- /scraper/jobs/             Jobs list
+- /scraper/jobs/new/         New scrape job
+- /scraper/jobs/<id>/        Job detail (tabs)
+- /scraper/execution/        Execution monitor
+- /studio/scraped/           Scraped library
+- /studio/content/           Content list
+- /studio/content/<id>/      Editor
+- /studio/genai/             GenAI workspace
+- /poster/schedule/          Schedule
+- /poster/calendar/          Calendar
+- /repository/assets/        Assets
+- /repository/assets/register/
+- /repository/channels/      Channels
+- /repository/channels/new/  Add channel
+- /integrations/             Integrations
+- /design/states/            States gallery
+
+Shell
+- Shared base + sidebar + header + notifications drawer + toast
+- Page nav is Django URLs (no prototype go() screen toggles)
+- In-page: tabs, toggles, rail collapse, drawer, page stepper
+
+Out of scope (unchanged)
+- models, migrations, Celery, Redis, real scraping, AI calls,
+  OAuth, storage, permissions, CI/CD, Docker, Nginx
+
+Rebuild CSS
+  powershell -File tools\build-css.ps1
+
+Run
+  .\.venv\Scripts\python.exe manage.py runserver

@@ -1,0 +1,406 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-canvas font-sans text-ink antialiased;
+  }
+
+  [data-lucide] {
+    width: 1em;
+    height: 1em;
+    stroke-width: 1.75;
+  }
+
+  :focus-visible {
+    outline: 2px solid #2e7cf6;
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Component classes — outside @layer so Tailwind JIT never purges unused names */
+  /* Buttons — heights from design-tokens.md */
+  .btn {
+    display: inline-flex;
+    height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 12px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    font-size: 13.5px;
+    font-weight: 500;
+    transition: color 150ms, background-color 150ms, border-color 150ms, box-shadow 150ms;
+  }
+
+  .btn:disabled,
+  .btn[aria-disabled='true'],
+  .btn-primary:disabled,
+  .btn-primary[aria-disabled='true'],
+  .btn-secondary:disabled,
+  .btn-secondary[aria-disabled='true'] {
+    pointer-events: none;
+    opacity: 0.4;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 12px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: #fff;
+    background-color: #4f46e5;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+    transition: color 150ms, background-color 150ms, border-color 150ms, box-shadow 150ms;
+  }
+
+  .btn-primary:hover {
+    background-color: #4338ca;
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 12px;
+    border: 1px solid #cbd5e1;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    font-size: 13.5px;
+    font-weight: 500;
+    background-color: #fff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
+    transition: color 150ms, background-color 150ms, border-color 150ms, box-shadow 150ms;
+  }
+
+  .btn-secondary:hover {
+    background-color: #f8fafc;
+  }
+
+  .btn-ghost {
+    display: inline-flex;
+    height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 12px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: #334155;
+    transition: color 150ms, background-color 150ms;
+  }
+
+  .btn-ghost:hover {
+    background-color: #f1f5f9;
+  }
+
+  .btn-sm {
+    height: 2.25rem;
+    padding-left: 0.875rem;
+    padding-right: 0.875rem;
+    font-size: 13px;
+  }
+
+  .btn-icon {
+    display: inline-grid;
+    width: 2.25rem;
+    height: 2.25rem;
+    place-items: center;
+    border-radius: 0.5rem;
+    color: #64748b;
+    transition: color 150ms, background-color 150ms;
+  }
+
+  .btn-icon:hover {
+    background-color: #f1f5f9;
+  }
+
+  /* Form controls */
+  .input,
+  .select {
+    height: 2.5rem;
+    width: 100%;
+    border-radius: 0.75rem;
+    border: 1px solid #cbd5e1;
+    background-color: #fff;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    font-size: 13px;
+    color: #0f172a;
+    outline: none;
+    transition: color 150ms, background-color 150ms, border-color 150ms, box-shadow 150ms;
+  }
+
+  .input:hover,
+  .select:hover {
+    background-color: #f8fafc;
+  }
+
+  .input:focus,
+  .select:focus {
+    border-color: #2e7cf6;
+    box-shadow: 0 0 0 2px rgba(46, 124, 246, 0.2);
+  }
+
+  /* Surfaces */
+  .card {
+    border-radius: 14px;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    background-color: #fff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
+  }
+
+  .page-title {
+    font-size: 27px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: #0f172a;
+  }
+
+  .section-heading {
+    font-size: 15px;
+    font-weight: 600;
+    color: #0f172a;
+  }
+
+  .meta {
+    font-size: 12px;
+    color: #94a3b8;
+  }
+
+  /* Job status badge — tone recipe from design-tokens.md */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    border-radius: 8px;
+    padding: 0.25rem 0.625rem;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  .badge-ok {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    border-radius: 8px;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    background-color: #ecfdf5;
+    padding: 0.25rem 0.625rem;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: #047857;
+  }
+
+  .badge-err {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    border-radius: 8px;
+    border: 1px solid rgba(248, 113, 113, 0.25);
+    background-color: #fef2f2;
+    padding: 0.25rem 0.625rem;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: #b91c1c;
+  }
+
+  .badge-warn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    border-radius: 8px;
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    background-color: #fffbeb;
+    padding: 0.25rem 0.625rem;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: #b45309;
+  }
+
+  .badge-queued {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    border-radius: 8px;
+    border: 1px solid rgba(139, 92, 246, 0.25);
+    background-color: #f5f3ff;
+    padding: 0.25rem 0.625rem;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: #6d28d9;
+  }
+
+  .badge-running {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    border-radius: 8px;
+    border: 1px solid rgba(46, 124, 246, 0.25);
+    background-color: #eff6ff;
+    padding: 0.25rem 0.625rem;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: #1d63d2;
+  }
+
+/* App utilities — outside @layer so class names toggled from JS always ship */
+  /* Prototype shell behaviours (sidebar / nav groups) */
+  .sub {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.22s ease;
+  }
+
+  .grp.open .sub {
+    max-height: 420px;
+  }
+
+  .grp.open .chev {
+    transform: rotate(90deg);
+  }
+
+  .chev {
+    transition: transform 0.2s ease;
+  }
+
+  .rail-collapsed .lbl,
+  .rail-collapsed .chev,
+  .rail-collapsed .sub,
+  .rail-collapsed .brandtxt,
+  .rail-collapsed .usermeta {
+    display: none;
+  }
+
+  .rail-collapsed {
+    width: 72px;
+  }
+
+  .rail-collapsed .navlink {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .pulse-dot {
+    position: relative;
+  }
+
+  .pulse-dot::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 9999px;
+    border: 2px solid currentColor;
+    opacity: 0.35;
+    animation: pr 1.6s ease-out infinite;
+  }
+
+  @keyframes pr {
+    0% {
+      transform: scale(0.6);
+      opacity: 0.6;
+    }
+    100% {
+      transform: scale(1.4);
+      opacity: 0;
+    }
+  }
+
+  .shimmer {
+    background: linear-gradient(90deg, #eef1f6 25%, #f7f9fc 37%, #eef1f6 63%);
+    background-size: 400% 100%;
+    animation: sh 1.4s ease infinite;
+  }
+
+  @keyframes sh {
+    0% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0 50%;
+    }
+  }
+
+  .bar-run {
+    background: linear-gradient(90deg, #2e7cf6, #4f46e5);
+    background-size: 200% 100%;
+    animation: sl 1.6s linear infinite;
+  }
+
+  @keyframes sl {
+    0% {
+      background-position: 0 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .tbl-scroll {
+    scrollbar-width: thin;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #d3d9e4;
+    border-radius: 8px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+
+@media (max-width: 767px) {
+  .btn,
+  .btn-primary,
+  .btn-secondary,
+  .input,
+  .select {
+    min-height: 44px;
+  }
+}

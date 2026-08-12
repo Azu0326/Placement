@@ -1,0 +1,48 @@
+<div id="drawerScrim" data-action="close-drawer" class="hidden fixed inset-0 bg-ink/40 z-50"></div>
+<aside id="drawer" class="fixed inset-y-0 right-0 z-[60] w-full sm:w-[400px] bg-white shadow-pop translate-x-full transition-transform duration-250 flex flex-col">
+  <div class="flex items-center justify-between px-5 h-16 border-b border-slate-200 shrink-0">
+    <h2 class="text-[16px] font-semibold">Notifications</h2>
+    <div class="flex items-center gap-1">
+      <button class="text-[12.5px] text-primary-600 font-medium px-2.5 py-1.5 rounded-lg hover:bg-primary-50">Mark all read</button>
+      <button data-action="close-drawer" class="p-2 rounded-lg hover:bg-slate-100"><i data-lucide="x" class="text-[19px]"></i></button>
+    </div>
+  </div>
+  <div class="px-5 py-3 border-b border-slate-100 flex gap-1.5 overflow-x-auto shrink-0">
+    <button class="text-[12.5px] px-3 py-1.5 rounded-lg bg-primary-500 text-white font-medium whitespace-nowrap">All</button>
+    <button class="text-[12.5px] px-3 py-1.5 rounded-lg text-ink-mute hover:bg-slate-100 whitespace-nowrap">Scraping</button>
+    <button class="text-[12.5px] px-3 py-1.5 rounded-lg text-ink-mute hover:bg-slate-100 whitespace-nowrap">Content</button>
+    <button class="text-[12.5px] px-3 py-1.5 rounded-lg text-ink-mute hover:bg-slate-100 whitespace-nowrap">Publishing</button>
+    <button class="text-[12.5px] px-3 py-1.5 rounded-lg text-ink-mute hover:bg-slate-100 whitespace-nowrap">Integrations</button>
+    <button class="text-[12.5px] px-3 py-1.5 rounded-lg text-ink-mute hover:bg-slate-100 whitespace-nowrap">System</button>
+  </div>
+  <div class="flex-1 overflow-y-auto divide-y divide-slate-100">
+    <div class="px-5 py-4 flex gap-3 bg-primary-50/30 relative">
+      <span class="absolute left-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-primary-500"></span>
+      <div class="w-8 h-8 rounded-lg bg-ok-50 text-ok-700 grid place-items-center shrink-0"><i data-lucide="circle-check-big" class="text-[16px]"></i></div>
+      <div class="min-w-0"><p class="text-[13.5px] leading-snug">Scrape job <span class="font-medium">#SC-1284</span> completed successfully.</p>
+      <p class="text-[11.5px] text-ink-faint mt-1">2 minutes ago</p></div>
+    </div>
+    <div class="px-5 py-4 flex gap-3 bg-primary-50/30 relative">
+      <span class="absolute left-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-primary-500"></span>
+      <div class="w-8 h-8 rounded-lg bg-err-50 text-err-700 grid place-items-center shrink-0"><i data-lucide="triangle-alert" class="text-[16px]"></i></div>
+      <div class="min-w-0"><p class="text-[13.5px] leading-snug">Scrape job <span class="font-medium">#SC-1282</span> failed.</p>
+      <p class="text-[11.5px] text-ink-faint mt-1">33 minutes ago</p>
+      <a href="{% url 'execution' %}" data-action="close-drawer" class="text-[12.5px] font-medium text-primary-600 mt-2 hover:underline inline-block">View execution</a></div>
+    </div>
+    <div class="px-5 py-4 flex gap-3">
+      <div class="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 grid place-items-center shrink-0"><i data-lucide="send" class="text-[16px]"></i></div>
+      <div class="min-w-0"><p class="text-[13.5px] leading-snug">Scheduled LinkedIn post published.</p>
+      <p class="text-[11.5px] text-ink-faint mt-1">3 hours ago</p></div>
+    </div>
+    <div class="px-5 py-4 flex gap-3">
+      <div class="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 grid place-items-center shrink-0"><i data-lucide="sparkles" class="text-[16px]"></i></div>
+      <div class="min-w-0"><p class="text-[13.5px] leading-snug">AI draft ready for <span class="font-medium">Study visa guide</span>.</p>
+      <p class="text-[11.5px] text-ink-faint mt-1">Yesterday</p></div>
+    </div>
+    <div class="px-5 py-4 flex gap-3">
+      <div class="w-8 h-8 rounded-lg bg-warn-50 text-warn-700 grid place-items-center shrink-0"><i data-lucide="plug" class="text-[16px]"></i></div>
+      <div class="min-w-0"><p class="text-[13.5px] leading-snug">Instagram access expired — reconnect to resume publishing.</p>
+      <p class="text-[11.5px] text-ink-faint mt-1">Yesterday</p></div>
+    </div>
+  </div>
+</aside>

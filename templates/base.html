@@ -1,0 +1,38 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ page_title }}{% endblock %} · DNC Content Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body class="bg-canvas text-ink" data-nav="{{ nav_key }}" data-nav-group="{{ nav_group }}">
+  {% include "partials/_sidebar.html" %}
+  <div id="scrim" class="hidden fixed inset-0 bg-ink/40 z-40 lg:hidden" data-action="close-rail"></div>
+
+  <div id="shell" class="lg:pl-[260px] transition-[padding] duration-200 min-h-screen">
+    {% include "partials/_header.html" %}
+    <main class="p-4 sm:p-6 lg:p-8 max-w-[1440px]">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  {% include "partials/_drawer.html" %}
+
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[70] opacity-0 translate-y-4 pointer-events-none transition-all duration-200" aria-live="polite">
+    <div class="bg-rail text-white rounded-xl shadow-pop px-4 py-3 flex items-center gap-3 min-w-[280px]">
+      <span class="w-6 h-6 rounded-full bg-ok-500 grid place-items-center shrink-0"><i data-lucide="check" class="text-[14px]"></i></span>
+      <p class="text-[13.5px] flex-1">Job queued — we'll process it shortly.</p>
+      <a href="{% url 'jobs' %}" class="text-[13px] font-medium text-accent-500 hover:text-accent-500/80 whitespace-nowrap">View</a>
+    </div>
+  </div>
+
+  <script src="{% static 'vendor/lucide.min.js' %}"></script>
+  <script src="{% static 'js/app.js' %}"></script>
+  {% block page_js %}{% endblock %}
+</body>
+</html>

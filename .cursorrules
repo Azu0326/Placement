@@ -1,0 +1,29 @@
+# DNC Content Platform — conversion rules
+
+Reference design: design/dnc-content-platform.html (static HTML/Tailwind prototype)
+Design tokens: design/design-tokens.md
+
+## When converting a screen from the prototype
+- Find the matching `<section id="s-...">` block in the reference file and match its
+  markup, classes, and spacing exactly. Don't redesign or "improve" the layout.
+- Replace hardcoded example data (job rows, KPI numbers, etc.) with Django template
+  variables / a queryset from the view. Never leave placeholder data in committed templates.
+- The prototype fakes navigation by toggling `display` on sibling `<section>` elements
+  via a JS `go()` function. Real pages use Django URLs and `{% extends %}` — do not
+  port the section-toggling JS for page-level navigation. Small in-page toggles
+  (dropdown menus, accordion sections, tabs within one page) can keep similar JS.
+- Sidebar and header are shared across all screens — always use the partials in
+  templates/partials/, never inline them per-page.
+- Job/task statuses shown to users are only: QUEUED, RUNNING, COMPLETED, FAILED.
+  Never surface Celery/Redis/infra terms in user-facing templates or copy.
+
+## Styling
+- Tailwind only, utility classes matching the prototype's patterns (rounded-card,
+  shadow-soft, shadow-lift, text-ink/soft/mute/faint, etc. — see design-tokens.md).
+- lucide icons via the same `data-lucide="..."` attribute pattern as the prototype.
+- Don't introduce a second icon set or CSS framework.
+
+## Django conventions
+- Class-based views unless a function-based view is clearly simpler.
+- Template inheritance: base.html → partials/_sidebar.html + _header.html → page template.
+- Keep view logic out of templates beyond simple loops/conditionals.

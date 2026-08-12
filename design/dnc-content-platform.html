@@ -1,0 +1,2094 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DNC — Content Platform</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        ink:      { DEFAULT:'#0F172A', soft:'#334155', mute:'#64748B', faint:'#94A3B8' },
+        primary:  { 50:'#EEF0FF',100:'#E0E4FF',200:'#C7CDFE',500:'#4F46E5',600:'#4338CA',700:'#3730A3' },
+        accent:   { 50:'#EFF6FF',100:'#DBEAFE',500:'#2E7CF6',600:'#1D63D2' },
+        canvas:   '#F6F7FA',
+        rail:     { DEFAULT:'#141A2E', deep:'#0E1322', line:'#242C45', text:'#A9B2CA' },
+        ok:       { 50:'#ECFDF5',500:'#10B981',700:'#047857' },
+        warn:     { 50:'#FFFBEB',500:'#F59E0B',700:'#B45309' },
+        err:      { 50:'#FEF2F2',500:'#F87171',700:'#B91C1C' },
+        queued:   { 50:'#F5F3FF',500:'#8B5CF6',700:'#6D28D9' },
+      },
+      fontFamily: { sans:['Inter','ui-sans-serif','system-ui','sans-serif'] },
+      borderRadius: { card:'14px', xl2:'16px' },
+      boxShadow: {
+        soft:'0 1px 2px rgba(15,23,42,.04), 0 1px 3px rgba(15,23,42,.06)',
+        lift:'0 4px 12px rgba(15,23,42,.06), 0 1px 3px rgba(15,23,42,.04)',
+        pop:'0 12px 32px rgba(15,23,42,.12), 0 2px 8px rgba(15,23,42,.06)',
+      },
+    }
+  }
+}
+</script>
+<style>
+  html{-webkit-text-size-adjust:100%}
+  body{font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  [data-lucide]{width:1em;height:1em;stroke-width:1.75}
+  .scr{display:none}.scr.on{display:block}
+  .sub{max-height:0;overflow:hidden;transition:max-height .22s ease}
+  .grp.open .sub{max-height:420px}
+  .grp.open .chev{transform:rotate(90deg)}
+  .chev{transition:transform .2s ease}
+  .rail-collapsed .lbl,.rail-collapsed .chev,.rail-collapsed .sub,.rail-collapsed .brandtxt,.rail-collapsed .usermeta{display:none}
+  .rail-collapsed{width:72px}
+  .rail-collapsed .navlink{justify-content:center;padding-left:0;padding-right:0}
+  :focus-visible{outline:2px solid #2E7CF6;outline-offset:2px;border-radius:6px}
+  .pulse-dot{position:relative}
+  .pulse-dot::after{content:'';position:absolute;inset:-4px;border-radius:9999px;border:2px solid currentColor;opacity:.35;animation:pr 1.6s ease-out infinite}
+  @keyframes pr{0%{transform:scale(.6);opacity:.6}100%{transform:scale(1.4);opacity:0}}
+  .shimmer{background:linear-gradient(90deg,#EEF1F6 25%,#F7F9FC 37%,#EEF1F6 63%);background-size:400% 100%;animation:sh 1.4s ease infinite}
+  @keyframes sh{0%{background-position:100% 50%}100%{background-position:0 50%}}
+  .bar-run{background:linear-gradient(90deg,#2E7CF6,#4F46E5);background-size:200% 100%;animation:sl 1.6s linear infinite}
+  @keyframes sl{0%{background-position:0 0}100%{background-position:200% 0}}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  .tbl-scroll{scrollbar-width:thin}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:#D3D9E4;border-radius:8px;border:3px solid transparent;background-clip:content-box}
+</style>
+
+<body class="bg-canvas text-ink">
+
+<!-- ══════════ SIDEBAR ══════════ -->
+<aside id="rail" class="fixed inset-y-0 left-0 z-50 w-[260px] bg-rail text-rail-text flex flex-col
+       -translate-x-full lg:translate-x-0 transition-transform duration-200">
+
+  <!-- brand -->
+  <div class="h-16 flex items-center gap-3 px-4 border-b border-rail-line shrink-0">
+    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 grid place-items-center text-white shrink-0">
+      <i data-lucide="git-fork" class="text-[18px]"></i>
+    </div>
+    <div class="brandtxt leading-tight min-w-0">
+      <div class="text-white font-semibold text-[15px] tracking-tight">DNC</div>
+      <div class="text-[11px] text-rail-text/70 truncate">Content Platform</div>
+    </div>
+    <button onclick="closeRail()" class="lg:hidden ml-auto p-1.5 rounded-lg hover:bg-white/10 text-rail-text">
+      <i data-lucide="x" class="text-[18px]"></i>
+    </button>
+  </div>
+
+  <!-- nav -->
+  <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+
+    <a href="#" onclick="go('dashboard','Dashboard')" data-nav="dashboard"
+       class="navlink flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium hover:bg-white/[.07] transition">
+      <i data-lucide="layout-dashboard" class="text-[18px] shrink-0"></i><span class="lbl">Dashboard</span>
+    </a>
+
+    <div class="grp" id="g-scraper">
+      <button onclick="toggleGrp('g-scraper')" class="navlink w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium hover:bg-white/[.07] transition">
+        <i data-lucide="globe" class="text-[18px] shrink-0"></i><span class="lbl flex-1 text-left">Scraper</span>
+        <i data-lucide="chevron-right" class="chev text-[15px] opacity-60"></i>
+      </button>
+      <div class="sub mt-1 ml-[26px] pl-3 border-l border-rail-line space-y-0.5">
+        <a href="#" onclick="go('jobs','Scraper / Jobs')" data-nav="jobs" class="navlink block px-3 py-2 rounded-lg text-[13px] hover:bg-white/[.07] hover:text-white transition">Jobs</a>
+        <a href="#" onclick="go('execution','Scraper / Execution')" data-nav="execution" class="navlink block px-3 py-2 rounded-lg text-[13px] hover:bg-white/[.07] hover:text-white transition">Execution</a>
+      </div>
+    </div>
+
+    <div class="grp" id="g-studio">
+      <button onclick="toggleGrp('g-studio')" class="navlink w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium hover:bg-white/[.07] transition">
+        <i data-lucide="sparkles" class="text-[18px] shrink-0"></i><span class="lbl flex-1 text-left">Content Studio</span>
+        <i data-lucide="chevron-right" class="chev text-[15px] opacity-60"></i>
+      </button>
+      <div class="sub mt-1 ml-[26px] pl-3 border-l border-rail-line space-y-0.5">
+        <a href="#" onclick="go('scraped','Content Studio / Scraped')" data-nav="scraped" class="navlink block px-3 py-2 rounded-lg text-[13px] hover:bg-white/[.07] hover:text-white transition">Scraped</a>
+        <a href="#" onclick="go('content','Content Studio / Content')" data-nav="content" class="navlink block px-3 py-2 rounded-lg text-[13px] hover:bg-white/[.07] hover:text-white transition">Content</a>
+        <a href="#" onclick="go('genai','Content Studio / GenAI Content')" data-nav="genai" class="navlink block px-3 py-2 rounded-lg text-[13px] hover:bg-white/[.07] hover:text-white transition">GenAI Content</a>
+      </div>
+    </div>
+
+    <div class="grp" id="g-poster">
+      <button onclick="toggleGrp('g-poster')" class="navlink w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium hover:bg-white/[.07] transition">
+        <i data-lucide="send" class="text-[18px] shrink-0"></i><span class="lbl flex-1 text-left">Poster</span>
+        <i data-lucide="chevron-right" class="chev text-[15px] opacity-60"></i>
+      </button>
+      <div class="sub mt-1 ml-[26px] pl-3 border-l border-rail-line space-y-0.5">
+        <a href="#" onclick="go('schedule','Poster / Schedule')" data-nav="schedule" class="navlink block px-3 py-2 rounded-lg text-[13px] hover:bg-white/[.07] hover:text-white transition">Schedule</a>
+        <a href="#" onclick="go('calendar','Poster / Calendar')" data-nav="calendar" class="navlink block px-3 py-2 rounded-lg text-[13px] hover:bg-white/[.07] hover:text-white transition">Calendar</a>
+      </div>
+    </div>
+
+    <div class="grp" id="g-assets">
+      <button onclick="toggleGrp('g-assets')" class="navlink w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium hover:bg-white/[.07] transition">
+        <i data-lucide="folder-open" class="text-[18px] shrink-0"></i><span class="lbl flex-1 text-left">Repository</span>
+        <i data-lucide="chevron-right" class="chev text-[15px] opacity-60"></i>
+      </button>
+      <div class="sub mt-1 ml-[26px] pl-3 border-l border-rail-line space-y-0.5">
+        <a href="#" onclick="go('assets','Repository / Assets')" data-nav="assets" class="navlink block px-3 py-2 rounded-lg text-[13px] hover:bg-white/[.07] hover:text-white transition">Assets</a>
+        <a href="#" onclick="go('register','Repository / Register Asset')" data-nav="register" class="navlink block px-3 py-2 rounded-lg text-[13px] hover:bg-white/[.07] hover:text-white transition">Register Asset</a>
+        <a href="#" onclick="go('channels','Repository / Channels')" data-nav="channels" class="navlink block px-3 py-2 rounded-lg text-[13px] hover:bg-white/[.07] hover:text-white transition">Channels</a>
+      </div>
+    </div>
+
+    <div class="grp" id="g-integ">
+      <button onclick="toggleGrp('g-integ')" class="navlink w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium hover:bg-white/[.07] transition">
+        <i data-lucide="plug" class="text-[18px] shrink-0"></i><span class="lbl flex-1 text-left">Integrations</span>
+        <i data-lucide="chevron-right" class="chev text-[15px] opacity-60"></i>
+      </button>
+      <div class="sub mt-1 ml-[26px] pl-3 border-l border-rail-line space-y-0.5">
+        <a href="#" onclick="go('integrations','Integrations / Dashboard')" data-nav="integrations" class="navlink block px-3 py-2 rounded-lg text-[13px] hover:bg-white/[.07] hover:text-white transition">Dashboard</a>
+      </div>
+    </div>
+
+    <div class="pt-3 mt-3 border-t border-rail-line">
+      <a href="#" onclick="go('states','Design / States')" data-nav="states"
+         class="navlink flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium hover:bg-white/[.07] transition">
+        <i data-lucide="layers" class="text-[18px] shrink-0"></i><span class="lbl">States gallery</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- footer -->
+  <div class="px-3 py-3 border-t border-rail-line space-y-1 shrink-0">
+    <a href="#" class="navlink flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] hover:bg-white/[.07] transition">
+      <i data-lucide="settings" class="text-[17px] shrink-0"></i><span class="lbl">Settings</span></a>
+    <a href="#" class="navlink flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] hover:bg-white/[.07] transition">
+      <i data-lucide="circle-help" class="text-[17px] shrink-0"></i><span class="lbl">Help &amp; documentation</span></a>
+
+    <div class="relative pt-1">
+      <button onclick="tog('usermenu')" class="navlink w-full flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-white/[.07] transition">
+        <div class="w-8 h-8 rounded-full bg-primary-500 grid place-items-center text-white text-[12px] font-semibold shrink-0">A</div>
+        <div class="usermeta min-w-0 text-left flex-1">
+          <div class="text-[13px] text-white font-medium leading-tight">Admin</div>
+          <div class="text-[11px] text-rail-text/70 truncate">admin@dncouncil.org</div>
+        </div>
+        <i data-lucide="chevron-up" class="usermeta text-[15px] opacity-60"></i>
+      </button>
+      <div id="usermenu" class="hidden absolute bottom-full left-0 right-0 mb-2 bg-white rounded-xl shadow-pop border border-slate-200 p-1.5 z-10">
+        <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-ink-soft hover:bg-slate-50"><i data-lucide="user" class="text-[15px]"></i>Profile</a>
+        <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-ink-soft hover:bg-slate-50"><i data-lucide="sliders-horizontal" class="text-[15px]"></i>Preferences</a>
+        <div class="h-px bg-slate-100 my-1"></div>
+        <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-err-700 hover:bg-err-50"><i data-lucide="log-out" class="text-[15px]"></i>Log out</a>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<div id="scrim" onclick="closeRail()" class="hidden fixed inset-0 bg-ink/40 z-40 lg:hidden"></div>
+
+<!-- ══════════ MAIN ══════════ -->
+<div id="shell" class="lg:pl-[260px] transition-[padding] duration-200 min-h-screen">
+
+<header class="sticky top-0 z-30 h-16 bg-white/85 backdrop-blur border-b border-slate-200/80 flex items-center gap-3 px-4 sm:px-6">
+  <button onclick="openRail()" class="lg:hidden p-2 -ml-1 rounded-lg hover:bg-slate-100"><i data-lucide="menu" class="text-[20px]"></i></button>
+  <button onclick="collapseRail()" class="hidden lg:grid place-items-center w-9 h-9 rounded-lg hover:bg-slate-100 text-ink-mute"><i data-lucide="panel-left" class="text-[18px]"></i></button>
+
+  <nav class="min-w-0 flex-1">
+    <div id="crumb" class="text-[13.5px] font-medium text-ink-soft truncate">Dashboard</div>
+  </nav>
+
+  <div class="hidden md:flex items-center gap-2 w-[340px] px-3 h-9 rounded-xl bg-slate-100/80 border border-transparent focus-within:bg-white focus-within:border-accent-500/40 focus-within:ring-4 focus-within:ring-accent-500/10 transition">
+    <i data-lucide="search" class="text-[16px] text-ink-faint"></i>
+    <input placeholder="Search jobs, content, assets…" class="bg-transparent text-[13px] w-full outline-none placeholder:text-ink-faint">
+    <kbd class="text-[10px] text-ink-faint border border-slate-300 rounded px-1.5 py-0.5">⌘K</kbd>
+  </div>
+  <button class="md:hidden p-2 rounded-lg hover:bg-slate-100"><i data-lucide="search" class="text-[19px]"></i></button>
+
+  <button onclick="openDrawer()" class="relative p-2 rounded-lg hover:bg-slate-100">
+    <i data-lucide="bell" class="text-[19px]"></i>
+    <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-err-500 ring-2 ring-white"></span>
+  </button>
+  <button class="hidden sm:grid place-items-center w-9 h-9 rounded-lg hover:bg-slate-100"><i data-lucide="circle-help" class="text-[19px]"></i></button>
+  <div class="w-9 h-9 rounded-full bg-primary-500 grid place-items-center text-white text-[12px] font-semibold shrink-0">A</div>
+</header>
+
+<main class="p-4 sm:p-6 lg:p-8 max-w-[1440px]">
+
+<!-- ─────────── DASHBOARD ─────────── -->
+<section class="scr on" id="s-dashboard">
+  <div class="flex flex-wrap items-start justify-between gap-4 mb-7">
+    <div>
+      <h1 class="text-[26px] sm:text-[30px] font-semibold tracking-[-0.02em]">Good morning, Admin</h1>
+      <p class="text-ink-mute text-[14px] mt-1">Here's what's happening across your content operations.</p>
+    </div>
+    <div class="flex items-center gap-2.5">
+      <button onclick="go('content','Content Studio / Content')" class="h-10 px-4 rounded-xl border border-slate-300 bg-white text-[13.5px] font-medium hover:bg-slate-50 shadow-soft transition">Create content</button>
+      <button onclick="go('newjob','Scraper / Jobs / New job')" class="h-10 px-4 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-[13.5px] font-medium shadow-lift transition flex items-center gap-2">
+        <i data-lucide="plus" class="text-[16px]"></i>New scrape job</button>
+    </div>
+  </div>
+
+  <!-- KPI -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5 relative overflow-hidden">
+      <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary-500 to-accent-500"></div>
+      <div class="flex items-start justify-between">
+        <div class="w-10 h-10 rounded-xl bg-primary-50 text-primary-600 grid place-items-center"><i data-lucide="globe" class="text-[19px]"></i></div>
+        <span class="text-[12px] font-medium text-ok-700 bg-ok-50 px-2 py-1 rounded-lg flex items-center gap-1"><i data-lucide="trending-up" class="text-[13px]"></i>+12%</span>
+      </div>
+      <div class="mt-4 text-[30px] font-semibold tracking-[-0.02em] tabular-nums">1,284</div>
+      <div class="text-[13px] text-ink-mute mt-0.5">Scrape jobs</div>
+      <div class="text-[12px] text-ink-faint mt-2">+12% this month</div>
+    </div>
+
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5 relative overflow-hidden">
+      <div class="absolute inset-x-0 top-0 h-1 bg-ok-500"></div>
+      <div class="flex items-start justify-between">
+        <div class="w-10 h-10 rounded-xl bg-ok-50 text-ok-700 grid place-items-center"><i data-lucide="circle-check-big" class="text-[19px]"></i></div>
+        <span class="text-[12px] font-medium text-ok-700 bg-ok-50 px-2 py-1 rounded-lg">91.6%</span>
+      </div>
+      <div class="mt-4 text-[30px] font-semibold tracking-[-0.02em] tabular-nums">1,176</div>
+      <div class="text-[13px] text-ink-mute mt-0.5">Successful</div>
+      <div class="text-[12px] text-ink-faint mt-2">91.6% success rate</div>
+    </div>
+
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5 relative overflow-hidden">
+      <div class="absolute inset-x-0 top-0 h-1 bg-accent-500"></div>
+      <div class="flex items-start justify-between">
+        <div class="w-10 h-10 rounded-xl bg-accent-50 text-accent-600 grid place-items-center"><i data-lucide="file-text" class="text-[19px]"></i></div>
+        <span class="text-[12px] font-medium text-accent-600 bg-accent-50 px-2 py-1 rounded-lg flex items-center gap-1"><i data-lucide="trending-up" class="text-[13px]"></i>+284</span>
+      </div>
+      <div class="mt-4 text-[30px] font-semibold tracking-[-0.02em] tabular-nums">3,842</div>
+      <div class="text-[13px] text-ink-mute mt-0.5">Content items</div>
+      <div class="text-[12px] text-ink-faint mt-2">+284 this month</div>
+    </div>
+
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5 relative overflow-hidden">
+      <div class="absolute inset-x-0 top-0 h-1 bg-queued-500"></div>
+      <div class="flex items-start justify-between">
+        <div class="w-10 h-10 rounded-xl bg-queued-50 text-queued-700 grid place-items-center"><i data-lucide="calendar-clock" class="text-[19px]"></i></div>
+        <span class="text-[12px] font-medium text-queued-700 bg-queued-50 px-2 py-1 rounded-lg">12 today</span>
+      </div>
+      <div class="mt-4 text-[30px] font-semibold tracking-[-0.02em] tabular-nums">48</div>
+      <div class="text-[13px] text-ink-mute mt-0.5">Scheduled posts</div>
+      <div class="text-[12px] text-ink-faint mt-2">12 publishing today</div>
+    </div>
+  </div>
+
+  <!-- two column -->
+  <div class="grid grid-cols-1 xl:grid-cols-[1.85fr,1fr] gap-5 mb-6">
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft">
+      <div class="flex items-center justify-between px-5 h-14 border-b border-slate-100">
+        <h2 class="text-[15px] font-semibold">Recent scrape jobs</h2>
+        <button onclick="go('jobs','Scraper / Jobs')" class="text-[13px] font-medium text-primary-600 hover:text-primary-700 flex items-center gap-1">View all <i data-lucide="arrow-right" class="text-[14px]"></i></button>
+      </div>
+      <div class="divide-y divide-slate-100">
+        <div onclick="go('detail','Scraper / Jobs / #SC-1284')" class="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50/70 cursor-pointer transition">
+          <div class="w-9 h-9 rounded-lg bg-ok-50 text-ok-700 grid place-items-center shrink-0"><i data-lucide="check" class="text-[17px]"></i></div>
+          <div class="min-w-0 flex-1">
+            <div class="text-[13.5px] font-medium truncate">search.studyaustralia.gov.au/courses</div>
+            <div class="text-[12px] text-ink-faint mt-0.5">#SC-1284 · Page 10 · 8.4 sec</div>
+          </div>
+          <span class="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-ok-700 bg-ok-50 border border-ok-500/20 px-2.5 py-1 rounded-lg">COMPLETED</span>
+          <span class="text-[12px] text-ink-faint hidden md:block tabular-nums w-[52px] text-right">02:52</span>
+        </div>
+        <div onclick="go('detail','Scraper / Jobs / #SC-1283')" class="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50/70 cursor-pointer transition">
+          <div class="w-9 h-9 rounded-lg bg-ok-50 text-ok-700 grid place-items-center shrink-0"><i data-lucide="check" class="text-[17px]"></i></div>
+          <div class="min-w-0 flex-1">
+            <div class="text-[13.5px] font-medium truncate">search.studyaustralia.gov.au/courses</div>
+            <div class="text-[12px] text-ink-faint mt-0.5">#SC-1283 · Page 1 · 6.1 sec</div>
+          </div>
+          <span class="hidden sm:inline-flex text-[11px] font-semibold tracking-wide text-ok-700 bg-ok-50 border border-ok-500/20 px-2.5 py-1 rounded-lg">COMPLETED</span>
+          <span class="text-[12px] text-ink-faint hidden md:block tabular-nums w-[52px] text-right">02:41</span>
+        </div>
+        <div onclick="go('detail','Scraper / Jobs / #SC-1282')" class="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50/70 cursor-pointer transition">
+          <div class="w-9 h-9 rounded-lg bg-err-50 text-err-700 grid place-items-center shrink-0"><i data-lucide="triangle-alert" class="text-[17px]"></i></div>
+          <div class="min-w-0 flex-1">
+            <div class="text-[13.5px] font-medium truncate">search.studyaustralia.gov.au/scholarships</div>
+            <div class="text-[12px] text-err-700 mt-0.5">#SC-1282 · Page 2 · Worker did not complete in time</div>
+          </div>
+          <span class="hidden sm:inline-flex text-[11px] font-semibold tracking-wide text-err-700 bg-err-50 border border-err-500/25 px-2.5 py-1 rounded-lg">FAILED</span>
+          <span class="text-[12px] text-ink-faint hidden md:block tabular-nums w-[52px] text-right">02:19</span>
+        </div>
+        <div class="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50/70 cursor-pointer transition">
+          <div class="w-9 h-9 rounded-lg bg-accent-50 text-accent-600 grid place-items-center shrink-0 pulse-dot"><i data-lucide="loader-circle" class="text-[17px]"></i></div>
+          <div class="min-w-0 flex-1">
+            <div class="text-[13.5px] font-medium truncate">nomadlist.com/australia</div>
+            <div class="text-[12px] text-ink-faint mt-0.5">#SC-1281 · Page 3 · Parsing content</div>
+          </div>
+          <span class="hidden sm:inline-flex text-[11px] font-semibold tracking-wide text-accent-600 bg-accent-50 border border-accent-500/25 px-2.5 py-1 rounded-lg">RUNNING</span>
+          <span class="text-[12px] text-ink-faint hidden md:block tabular-nums w-[52px] text-right">02:04</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft">
+      <div class="flex items-center justify-between px-5 h-14 border-b border-slate-100">
+        <h2 class="text-[15px] font-semibold">Platform activity</h2>
+        <button class="text-ink-faint hover:text-ink-soft p-1 rounded"><i data-lucide="ellipsis" class="text-[17px]"></i></button>
+      </div>
+      <div class="p-5 space-y-4">
+        <div class="flex gap-3">
+          <div class="w-8 h-8 rounded-lg bg-ok-50 text-ok-700 grid place-items-center shrink-0"><i data-lucide="circle-check-big" class="text-[15px]"></i></div>
+          <div class="min-w-0"><p class="text-[13px] leading-snug">Scrape job <span class="font-medium">#SC-1284</span> completed</p><p class="text-[11.5px] text-ink-faint mt-0.5">2 minutes ago</p></div>
+        </div>
+        <div class="flex gap-3">
+          <div class="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 grid place-items-center shrink-0"><i data-lucide="sparkles" class="text-[15px]"></i></div>
+          <div class="min-w-0"><p class="text-[13px] leading-snug">AI content generated for <span class="font-medium">Study visa guide</span></p><p class="text-[11.5px] text-ink-faint mt-0.5">18 minutes ago</p></div>
+        </div>
+        <div class="flex gap-3">
+          <div class="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 grid place-items-center shrink-0"><i data-lucide="image" class="text-[15px]"></i></div>
+          <div class="min-w-0"><p class="text-[13px] leading-snug">Asset registered — <span class="font-medium">sydney-harbour.jpg</span></p><p class="text-[11.5px] text-ink-faint mt-0.5">1 hour ago</p></div>
+        </div>
+        <div class="flex gap-3">
+          <div class="w-8 h-8 rounded-lg bg-queued-50 text-queued-700 grid place-items-center shrink-0"><i data-lucide="send" class="text-[15px]"></i></div>
+          <div class="min-w-0"><p class="text-[13px] leading-snug">Post scheduled to <span class="font-medium">LinkedIn</span> for 10:00 AM</p><p class="text-[11.5px] text-ink-faint mt-0.5">3 hours ago</p></div>
+        </div>
+        <div class="flex gap-3">
+          <div class="w-8 h-8 rounded-lg bg-slate-100 text-ink-soft grid place-items-center shrink-0"><i data-lucide="refresh-cw" class="text-[15px]"></i></div>
+          <div class="min-w-0"><p class="text-[13px] leading-snug">WordPress integration synchronised</p><p class="text-[11.5px] text-ink-faint mt-0.5">Yesterday, 11:40 PM</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- pipeline -->
+  <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5 sm:p-6">
+    <div class="flex items-center justify-between mb-6">
+      <div><h2 class="text-[15px] font-semibold">Content pipeline</h2>
+      <p class="text-[12.5px] text-ink-mute mt-0.5">Items currently at each stage.</p></div>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-0 md:flex md:items-stretch">
+      <div class="flex-1 rounded-xl border border-slate-200 p-4 md:rounded-r-none">
+        <div class="flex items-center gap-2 text-ink-mute"><i data-lucide="download" class="text-[15px]"></i><span class="text-[12px] font-medium uppercase tracking-wide">Scraped</span></div>
+        <div class="text-[24px] font-semibold mt-2 tabular-nums">1,176</div>
+      </div>
+      <div class="hidden md:grid place-items-center w-9 text-ink-faint"><i data-lucide="chevron-right" class="text-[18px]"></i></div>
+      <div class="flex-1 rounded-xl border border-slate-200 p-4">
+        <div class="flex items-center gap-2 text-ink-mute"><i data-lucide="file-text" class="text-[15px]"></i><span class="text-[12px] font-medium uppercase tracking-wide">Content</span></div>
+        <div class="text-[24px] font-semibold mt-2 tabular-nums">842</div>
+      </div>
+      <div class="hidden md:grid place-items-center w-9 text-ink-faint"><i data-lucide="chevron-right" class="text-[18px]"></i></div>
+      <div class="flex-1 rounded-xl border border-primary-200 bg-primary-50/40 p-4">
+        <div class="flex items-center gap-2 text-primary-600"><i data-lucide="sparkles" class="text-[15px]"></i><span class="text-[12px] font-medium uppercase tracking-wide">GenAI</span></div>
+        <div class="text-[24px] font-semibold mt-2 tabular-nums text-primary-700">316</div>
+      </div>
+      <div class="hidden md:grid place-items-center w-9 text-ink-faint"><i data-lucide="chevron-right" class="text-[18px]"></i></div>
+      <div class="flex-1 rounded-xl border border-slate-200 p-4">
+        <div class="flex items-center gap-2 text-ink-mute"><i data-lucide="calendar-clock" class="text-[15px]"></i><span class="text-[12px] font-medium uppercase tracking-wide">Scheduled</span></div>
+        <div class="text-[24px] font-semibold mt-2 tabular-nums">48</div>
+      </div>
+      <div class="hidden md:grid place-items-center w-9 text-ink-faint"><i data-lucide="chevron-right" class="text-[18px]"></i></div>
+      <div class="flex-1 rounded-xl border border-slate-200 p-4 md:rounded-l-none">
+        <div class="flex items-center gap-2 text-ok-700"><i data-lucide="badge-check" class="text-[15px]"></i><span class="text-[12px] font-medium uppercase tracking-wide">Published</span></div>
+        <div class="text-[24px] font-semibold mt-2 tabular-nums">1,460</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── SCRAPER / JOBS ─────────── -->
+<section class="scr" id="s-jobs">
+  <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-[24px] sm:text-[27px] font-semibold tracking-[-0.02em]">Scrape jobs</h1>
+      <p class="text-ink-mute text-[14px] mt-1">Create, monitor and manage website scraping jobs.</p>
+    </div>
+    <div class="flex items-center gap-2.5">
+      <button class="h-10 px-4 rounded-xl border border-slate-300 bg-white text-[13.5px] font-medium hover:bg-slate-50 shadow-soft transition flex items-center gap-2">
+        <i data-lucide="download" class="text-[16px]"></i>Export CSV</button>
+      <button class="h-10 px-4 rounded-xl border border-slate-300 bg-white text-[13.5px] font-medium hover:bg-slate-50 shadow-soft transition flex items-center gap-2">
+        <i data-lucide="database" class="text-[16px]"></i>Export SQLite</button>
+      <button onclick="go('newjob','Scraper / Jobs / New job')" class="h-10 px-4 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-[13.5px] font-medium shadow-lift transition flex items-center gap-2">
+        <i data-lucide="plus" class="text-[16px]"></i>New scrape job</button>
+    </div>
+  </div>
+
+  <!-- filters -->
+  <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-3 mb-4 flex flex-wrap items-center gap-2.5">
+    <div class="flex items-center gap-2 flex-1 min-w-[200px] h-10 px-3 rounded-xl bg-slate-100/70 border border-transparent focus-within:bg-white focus-within:border-accent-500/40 focus-within:ring-4 focus-within:ring-accent-500/10 transition">
+      <i data-lucide="search" class="text-[16px] text-ink-faint"></i>
+      <input placeholder="Search by URL…" class="bg-transparent text-[13px] w-full outline-none placeholder:text-ink-faint">
+    </div>
+    <select class="h-10 px-3 pr-8 rounded-xl border border-slate-300 bg-white text-[13px] outline-none hover:bg-slate-50 focus:border-accent-500 transition">
+      <option>All statuses</option><option>Queued</option><option>Running</option><option>Completed</option><option>Failed</option>
+    </select>
+    <button class="h-10 px-3 rounded-xl border border-slate-300 bg-white text-[13px] hover:bg-slate-50 transition flex items-center gap-2 text-ink-soft">
+      <i data-lucide="calendar" class="text-[15px]"></i>Last 30 days</button>
+    <button class="h-10 w-10 grid place-items-center rounded-xl border border-slate-300 bg-white hover:bg-slate-50 transition text-ink-soft">
+      <i data-lucide="refresh-cw" class="text-[15px]"></i></button>
+  </div>
+
+  <!-- table (desktop) -->
+  <div class="hidden md:block bg-white rounded-card border border-slate-200/80 shadow-soft overflow-hidden">
+    <div class="overflow-x-auto tbl-scroll">
+    <table class="w-full text-[13px]">
+      <thead>
+        <tr class="bg-slate-50/80 border-b border-slate-200 text-left">
+          <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Job ID</th>
+          <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">URL</th>
+          <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Page</th>
+          <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Status</th>
+          <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Attempts</th>
+          <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Created</th>
+          <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Duration</th>
+          <th class="px-5 py-3 w-12"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        <tr onclick="go('detail','Scraper / Jobs / #SC-1284')" class="hover:bg-slate-50/70 cursor-pointer transition">
+          <td class="px-5 py-3.5 font-medium tabular-nums">#SC-1284</td>
+          <td class="px-5 py-3.5 max-w-[280px]"><div class="truncate text-ink-soft">search.studyaustralia.gov.au/courses</div></td>
+          <td class="px-5 py-3.5 tabular-nums text-ink-soft">10</td>
+          <td class="px-5 py-3.5"><span class="inline-flex text-[11px] font-semibold tracking-wide text-ok-700 bg-ok-50 border border-ok-500/20 px-2.5 py-1 rounded-lg">COMPLETED</span></td>
+          <td class="px-5 py-3.5 tabular-nums text-ink-soft">1</td>
+          <td class="px-5 py-3.5 text-ink-mute whitespace-nowrap">Aug 12, 2026 02:52</td>
+          <td class="px-5 py-3.5 tabular-nums text-ink-soft">8.4 sec</td>
+          <td class="px-5 py-3.5"><button onclick="event.stopPropagation();tog('m1')" class="p-1.5 rounded-lg hover:bg-slate-200/70 text-ink-faint"><i data-lucide="ellipsis-vertical" class="text-[16px]"></i></button></td>
+        </tr>
+        <tr onclick="go('detail','Scraper / Jobs / #SC-1283')" class="hover:bg-slate-50/70 cursor-pointer transition">
+          <td class="px-5 py-3.5 font-medium tabular-nums">#SC-1283</td>
+          <td class="px-5 py-3.5 max-w-[280px]"><div class="truncate text-ink-soft">search.studyaustralia.gov.au/courses</div></td>
+          <td class="px-5 py-3.5 tabular-nums text-ink-soft">1</td>
+          <td class="px-5 py-3.5"><span class="inline-flex text-[11px] font-semibold tracking-wide text-ok-700 bg-ok-50 border border-ok-500/20 px-2.5 py-1 rounded-lg">COMPLETED</span></td>
+          <td class="px-5 py-3.5 tabular-nums text-ink-soft">1</td>
+          <td class="px-5 py-3.5 text-ink-mute whitespace-nowrap">Aug 12, 2026 02:41</td>
+          <td class="px-5 py-3.5 tabular-nums text-ink-soft">6.1 sec</td>
+          <td class="px-5 py-3.5"><button onclick="event.stopPropagation()" class="p-1.5 rounded-lg hover:bg-slate-200/70 text-ink-faint"><i data-lucide="ellipsis-vertical" class="text-[16px]"></i></button></td>
+        </tr>
+        <tr onclick="go('detail','Scraper / Jobs / #SC-1282')" class="hover:bg-slate-50/70 cursor-pointer transition bg-err-50/25">
+          <td class="px-5 py-3.5 font-medium tabular-nums">#SC-1282</td>
+          <td class="px-5 py-3.5 max-w-[280px]">
+            <div class="truncate text-ink-soft">search.studyaustralia.gov.au/scholarships</div>
+            <div class="flex items-center gap-1 text-[11.5px] text-err-700 mt-0.5"><i data-lucide="triangle-alert" class="text-[12px]"></i>Worker did not complete in time</div>
+          </td>
+          <td class="px-5 py-3.5 tabular-nums text-ink-soft">2</td>
+          <td class="px-5 py-3.5"><span class="inline-flex text-[11px] font-semibold tracking-wide text-err-700 bg-err-50 border border-err-500/25 px-2.5 py-1 rounded-lg">FAILED</span></td>
+          <td class="px-5 py-3.5 tabular-nums text-ink-soft">3</td>
+          <td class="px-5 py-3.5 text-ink-mute whitespace-nowrap">Aug 12, 2026 02:19</td>
+          <td class="px-5 py-3.5 text-ink-faint">—</td>
+          <td class="px-5 py-3.5"><button onclick="event.stopPropagation()" class="p-1.5 rounded-lg hover:bg-slate-200/70 text-ink-faint"><i data-lucide="ellipsis-vertical" class="text-[16px]"></i></button></td>
+        </tr>
+        <tr class="hover:bg-slate-50/70 cursor-pointer transition">
+          <td class="px-5 py-3.5 font-medium tabular-nums">#SC-1281</td>
+          <td class="px-5 py-3.5 max-w-[280px]"><div class="truncate text-ink-soft">nomadlist.com/australia</div></td>
+          <td class="px-5 py-3.5 tabular-nums text-ink-soft">3</td>
+          <td class="px-5 py-3.5"><span class="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-accent-600 bg-accent-50 border border-accent-500/25 px-2.5 py-1 rounded-lg">
+            <span class="w-1.5 h-1.5 rounded-full bg-accent-500 pulse-dot"></span>RUNNING</span></td>
+          <td class="px-5 py-3.5 tabular-nums text-ink-soft">1</td>
+          <td class="px-5 py-3.5 text-ink-mute whitespace-nowrap">Aug 12, 2026 02:04</td>
+          <td class="px-5 py-3.5 tabular-nums text-ink-soft">4.2 sec</td>
+          <td class="px-5 py-3.5"><button onclick="event.stopPropagation()" class="p-1.5 rounded-lg hover:bg-slate-200/70 text-ink-faint"><i data-lucide="ellipsis-vertical" class="text-[16px]"></i></button></td>
+        </tr>
+        <tr class="hover:bg-slate-50/70 cursor-pointer transition">
+          <td class="px-5 py-3.5 font-medium tabular-nums">#SC-1280</td>
+          <td class="px-5 py-3.5 max-w-[280px]"><div class="truncate text-ink-soft">studyaustralia.gov.au/en/plan-your-studies</div></td>
+          <td class="px-5 py-3.5 tabular-nums text-ink-soft">1</td>
+          <td class="px-5 py-3.5"><span class="inline-flex text-[11px] font-semibold tracking-wide text-queued-700 bg-queued-50 border border-queued-500/25 px-2.5 py-1 rounded-lg">QUEUED</span></td>
+          <td class="px-5 py-3.5 tabular-nums text-ink-soft">0</td>
+          <td class="px-5 py-3.5 text-ink-mute whitespace-nowrap">Aug 12, 2026 02:01</td>
+          <td class="px-5 py-3.5 text-ink-faint">—</td>
+          <td class="px-5 py-3.5"><button onclick="event.stopPropagation()" class="p-1.5 rounded-lg hover:bg-slate-200/70 text-ink-faint"><i data-lucide="ellipsis-vertical" class="text-[16px]"></i></button></td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 border-t border-slate-100">
+      <p class="text-[12.5px] text-ink-mute">Showing <span class="font-medium text-ink">1–20</span> of <span class="font-medium text-ink">1,284</span></p>
+      <div class="flex items-center gap-1">
+        <button class="h-8 px-3 rounded-lg border border-slate-300 text-[12.5px] text-ink-mute hover:bg-slate-50 disabled:opacity-40" disabled>Previous</button>
+        <button class="h-8 w-8 rounded-lg bg-primary-500 text-white text-[12.5px] font-medium">1</button>
+        <button class="h-8 w-8 rounded-lg text-[12.5px] text-ink-soft hover:bg-slate-100">2</button>
+        <button class="h-8 w-8 rounded-lg text-[12.5px] text-ink-soft hover:bg-slate-100">3</button>
+        <span class="px-1 text-ink-faint text-[12.5px]">…</span>
+        <button class="h-8 w-8 rounded-lg text-[12.5px] text-ink-soft hover:bg-slate-100">65</button>
+        <button class="h-8 px-3 rounded-lg border border-slate-300 text-[12.5px] text-ink-soft hover:bg-slate-50">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- cards (mobile) -->
+  <div class="md:hidden space-y-3">
+    <div onclick="go('detail','Scraper / Jobs / #SC-1284')" class="bg-white rounded-card border border-slate-200/80 shadow-soft p-4">
+      <div class="flex items-center justify-between gap-3">
+        <span class="text-[13px] font-semibold tabular-nums">#SC-1284</span>
+        <span class="text-[11px] font-semibold tracking-wide text-ok-700 bg-ok-50 border border-ok-500/20 px-2.5 py-1 rounded-lg">COMPLETED</span>
+      </div>
+      <p class="text-[13px] text-ink-soft mt-2 break-all">search.studyaustralia.gov.au/courses</p>
+      <div class="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-slate-100 text-[12px]">
+        <div><span class="text-ink-faint block">Page</span>10</div>
+        <div><span class="text-ink-faint block">Attempts</span>1</div>
+        <div><span class="text-ink-faint block">Duration</span>8.4 sec</div>
+      </div>
+    </div>
+    <div onclick="go('detail','Scraper / Jobs / #SC-1282')" class="bg-white rounded-card border border-err-500/30 shadow-soft p-4">
+      <div class="flex items-center justify-between gap-3">
+        <span class="text-[13px] font-semibold tabular-nums">#SC-1282</span>
+        <span class="text-[11px] font-semibold tracking-wide text-err-700 bg-err-50 border border-err-500/25 px-2.5 py-1 rounded-lg">FAILED</span>
+      </div>
+      <p class="text-[13px] text-ink-soft mt-2 break-all">search.studyaustralia.gov.au/scholarships</p>
+      <p class="text-[12px] text-err-700 mt-1.5 flex items-center gap-1"><i data-lucide="triangle-alert" class="text-[13px]"></i>Worker did not complete in time</p>
+      <div class="flex gap-2 mt-3 pt-3 border-t border-slate-100">
+        <button class="flex-1 h-11 rounded-xl bg-primary-500 text-white text-[13px] font-medium">Retry</button>
+        <button class="flex-1 h-11 rounded-xl border border-slate-300 text-[13px] font-medium">View details</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- floating actions menu sample -->
+  <div id="m1" class="hidden fixed z-40 right-10 top-[340px] w-48 bg-white rounded-xl shadow-pop border border-slate-200 p-1.5">
+    <a href="#" onclick="go('detail','Scraper / Jobs / #SC-1284');tog('m1')" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-ink-soft hover:bg-slate-50"><i data-lucide="eye" class="text-[15px]"></i>View</a>
+    <a href="#" onclick="go('scraped','Content Studio / Scraped');tog('m1')" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-ink-soft hover:bg-slate-50"><i data-lucide="file-text" class="text-[15px]"></i>View content</a>
+    <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-ink-soft hover:bg-slate-50"><i data-lucide="rotate-cw" class="text-[15px]"></i>Retry</a>
+    <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-ink-soft hover:bg-slate-50"><i data-lucide="download" class="text-[15px]"></i>Export CSV</a>
+    <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-ink-soft hover:bg-slate-50"><i data-lucide="database" class="text-[15px]"></i>Export SQLite</a>
+    <div class="h-px bg-slate-100 my-1"></div>
+    <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-err-700 hover:bg-err-50"><i data-lucide="trash-2" class="text-[15px]"></i>Delete</a>
+  </div>
+</section>
+
+
+<!-- ─────────── NEW SCRAPE JOB (page) ─────────── -->
+<section class="scr" id="s-newjob">
+  <button onclick="go('jobs','Scraper / Jobs')" class="text-[13px] text-ink-mute hover:text-ink flex items-center gap-1.5 mb-4"><i data-lucide="arrow-left" class="text-[15px]"></i>Back to jobs</button>
+
+  <div class="mb-6">
+    <h1 class="text-[24px] sm:text-[27px] font-semibold tracking-[-0.02em]">New scrape job</h1>
+    <p class="text-ink-mute text-[14px] mt-1">Collect content from a single page. The job runs in the background.</p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-[1fr,340px] gap-5 items-start max-w-[1100px]">
+
+    <!-- form -->
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft">
+      <div class="p-5 sm:p-6 space-y-6">
+
+        <div>
+          <label for="targetUrl" class="text-[13.5px] font-medium block mb-1.5">Target URL</label>
+          <div class="flex items-center gap-2 h-11 px-3.5 rounded-xl border border-slate-300 focus-within:border-accent-500 focus-within:ring-4 focus-within:ring-accent-500/10 transition">
+            <i data-lucide="link" class="text-[16px] text-ink-faint shrink-0"></i>
+            <input id="targetUrl" placeholder="https://example.com/page"
+              class="w-full text-[13.5px] outline-none placeholder:text-ink-faint bg-transparent">
+          </div>
+          <p class="text-[12.5px] text-ink-mute mt-1.5">Enter a publicly accessible URL to scrape.</p>
+        </div>
+
+        <div>
+          <label for="pageNum" class="text-[13.5px] font-medium block mb-1.5">Page</label>
+          <div class="flex items-center gap-2">
+            <button onclick="stepPage(-1)" aria-label="Decrease page" class="h-11 w-11 rounded-xl border border-slate-300 grid place-items-center hover:bg-slate-50 text-ink-soft transition"><i data-lucide="minus" class="text-[16px]"></i></button>
+            <input id="pageNum" value="1" type="number" min="1" max="1000"
+              class="h-11 w-24 px-3 rounded-xl border border-slate-300 text-[13.5px] text-center tabular-nums outline-none focus:border-accent-500 focus:ring-4 focus:ring-accent-500/10 transition">
+            <button onclick="stepPage(1)" aria-label="Increase page" class="h-11 w-11 rounded-xl border border-slate-300 grid place-items-center hover:bg-slate-50 text-ink-soft transition"><i data-lucide="plus" class="text-[16px]"></i></button>
+            <span class="text-[12.5px] text-ink-mute ml-1">Any page from 1 to 1000.</span>
+          </div>
+        </div>
+
+        <div class="rounded-xl border border-accent-500/25 bg-accent-50/50 p-4 flex gap-3">
+          <i data-lucide="info" class="text-[17px] text-accent-600 shrink-0 mt-0.5"></i>
+          <div>
+            <p class="text-[13.5px] font-medium text-ink">The page will be queued and processed in the background.</p>
+            <p class="text-[13px] text-ink-soft mt-1 leading-relaxed">You can leave this screen — the job appears in the jobs list straight away and updates as it runs.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="px-5 sm:px-6 py-4 border-t border-slate-100 flex flex-col sm:flex-row gap-2.5">
+        <button onclick="startJob()" class="h-11 sm:w-auto px-5 rounded-xl bg-primary-500 text-white text-[14px] font-medium hover:bg-primary-600 shadow-lift transition flex items-center justify-center gap-2">
+          <i data-lucide="play" class="text-[16px]"></i>Start scraping</button>
+        <button onclick="go('jobs','Scraper / Jobs')" class="h-11 px-5 rounded-xl border border-slate-300 text-[14px] font-medium hover:bg-slate-50 transition">Cancel</button>
+      </div>
+    </div>
+
+    <!-- side context -->
+    <aside class="space-y-4">
+      <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5">
+        <h2 class="text-[13.5px] font-semibold mb-4">What happens next</h2>
+        <ol class="relative">
+          <li class="flex gap-3.5 pb-5 relative">
+            <div class="absolute left-[11px] top-6 bottom-0 w-px bg-slate-200"></div>
+            <span class="w-6 h-6 rounded-full bg-queued-50 border-2 border-queued-500 grid place-items-center shrink-0 z-10"><span class="w-2 h-2 rounded-full bg-queued-500"></span></span>
+            <div><p class="text-[13px] font-medium">Queued</p><p class="text-[12.5px] text-ink-mute mt-0.5 leading-relaxed">The job joins the processing queue.</p></div>
+          </li>
+          <li class="flex gap-3.5 pb-5 relative">
+            <div class="absolute left-[11px] top-6 bottom-0 w-px bg-slate-200"></div>
+            <span class="w-6 h-6 rounded-full bg-accent-50 border-2 border-accent-500 grid place-items-center shrink-0 z-10"><span class="w-2 h-2 rounded-full bg-accent-500"></span></span>
+            <div><p class="text-[13px] font-medium">Running</p><p class="text-[12.5px] text-ink-mute mt-0.5 leading-relaxed">The page is fetched and its content parsed.</p></div>
+          </li>
+          <li class="flex gap-3.5">
+            <span class="w-6 h-6 rounded-full bg-slate-100 border-2 border-slate-300 grid place-items-center shrink-0 z-10"><i data-lucide="check" class="text-[13px] text-ink-faint"></i></span>
+            <div><p class="text-[13px] font-medium">Completed</p><p class="text-[12.5px] text-ink-mute mt-0.5 leading-relaxed">The result is stored and ready to review or export.</p></div>
+          </li>
+        </ol>
+      </div>
+
+      <div class="bg-white rounded-card border border-slate-200/80 shadow-soft">
+        <div class="px-5 h-12 flex items-center justify-between border-b border-slate-100">
+          <h2 class="text-[13.5px] font-semibold">Recent targets</h2>
+          <button onclick="go('jobs','Scraper / Jobs')" class="text-[12.5px] font-medium text-primary-600 hover:text-primary-700">All jobs</button>
+        </div>
+        <div class="p-2">
+          <button class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-slate-50 transition">
+            <p class="text-[12.5px] font-medium truncate">search.studyaustralia.gov.au/courses</p>
+            <p class="text-[11.5px] text-ink-faint mt-0.5">Page 10 · 2 minutes ago</p></button>
+          <button class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-slate-50 transition">
+            <p class="text-[12.5px] font-medium truncate">search.studyaustralia.gov.au/scholarships</p>
+            <p class="text-[11.5px] text-ink-faint mt-0.5">Page 2 · 33 minutes ago</p></button>
+          <button class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-slate-50 transition">
+            <p class="text-[12.5px] font-medium truncate">nomadlist.com/australia</p>
+            <p class="text-[11.5px] text-ink-faint mt-0.5">Page 3 · 48 minutes ago</p></button>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ─────────── EXECUTION MONITOR ─────────── -->
+<section class="scr" id="s-execution">
+  <div class="mb-6">
+    <h1 class="text-[24px] sm:text-[27px] font-semibold tracking-[-0.02em]">Execution monitor</h1>
+    <p class="text-ink-mute text-[14px] mt-1">Monitor active and historical scraping executions.</p>
+  </div>
+
+  <div class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-5">
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-4">
+      <div class="flex items-center gap-2 text-queued-700"><i data-lucide="clock" class="text-[16px]"></i><span class="text-[12px] font-medium uppercase tracking-wide">Queued</span></div>
+      <div class="text-[26px] font-semibold mt-2 tabular-nums">7</div></div>
+    <div class="bg-white rounded-card border border-accent-500/25 shadow-soft p-4">
+      <div class="flex items-center gap-2 text-accent-600"><i data-lucide="activity" class="text-[16px]"></i><span class="text-[12px] font-medium uppercase tracking-wide">Running</span></div>
+      <div class="text-[26px] font-semibold mt-2 tabular-nums text-accent-600">2</div></div>
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-4">
+      <div class="flex items-center gap-2 text-ok-700"><i data-lucide="circle-check-big" class="text-[16px]"></i><span class="text-[12px] font-medium uppercase tracking-wide">Completed today</span></div>
+      <div class="text-[26px] font-semibold mt-2 tabular-nums">64</div></div>
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-4">
+      <div class="flex items-center gap-2 text-err-700"><i data-lucide="circle-x" class="text-[16px]"></i><span class="text-[12px] font-medium uppercase tracking-wide">Failed today</span></div>
+      <div class="text-[26px] font-semibold mt-2 tabular-nums">3</div></div>
+  </div>
+
+  <!-- active -->
+  <div class="bg-white rounded-card border border-slate-200/80 shadow-soft mb-5">
+    <div class="flex items-center justify-between px-5 h-14 border-b border-slate-100">
+      <h2 class="text-[15px] font-semibold">Active executions</h2>
+      <span class="text-[12px] text-ink-mute flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-ok-500"></span>Live</span>
+    </div>
+    <div class="p-5">
+      <div class="rounded-xl border border-accent-500/25 bg-accent-50/30 p-5">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div class="min-w-0">
+            <div class="flex items-center gap-2.5">
+              <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-accent-600 bg-white border border-accent-500/25 px-2.5 py-1 rounded-lg">
+                <span class="w-1.5 h-1.5 rounded-full bg-accent-500 pulse-dot"></span>RUNNING</span>
+              <span class="text-[13px] font-semibold tabular-nums">#SC-1281</span>
+            </div>
+            <p class="text-[13.5px] text-ink-soft mt-2 break-all">nomadlist.com/australia</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="h-9 px-3.5 rounded-xl bg-white border border-slate-300 text-[13px] font-medium hover:bg-slate-50">View job</button>
+          </div>
+        </div>
+
+        <div class="h-1.5 rounded-full bg-white/70 mt-5 overflow-hidden">
+          <div class="h-full w-[62%] rounded-full bar-run"></div>
+        </div>
+
+        <ol class="mt-5 space-y-3">
+          <li class="flex items-center gap-3 text-[13px]">
+            <span class="w-5 h-5 rounded-full bg-ok-500 grid place-items-center text-white shrink-0"><i data-lucide="check" class="text-[12px]"></i></span>
+            <span class="text-ink-soft flex-1">Queued</span><span class="text-[12px] text-ink-faint tabular-nums">02:04:11</span></li>
+          <li class="flex items-center gap-3 text-[13px]">
+            <span class="w-5 h-5 rounded-full bg-ok-500 grid place-items-center text-white shrink-0"><i data-lucide="check" class="text-[12px]"></i></span>
+            <span class="text-ink-soft flex-1">Worker started</span><span class="text-[12px] text-ink-faint tabular-nums">02:04:13</span></li>
+          <li class="flex items-center gap-3 text-[13px]">
+            <span class="w-5 h-5 rounded-full bg-ok-500 grid place-items-center text-white shrink-0"><i data-lucide="check" class="text-[12px]"></i></span>
+            <span class="text-ink-soft flex-1">Fetching page</span><span class="text-[12px] text-ink-faint tabular-nums">02:04:15</span></li>
+          <li class="flex items-center gap-3 text-[13px]">
+            <span class="w-5 h-5 rounded-full border-2 border-accent-500 grid place-items-center shrink-0 text-accent-500"><span class="w-1.5 h-1.5 rounded-full bg-accent-500 pulse-dot"></span></span>
+            <span class="font-medium flex-1">Parsing content</span><span class="text-[12px] text-accent-600 tabular-nums">in progress</span></li>
+          <li class="flex items-center gap-3 text-[13px]">
+            <span class="w-5 h-5 rounded-full border-2 border-slate-300 shrink-0"></span>
+            <span class="text-ink-faint flex-1">Saving result</span></li>
+        </ol>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5 pt-5 border-t border-accent-500/15 text-[12.5px]">
+          <div><span class="text-ink-faint block mb-0.5">Job ID</span><span class="font-medium tabular-nums">#SC-1281</span></div>
+          <div><span class="text-ink-faint block mb-0.5">Started</span><span class="font-medium tabular-nums">02:04:11</span></div>
+          <div><span class="text-ink-faint block mb-0.5">Elapsed</span><span class="font-medium tabular-nums">4.2 sec</span></div>
+          <div><span class="text-ink-faint block mb-0.5">Attempt</span><span class="font-medium">1 of 3</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- recent executions -->
+  <div class="bg-white rounded-card border border-slate-200/80 shadow-soft overflow-hidden">
+    <div class="flex items-center justify-between px-5 h-14 border-b border-slate-100">
+      <h2 class="text-[15px] font-semibold">Recent executions</h2>
+      <button class="h-9 px-3 rounded-lg border border-slate-300 text-[12.5px] hover:bg-slate-50 flex items-center gap-1.5"><i data-lucide="refresh-cw" class="text-[14px]"></i>Refresh</button>
+    </div>
+    <div class="divide-y divide-slate-100">
+      <div class="px-5 py-3.5 flex items-center gap-4 text-[13px] hover:bg-slate-50/60">
+        <span class="w-2 h-2 rounded-full bg-ok-500 shrink-0"></span>
+        <span class="font-medium tabular-nums w-[76px]">#SC-1284</span>
+        <span class="text-ink-soft truncate flex-1 hidden sm:block">search.studyaustralia.gov.au/courses</span>
+        <span class="text-ink-mute tabular-nums">8.4 sec</span>
+        <span class="text-ink-faint tabular-nums hidden md:block">02:52:04</span>
+        <i data-lucide="chevron-down" class="text-[16px] text-ink-faint"></i>
+      </div>
+
+      <div class="bg-err-50/30">
+        <button onclick="tog('exp1')" class="w-full px-5 py-3.5 flex items-center gap-4 text-[13px] text-left hover:bg-err-50/50">
+          <span class="w-2 h-2 rounded-full bg-err-500 shrink-0"></span>
+          <span class="font-medium tabular-nums w-[76px]">#SC-1282</span>
+          <span class="text-ink-soft truncate flex-1 hidden sm:block">search.studyaustralia.gov.au/scholarships</span>
+          <span class="text-err-700 font-medium">Failed</span>
+          <span class="text-ink-faint tabular-nums hidden md:block">02:19:47</span>
+          <i data-lucide="chevron-down" class="text-[16px] text-ink-faint"></i>
+        </button>
+        <div id="exp1" class="hidden px-5 pb-5">
+          <div class="rounded-xl border border-err-500/25 bg-white p-4">
+            <div class="flex items-start gap-3">
+              <i data-lucide="circle-alert" class="text-[18px] text-err-700 mt-0.5 shrink-0"></i>
+              <div class="min-w-0">
+                <p class="text-[13.5px] font-semibold text-err-700">Scraping failed</p>
+                <p class="text-[13px] text-ink-soft mt-1">Worker did not complete the job within the expected time.</p>
+                <div class="mt-3 rounded-lg bg-slate-50 border border-slate-200 p-3 font-mono text-[12px] text-ink-soft overflow-x-auto">
+                  Could not queue the job: OperationalError
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4 text-[12.5px]">
+                  <div><span class="text-ink-faint block mb-0.5">Attempts</span><span class="font-medium">3 of 3</span></div>
+                  <div><span class="text-ink-faint block mb-0.5">Last attempt</span><span class="font-medium tabular-nums">02:19:47</span></div>
+                  <div><span class="text-ink-faint block mb-0.5">Page</span><span class="font-medium">2</span></div>
+                  <div><span class="text-ink-faint block mb-0.5">Duration</span><span class="font-medium">—</span></div>
+                </div>
+                <div class="flex gap-2 mt-4">
+                  <button class="h-9 px-3.5 rounded-xl bg-primary-500 text-white text-[13px] font-medium hover:bg-primary-600">Retry job</button>
+                  <button onclick="go('detail','Scraper / Jobs / #SC-1282')" class="h-9 px-3.5 rounded-xl border border-slate-300 text-[13px] font-medium hover:bg-slate-50">View details</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-5 py-3.5 flex items-center gap-4 text-[13px] hover:bg-slate-50/60">
+        <span class="w-2 h-2 rounded-full bg-ok-500 shrink-0"></span>
+        <span class="font-medium tabular-nums w-[76px]">#SC-1283</span>
+        <span class="text-ink-soft truncate flex-1 hidden sm:block">search.studyaustralia.gov.au/courses</span>
+        <span class="text-ink-mute tabular-nums">6.1 sec</span>
+        <span class="text-ink-faint tabular-nums hidden md:block">02:41:02</span>
+        <i data-lucide="chevron-down" class="text-[16px] text-ink-faint"></i>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── JOB DETAIL ─────────── -->
+<section class="scr" id="s-detail">
+  <button onclick="go('jobs','Scraper / Jobs')" class="text-[13px] text-ink-mute hover:text-ink flex items-center gap-1.5 mb-4"><i data-lucide="arrow-left" class="text-[15px]"></i>Back to jobs</button>
+
+  <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+    <div class="min-w-0">
+      <div class="flex items-center gap-3">
+        <h1 class="text-[24px] sm:text-[27px] font-semibold tracking-[-0.02em] tabular-nums">#SC-1284</h1>
+        <span class="text-[11px] font-semibold tracking-wide text-ok-700 bg-ok-50 border border-ok-500/20 px-2.5 py-1 rounded-lg">COMPLETED</span>
+      </div>
+      <a href="#" class="text-[13.5px] text-accent-600 hover:underline mt-1.5 inline-flex items-center gap-1.5 break-all">
+        search.studyaustralia.gov.au/courses <i data-lucide="external-link" class="text-[14px] shrink-0"></i></a>
+    </div>
+    <div class="flex items-center gap-2.5">
+      <button class="h-10 px-4 rounded-xl border border-slate-300 bg-white text-[13.5px] font-medium hover:bg-slate-50 shadow-soft flex items-center gap-2"><i data-lucide="rotate-cw" class="text-[16px]"></i>Retry</button>
+      <div class="relative">
+        <button onclick="tog('expMenu')" class="h-10 px-4 rounded-xl border border-slate-300 bg-white text-[13.5px] font-medium hover:bg-slate-50 shadow-soft flex items-center gap-2">
+          <i data-lucide="download" class="text-[16px]"></i>Export<i data-lucide="chevron-down" class="text-[15px] text-ink-faint"></i></button>
+        <div id="expMenu" class="hidden absolute right-0 top-full mt-2 w-52 bg-white rounded-xl shadow-pop border border-slate-200 p-1.5 z-20">
+          <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-ink-soft hover:bg-slate-50"><i data-lucide="download" class="text-[15px]"></i>Export CSV</a>
+          <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-ink-soft hover:bg-slate-50"><i data-lucide="database" class="text-[15px]"></i>Export SQLite</a>
+          <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-ink-soft hover:bg-slate-50"><i data-lucide="braces" class="text-[15px]"></i>Export JSON</a>
+        </div>
+      </div>
+      <button class="h-10 w-10 grid place-items-center rounded-xl border border-slate-300 bg-white hover:bg-slate-50 shadow-soft"><i data-lucide="ellipsis" class="text-[17px]"></i></button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-6">
+    <div class="bg-white rounded-xl border border-slate-200/80 shadow-soft p-4"><div class="text-[11.5px] text-ink-faint uppercase tracking-wider">Status</div><div class="text-[15px] font-semibold mt-1.5 text-ok-700">Completed</div></div>
+    <div class="bg-white rounded-xl border border-slate-200/80 shadow-soft p-4"><div class="text-[11.5px] text-ink-faint uppercase tracking-wider">Page</div><div class="text-[15px] font-semibold mt-1.5 tabular-nums">10</div></div>
+    <div class="bg-white rounded-xl border border-slate-200/80 shadow-soft p-4"><div class="text-[11.5px] text-ink-faint uppercase tracking-wider">Attempts</div><div class="text-[15px] font-semibold mt-1.5 tabular-nums">1</div></div>
+    <div class="bg-white rounded-xl border border-slate-200/80 shadow-soft p-4"><div class="text-[11.5px] text-ink-faint uppercase tracking-wider">Duration</div><div class="text-[15px] font-semibold mt-1.5 tabular-nums">8.4 sec</div></div>
+    <div class="bg-white rounded-xl border border-slate-200/80 shadow-soft p-4"><div class="text-[11.5px] text-ink-faint uppercase tracking-wider">Created</div><div class="text-[14px] font-semibold mt-1.5 tabular-nums">02:52:04</div></div>
+    <div class="bg-white rounded-xl border border-slate-200/80 shadow-soft p-4"><div class="text-[11.5px] text-ink-faint uppercase tracking-wider">Completed</div><div class="text-[14px] font-semibold mt-1.5 tabular-nums">02:52:12</div></div>
+  </div>
+
+  <div class="border-b border-slate-200 mb-6 overflow-x-auto">
+    <div class="flex gap-1 min-w-max">
+      <button onclick="tab('d',0,this)" class="tab-d h-11 px-4 text-[13.5px] font-medium border-b-2 border-primary-500 text-primary-600">Overview</button>
+      <button onclick="tab('d',1,this)" class="tab-d h-11 px-4 text-[13.5px] font-medium border-b-2 border-transparent text-ink-mute hover:text-ink">Scraped content</button>
+      <button onclick="tab('d',2,this)" class="tab-d h-11 px-4 text-[13.5px] font-medium border-b-2 border-transparent text-ink-mute hover:text-ink">Execution</button>
+      <button onclick="tab('d',3,this)" class="tab-d h-11 px-4 text-[13.5px] font-medium border-b-2 border-transparent text-ink-mute hover:text-ink">Raw data</button>
+    </div>
+  </div>
+
+  <div class="pane-d">
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-6 max-w-2xl">
+      <h3 class="text-[15px] font-semibold mb-5">Job lifecycle</h3>
+      <ol class="relative">
+        <li class="flex gap-4 pb-6 relative">
+          <div class="absolute left-[11px] top-6 bottom-0 w-px bg-slate-200"></div>
+          <span class="w-6 h-6 rounded-full bg-queued-50 border-2 border-queued-500 grid place-items-center shrink-0 z-10"><span class="w-2 h-2 rounded-full bg-queued-500"></span></span>
+          <div><p class="text-[13.5px] font-medium">Queued</p><p class="text-[12.5px] text-ink-mute mt-0.5">Job accepted and added to the processing queue.</p><p class="text-[12px] text-ink-faint mt-1 tabular-nums">Aug 12, 2026 · 02:52:04</p></div>
+        </li>
+        <li class="flex gap-4 pb-6 relative">
+          <div class="absolute left-[11px] top-6 bottom-0 w-px bg-slate-200"></div>
+          <span class="w-6 h-6 rounded-full bg-accent-50 border-2 border-accent-500 grid place-items-center shrink-0 z-10"><span class="w-2 h-2 rounded-full bg-accent-500"></span></span>
+          <div><p class="text-[13.5px] font-medium">Running</p><p class="text-[12.5px] text-ink-mute mt-0.5">Page fetched and content parsed.</p><p class="text-[12px] text-ink-faint mt-1 tabular-nums">Aug 12, 2026 · 02:52:05</p></div>
+        </li>
+        <li class="flex gap-4">
+          <span class="w-6 h-6 rounded-full bg-ok-500 grid place-items-center shrink-0 text-white z-10"><i data-lucide="check" class="text-[14px]"></i></span>
+          <div><p class="text-[13.5px] font-medium">Completed</p><p class="text-[12.5px] text-ink-mute mt-0.5">Result stored. 42 headings, 118 links extracted.</p><p class="text-[12px] text-ink-faint mt-1 tabular-nums">Aug 12, 2026 · 02:52:12</p></div>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="pane-d hidden space-y-3">
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft">
+      <button onclick="tog('sc1')" class="w-full flex items-center gap-3 px-5 py-4 text-left">
+        <i data-lucide="heading" class="text-[17px] text-ink-mute"></i>
+        <span class="text-[14px] font-medium flex-1">Title</span>
+        <i data-lucide="chevron-down" class="text-[17px] text-ink-faint"></i></button>
+      <div id="sc1" class="px-5 pb-5 -mt-1"><p class="text-[13.5px] text-ink-soft bg-slate-50 rounded-lg border border-slate-200 p-3.5">Study in Australia — Courses and universities search</p></div>
+    </div>
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft">
+      <button onclick="tog('sc2')" class="w-full flex items-center gap-3 px-5 py-4 text-left">
+        <i data-lucide="text" class="text-[17px] text-ink-mute"></i>
+        <span class="text-[14px] font-medium flex-1">Meta description</span>
+        <i data-lucide="chevron-down" class="text-[17px] text-ink-faint"></i></button>
+      <div id="sc2" class="hidden px-5 pb-5 -mt-1"><p class="text-[13.5px] text-ink-soft bg-slate-50 rounded-lg border border-slate-200 p-3.5">Search thousands of courses at Australian universities and colleges, compare institutions and plan your studies.</p></div>
+    </div>
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft">
+      <button onclick="tog('sc3')" class="w-full flex items-center gap-3 px-5 py-4 text-left">
+        <i data-lucide="list" class="text-[17px] text-ink-mute"></i>
+        <span class="text-[14px] font-medium flex-1">Headings</span>
+        <span class="text-[12px] text-ink-faint bg-slate-100 px-2 py-0.5 rounded-md tabular-nums">42</span>
+        <i data-lucide="chevron-down" class="text-[17px] text-ink-faint"></i></button>
+      <div id="sc3" class="hidden px-5 pb-5 -mt-1 space-y-1.5">
+        <div class="flex gap-3 text-[13px] p-2.5 rounded-lg hover:bg-slate-50"><span class="text-[11px] font-mono text-primary-600 bg-primary-50 px-1.5 py-0.5 rounded shrink-0 h-fit">H1</span><span class="text-ink-soft">Find your course in Australia</span></div>
+        <div class="flex gap-3 text-[13px] p-2.5 rounded-lg hover:bg-slate-50"><span class="text-[11px] font-mono text-accent-600 bg-accent-50 px-1.5 py-0.5 rounded shrink-0 h-fit">H2</span><span class="text-ink-soft">Undergraduate programmes</span></div>
+        <div class="flex gap-3 text-[13px] p-2.5 rounded-lg hover:bg-slate-50"><span class="text-[11px] font-mono text-accent-600 bg-accent-50 px-1.5 py-0.5 rounded shrink-0 h-fit">H2</span><span class="text-ink-soft">Postgraduate programmes</span></div>
+        <div class="flex gap-3 text-[13px] p-2.5 rounded-lg hover:bg-slate-50"><span class="text-[11px] font-mono text-ink-mute bg-slate-100 px-1.5 py-0.5 rounded shrink-0 h-fit">H3</span><span class="text-ink-soft">Entry requirements</span></div>
+      </div>
+    </div>
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft">
+      <button onclick="tog('sc4')" class="w-full flex items-center gap-3 px-5 py-4 text-left">
+        <i data-lucide="pilcrow" class="text-[17px] text-ink-mute"></i><span class="text-[14px] font-medium flex-1">Paragraphs</span>
+        <span class="text-[12px] text-ink-faint bg-slate-100 px-2 py-0.5 rounded-md tabular-nums">96</span>
+        <i data-lucide="chevron-down" class="text-[17px] text-ink-faint"></i></button>
+      <div id="sc4" class="hidden px-5 pb-5"></div>
+    </div>
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft">
+      <button onclick="tog('sc5')" class="w-full flex items-center gap-3 px-5 py-4 text-left">
+        <i data-lucide="link" class="text-[17px] text-ink-mute"></i><span class="text-[14px] font-medium flex-1">Links</span>
+        <span class="text-[12px] text-ink-faint bg-slate-100 px-2 py-0.5 rounded-md tabular-nums">118</span>
+        <i data-lucide="chevron-down" class="text-[17px] text-ink-faint"></i></button>
+      <div id="sc5" class="hidden px-5 pb-5"></div>
+    </div>
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft">
+      <button onclick="tog('sc6')" class="w-full flex items-center gap-3 px-5 py-4 text-left">
+        <i data-lucide="image" class="text-[17px] text-ink-mute"></i><span class="text-[14px] font-medium flex-1">Images</span>
+        <span class="text-[12px] text-ink-faint bg-slate-100 px-2 py-0.5 rounded-md tabular-nums">24</span>
+        <i data-lucide="chevron-down" class="text-[17px] text-ink-faint"></i></button>
+      <div id="sc6" class="hidden px-5 pb-5"></div>
+    </div>
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft">
+      <button onclick="tog('sc7')" class="w-full flex items-center gap-3 px-5 py-4 text-left">
+        <i data-lucide="table" class="text-[17px] text-ink-mute"></i><span class="text-[14px] font-medium flex-1">Tables</span>
+        <span class="text-[12px] text-ink-faint bg-slate-100 px-2 py-0.5 rounded-md tabular-nums">3</span>
+        <i data-lucide="chevron-down" class="text-[17px] text-ink-faint"></i></button>
+      <div id="sc7" class="hidden px-5 pb-5"></div>
+    </div>
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft">
+      <button onclick="tog('sc8')" class="w-full flex items-center gap-3 px-5 py-4 text-left">
+        <i data-lucide="file-text" class="text-[17px] text-ink-mute"></i><span class="text-[14px] font-medium flex-1">Raw text</span>
+        <span class="text-[12px] text-ink-faint bg-slate-100 px-2 py-0.5 rounded-md">14,208 chars</span>
+        <i data-lucide="chevron-down" class="text-[17px] text-ink-faint"></i></button>
+      <div id="sc8" class="hidden px-5 pb-5"></div>
+    </div>
+  </div>
+
+  <div class="pane-d hidden">
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-6">
+      <h3 class="text-[15px] font-semibold mb-5">Execution detail</h3>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-5 mb-6 text-[12.5px]">
+        <div><span class="text-ink-faint block mb-1">Attempt</span><span class="font-medium">1 of 3</span></div>
+        <div><span class="text-ink-faint block mb-1">Queue wait</span><span class="font-medium tabular-nums">1.1 sec</span></div>
+        <div><span class="text-ink-faint block mb-1">Fetch time</span><span class="font-medium tabular-nums">3.8 sec</span></div>
+        <div><span class="text-ink-faint block mb-1">Parse time</span><span class="font-medium tabular-nums">3.5 sec</span></div>
+      </div>
+      <div class="rounded-lg bg-rail-deep p-4 font-mono text-[12px] text-slate-300 leading-relaxed overflow-x-auto">
+        <div><span class="text-slate-500">02:52:04</span> job accepted · page=10</div>
+        <div><span class="text-slate-500">02:52:05</span> worker started</div>
+        <div><span class="text-slate-500">02:52:05</span> GET /courses?page=10 → 200</div>
+        <div><span class="text-slate-500">02:52:09</span> parsed 42 headings, 118 links, 24 images</div>
+        <div><span class="text-slate-500">02:52:12</span> <span class="text-ok-500">result stored · status=COMPLETED</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pane-d hidden">
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft overflow-hidden">
+      <div class="flex items-center justify-between px-5 h-14 border-b border-slate-100">
+        <h3 class="text-[15px] font-semibold">Raw data</h3>
+        <div class="flex gap-2">
+          <button class="h-9 px-3 rounded-lg border border-slate-300 text-[12.5px] hover:bg-slate-50 flex items-center gap-1.5"><i data-lucide="copy" class="text-[14px]"></i>Copy JSON</button>
+          <button class="h-9 px-3 rounded-lg border border-slate-300 text-[12.5px] hover:bg-slate-50 flex items-center gap-1.5"><i data-lucide="download" class="text-[14px]"></i>Download JSON</button>
+        </div>
+      </div>
+      <pre class="bg-rail-deep text-slate-300 p-5 text-[12.5px] font-mono leading-relaxed overflow-x-auto"><span class="text-slate-500">{</span>
+  <span class="text-accent-500">"job_id"</span>: <span class="text-ok-500">"SC-1284"</span>,
+  <span class="text-accent-500">"url"</span>: <span class="text-ok-500">"https://search.studyaustralia.gov.au/courses"</span>,
+  <span class="text-accent-500">"page"</span>: <span class="text-warn-500">10</span>,
+  <span class="text-accent-500">"status"</span>: <span class="text-ok-500">"COMPLETED"</span>,
+  <span class="text-accent-500">"attempts"</span>: <span class="text-warn-500">1</span>,
+  <span class="text-accent-500">"duration_ms"</span>: <span class="text-warn-500">8412</span>,
+  <span class="text-accent-500">"result"</span>: <span class="text-slate-500">{</span>
+    <span class="text-accent-500">"title"</span>: <span class="text-ok-500">"Study in Australia — Courses and universities search"</span>,
+    <span class="text-accent-500">"headings"</span>: <span class="text-warn-500">42</span>,
+    <span class="text-accent-500">"links"</span>: <span class="text-warn-500">118</span>,
+    <span class="text-accent-500">"images"</span>: <span class="text-warn-500">24</span>,
+    <span class="text-accent-500">"word_count"</span>: <span class="text-warn-500">2140</span>
+  <span class="text-slate-500">}</span>,
+  <span class="text-accent-500">"created_at"</span>: <span class="text-ok-500">"2026-08-12T02:52:04Z"</span>,
+  <span class="text-accent-500">"completed_at"</span>: <span class="text-ok-500">"2026-08-12T02:52:12Z"</span>
+<span class="text-slate-500">}</span></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── CONTENT STUDIO / SCRAPED ─────────── -->
+<section class="scr" id="s-scraped">
+  <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-[24px] sm:text-[27px] font-semibold tracking-[-0.02em]">Scraped content</h1>
+      <p class="text-ink-mute text-[14px] mt-1">Review and transform content collected from your scraping jobs.</p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-3 mb-5 flex flex-wrap items-center gap-2.5">
+    <div class="flex items-center gap-2 flex-1 min-w-[200px] h-10 px-3 rounded-xl bg-slate-100/70 border border-transparent focus-within:bg-white focus-within:border-accent-500/40 focus-within:ring-4 focus-within:ring-accent-500/10 transition">
+      <i data-lucide="search" class="text-[16px] text-ink-faint"></i>
+      <input placeholder="Search scraped pages…" class="bg-transparent text-[13px] w-full outline-none placeholder:text-ink-faint">
+    </div>
+    <select class="h-10 px-3 pr-8 rounded-xl border border-slate-300 bg-white text-[13px] outline-none hover:bg-slate-50"><option>All sources</option><option>studyaustralia.gov.au</option><option>nomadlist.com</option></select>
+    <select class="h-10 px-3 pr-8 rounded-xl border border-slate-300 bg-white text-[13px] outline-none hover:bg-slate-50"><option>Any date</option><option>Today</option><option>Last 7 days</option></select>
+    <select class="h-10 px-3 pr-8 rounded-xl border border-slate-300 bg-white text-[13px] outline-none hover:bg-slate-50"><option>All statuses</option><option>New</option><option>Transformed</option><option>Archived</option></select>
+    <div class="flex rounded-xl border border-slate-300 overflow-hidden ml-auto">
+      <button class="h-10 w-10 grid place-items-center bg-primary-50 text-primary-600"><i data-lucide="layout-grid" class="text-[16px]"></i></button>
+      <button class="h-10 w-10 grid place-items-center hover:bg-slate-50 text-ink-mute border-l border-slate-300"><i data-lucide="list" class="text-[16px]"></i></button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+    <article class="bg-white rounded-card border border-slate-200/80 shadow-soft hover:shadow-lift transition p-5 group">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="w-6 h-6 rounded-md bg-slate-100 grid place-items-center text-[10px] font-semibold text-ink-mute">SA</span>
+        <span class="text-[12px] text-ink-mute truncate">studyaustralia.gov.au</span>
+        <span class="ml-auto text-[11px] text-queued-700 bg-queued-50 px-2 py-0.5 rounded-md font-medium">New</span>
+      </div>
+      <h3 class="text-[14.5px] font-semibold leading-snug group-hover:text-primary-600 transition">Study in Australia — Courses and universities search</h3>
+      <p class="text-[12.5px] text-ink-mute mt-2 line-clamp-2">Search thousands of courses at Australian universities and colleges, compare institutions and plan your studies.</p>
+      <div class="flex items-center gap-4 mt-4 pt-4 border-t border-slate-100 text-[12px] text-ink-faint">
+        <span class="flex items-center gap-1"><i data-lucide="type" class="text-[13px]"></i>2,140 words</span>
+        <span class="flex items-center gap-1"><i data-lucide="list" class="text-[13px]"></i>42</span>
+        <span class="flex items-center gap-1"><i data-lucide="link" class="text-[13px]"></i>118</span>
+      </div>
+      <div class="flex items-center gap-2 mt-4">
+        <button class="flex-1 h-9 rounded-xl bg-primary-500 text-white text-[12.5px] font-medium hover:bg-primary-600 transition">Create content</button>
+        <button onclick="go('genai','Content Studio / GenAI Content')" class="h-9 px-3 rounded-xl border border-primary-200 bg-primary-50 text-primary-600 text-[12.5px] font-medium hover:bg-primary-100 transition flex items-center gap-1.5">
+          <i data-lucide="sparkles" class="text-[14px]"></i>AI</button>
+        <button class="h-9 w-9 grid place-items-center rounded-xl border border-slate-300 hover:bg-slate-50 text-ink-mute"><i data-lucide="ellipsis" class="text-[16px]"></i></button>
+      </div>
+    </article>
+
+    <article class="bg-white rounded-card border border-slate-200/80 shadow-soft hover:shadow-lift transition p-5 group">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="w-6 h-6 rounded-md bg-slate-100 grid place-items-center text-[10px] font-semibold text-ink-mute">SA</span>
+        <span class="text-[12px] text-ink-mute truncate">studyaustralia.gov.au</span>
+        <span class="ml-auto text-[11px] text-ok-700 bg-ok-50 px-2 py-0.5 rounded-md font-medium">Transformed</span>
+      </div>
+      <h3 class="text-[14.5px] font-semibold leading-snug group-hover:text-primary-600 transition">Scholarships for international students</h3>
+      <p class="text-[12.5px] text-ink-mute mt-2 line-clamp-2">Government, university and private scholarships available to international students studying in Australia.</p>
+      <div class="flex items-center gap-4 mt-4 pt-4 border-t border-slate-100 text-[12px] text-ink-faint">
+        <span class="flex items-center gap-1"><i data-lucide="type" class="text-[13px]"></i>1,680 words</span>
+        <span class="flex items-center gap-1"><i data-lucide="list" class="text-[13px]"></i>28</span>
+        <span class="flex items-center gap-1"><i data-lucide="link" class="text-[13px]"></i>64</span>
+      </div>
+      <div class="flex items-center gap-2 mt-4">
+        <button class="flex-1 h-9 rounded-xl bg-primary-500 text-white text-[12.5px] font-medium hover:bg-primary-600">Create content</button>
+        <button class="h-9 px-3 rounded-xl border border-primary-200 bg-primary-50 text-primary-600 text-[12.5px] font-medium hover:bg-primary-100 flex items-center gap-1.5"><i data-lucide="sparkles" class="text-[14px]"></i>AI</button>
+        <button class="h-9 w-9 grid place-items-center rounded-xl border border-slate-300 hover:bg-slate-50 text-ink-mute"><i data-lucide="ellipsis" class="text-[16px]"></i></button>
+      </div>
+    </article>
+
+    <article class="bg-white rounded-card border border-slate-200/80 shadow-soft hover:shadow-lift transition p-5 group">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="w-6 h-6 rounded-md bg-slate-100 grid place-items-center text-[10px] font-semibold text-ink-mute">NL</span>
+        <span class="text-[12px] text-ink-mute truncate">nomadlist.com</span>
+        <span class="ml-auto text-[11px] text-queued-700 bg-queued-50 px-2 py-0.5 rounded-md font-medium">New</span>
+      </div>
+      <h3 class="text-[14.5px] font-semibold leading-snug group-hover:text-primary-600 transition">Australia for digital nomads — cost of living</h3>
+      <p class="text-[12.5px] text-ink-mute mt-2 line-clamp-2">Monthly costs, internet speeds and visa notes for remote workers based in Australian cities.</p>
+      <div class="flex items-center gap-4 mt-4 pt-4 border-t border-slate-100 text-[12px] text-ink-faint">
+        <span class="flex items-center gap-1"><i data-lucide="type" class="text-[13px]"></i>940 words</span>
+        <span class="flex items-center gap-1"><i data-lucide="list" class="text-[13px]"></i>16</span>
+        <span class="flex items-center gap-1"><i data-lucide="link" class="text-[13px]"></i>37</span>
+      </div>
+      <div class="flex items-center gap-2 mt-4">
+        <button class="flex-1 h-9 rounded-xl bg-primary-500 text-white text-[12.5px] font-medium hover:bg-primary-600">Create content</button>
+        <button class="h-9 px-3 rounded-xl border border-primary-200 bg-primary-50 text-primary-600 text-[12.5px] font-medium hover:bg-primary-100 flex items-center gap-1.5"><i data-lucide="sparkles" class="text-[14px]"></i>AI</button>
+        <button class="h-9 w-9 grid place-items-center rounded-xl border border-slate-300 hover:bg-slate-50 text-ink-mute"><i data-lucide="ellipsis" class="text-[16px]"></i></button>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ─────────── CONTENT ─────────── -->
+<section class="scr" id="s-content">
+  <div class="flex flex-wrap items-start justify-between gap-4 mb-5">
+    <div><h1 class="text-[24px] sm:text-[27px] font-semibold tracking-[-0.02em]">Content</h1>
+    <p class="text-ink-mute text-[14px] mt-1">Draft, review and approve content before publishing.</p></div>
+    <button onclick="go('editor','Content Studio / Content / Editor')" class="h-10 px-4 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-[13.5px] font-medium shadow-lift flex items-center gap-2">
+      <i data-lucide="plus" class="text-[16px]"></i>Create content</button>
+  </div>
+
+  <div class="border-b border-slate-200 mb-5 overflow-x-auto">
+    <div class="flex gap-1 min-w-max">
+      <button class="h-11 px-4 text-[13.5px] font-medium border-b-2 border-primary-500 text-primary-600">All <span class="text-[11.5px] text-ink-faint ml-1">842</span></button>
+      <button class="h-11 px-4 text-[13.5px] font-medium border-b-2 border-transparent text-ink-mute hover:text-ink">Draft <span class="text-[11.5px] text-ink-faint ml-1">214</span></button>
+      <button class="h-11 px-4 text-[13.5px] font-medium border-b-2 border-transparent text-ink-mute hover:text-ink">Review <span class="text-[11.5px] text-ink-faint ml-1">36</span></button>
+      <button class="h-11 px-4 text-[13.5px] font-medium border-b-2 border-transparent text-ink-mute hover:text-ink">Approved <span class="text-[11.5px] text-ink-faint ml-1">128</span></button>
+      <button class="h-11 px-4 text-[13.5px] font-medium border-b-2 border-transparent text-ink-mute hover:text-ink">Published <span class="text-[11.5px] text-ink-faint ml-1">464</span></button>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-card border border-slate-200/80 shadow-soft overflow-hidden">
+    <div class="overflow-x-auto tbl-scroll">
+    <table class="w-full text-[13px]">
+      <thead><tr class="bg-slate-50/80 border-b border-slate-200 text-left">
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Title</th>
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Source</th>
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Type</th>
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Owner</th>
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Updated</th>
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Status</th>
+      </tr></thead>
+      <tbody class="divide-y divide-slate-100">
+        <tr onclick="go('editor','Content Studio / Content / Editor')" class="hover:bg-slate-50/70 cursor-pointer">
+          <td class="px-5 py-3.5 font-medium max-w-[300px]"><div class="truncate">Studying in Australia: a 2026 guide for international students</div></td>
+          <td class="px-5 py-3.5 text-ink-mute">#SC-1284</td>
+          <td class="px-5 py-3.5 text-ink-soft">Article</td>
+          <td class="px-5 py-3.5"><div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-primary-500 grid place-items-center text-white text-[10px] font-semibold">A</span>Admin</div></td>
+          <td class="px-5 py-3.5 text-ink-mute whitespace-nowrap">2 hours ago</td>
+          <td class="px-5 py-3.5"><span class="text-[11px] font-semibold tracking-wide text-warn-700 bg-warn-50 border border-warn-500/25 px-2.5 py-1 rounded-lg">REVIEW</span></td>
+        </tr>
+        <tr onclick="go('editor','Content Studio / Content / Editor')" class="hover:bg-slate-50/70 cursor-pointer">
+          <td class="px-5 py-3.5 font-medium max-w-[300px]"><div class="truncate">Five scholarships worth applying for this intake</div></td>
+          <td class="px-5 py-3.5 text-ink-mute">#SC-1279</td>
+          <td class="px-5 py-3.5 text-ink-soft">Blog</td>
+          <td class="px-5 py-3.5"><div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-accent-500 grid place-items-center text-white text-[10px] font-semibold">M</span>Maya</div></td>
+          <td class="px-5 py-3.5 text-ink-mute whitespace-nowrap">Yesterday</td>
+          <td class="px-5 py-3.5"><span class="text-[11px] font-semibold tracking-wide text-ok-700 bg-ok-50 border border-ok-500/20 px-2.5 py-1 rounded-lg">APPROVED</span></td>
+        </tr>
+        <tr onclick="go('editor','Content Studio / Content / Editor')" class="hover:bg-slate-50/70 cursor-pointer">
+          <td class="px-5 py-3.5 font-medium max-w-[300px]"><div class="truncate">Remote work visas: where Australia stands in 2026</div></td>
+          <td class="px-5 py-3.5 text-ink-mute">#SC-1268</td>
+          <td class="px-5 py-3.5 text-ink-soft">LinkedIn</td>
+          <td class="px-5 py-3.5"><div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-queued-500 grid place-items-center text-white text-[10px] font-semibold">J</span>Jordan</div></td>
+          <td class="px-5 py-3.5 text-ink-mute whitespace-nowrap">Aug 10</td>
+          <td class="px-5 py-3.5"><span class="text-[11px] font-semibold tracking-wide text-ink-mute bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-lg">DRAFT</span></td>
+        </tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ─────────── EDITOR ─────────── -->
+<section class="scr" id="s-editor">
+  <div class="flex items-center justify-between gap-3 mb-5">
+    <button onclick="go('content','Content Studio / Content')" class="text-[13px] text-ink-mute hover:text-ink flex items-center gap-1.5"><i data-lucide="arrow-left" class="text-[15px]"></i>Back to content</button>
+    <div class="flex items-center gap-2.5">
+      <span class="text-[12.5px] text-ink-faint hidden sm:flex items-center gap-1.5"><i data-lucide="cloud" class="text-[14px]"></i>Saved 30 seconds ago</span>
+      <button class="h-9 px-3.5 rounded-xl border border-slate-300 bg-white text-[13px] font-medium hover:bg-slate-50">Preview</button>
+      <button class="h-9 px-3.5 rounded-xl bg-primary-500 text-white text-[13px] font-medium hover:bg-primary-600">Send for review</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-[1fr,320px] gap-5 items-start">
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft">
+      <div class="flex items-center gap-1 px-4 h-12 border-b border-slate-100 overflow-x-auto">
+        <button class="h-8 w-8 grid place-items-center rounded-lg hover:bg-slate-100 text-ink-soft"><i data-lucide="bold" class="text-[16px]"></i></button>
+        <button class="h-8 w-8 grid place-items-center rounded-lg hover:bg-slate-100 text-ink-soft"><i data-lucide="italic" class="text-[16px]"></i></button>
+        <button class="h-8 w-8 grid place-items-center rounded-lg hover:bg-slate-100 text-ink-soft"><i data-lucide="link" class="text-[16px]"></i></button>
+        <div class="w-px h-5 bg-slate-200 mx-1.5"></div>
+        <button class="h-8 w-8 grid place-items-center rounded-lg hover:bg-slate-100 text-ink-soft"><i data-lucide="heading-1" class="text-[16px]"></i></button>
+        <button class="h-8 w-8 grid place-items-center rounded-lg hover:bg-slate-100 text-ink-soft"><i data-lucide="heading-2" class="text-[16px]"></i></button>
+        <button class="h-8 w-8 grid place-items-center rounded-lg hover:bg-slate-100 text-ink-soft"><i data-lucide="list" class="text-[16px]"></i></button>
+        <button class="h-8 w-8 grid place-items-center rounded-lg hover:bg-slate-100 text-ink-soft"><i data-lucide="quote" class="text-[16px]"></i></button>
+        <div class="w-px h-5 bg-slate-200 mx-1.5"></div>
+        <button class="h-8 w-8 grid place-items-center rounded-lg hover:bg-slate-100 text-ink-soft"><i data-lucide="image" class="text-[16px]"></i></button>
+        <span class="ml-auto text-[12px] text-ink-faint whitespace-nowrap pl-3">1,842 words</span>
+      </div>
+      <div class="px-6 sm:px-10 py-8 max-w-[720px] mx-auto">
+        <h1 class="text-[30px] font-semibold tracking-[-0.02em] leading-tight" contenteditable="true">Studying in Australia: a 2026 guide for international students</h1>
+        <p class="text-[15.5px] leading-[1.75] text-ink-soft mt-6" contenteditable="true">Australia hosts more than 600,000 international students each year, spread across universities, vocational colleges and English language centres. This guide walks through what has changed for the 2026 intake.</p>
+        <h2 class="text-[20px] font-semibold mt-8 tracking-[-0.01em]" contenteditable="true">Choosing a course</h2>
+        <p class="text-[15.5px] leading-[1.75] text-ink-soft mt-3" contenteditable="true">Start with the field rather than the institution. Entry requirements vary far more by discipline than by university, and the recognised qualification frameworks differ between undergraduate and postgraduate study.</p>
+        <p class="text-[15.5px] leading-[1.75] text-ink-soft mt-4" contenteditable="true">Applications for the February intake typically close in November, though some programmes accept late applications into December.</p>
+      </div>
+    </div>
+
+    <aside class="space-y-4 lg:sticky lg:top-[88px]">
+      <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-4 space-y-4">
+        <div><label class="text-[12px] font-medium text-ink-mute block mb-1.5">Status</label>
+          <select class="w-full h-10 px-3 rounded-xl border border-slate-300 text-[13px] outline-none focus:border-accent-500"><option>Review</option><option>Draft</option><option>Approved</option><option>Published</option></select></div>
+        <div><label class="text-[12px] font-medium text-ink-mute block mb-1.5">Source</label>
+          <button onclick="go('detail','Scraper / Jobs / #SC-1284')" class="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 text-[13px] text-left flex items-center gap-2 hover:bg-slate-100">
+            <i data-lucide="globe" class="text-[15px] text-ink-mute"></i><span class="truncate">#SC-1284 · studyaustralia</span></button></div>
+        <div><label class="text-[12px] font-medium text-ink-mute block mb-1.5">Tags</label>
+          <div class="flex flex-wrap gap-1.5">
+            <span class="text-[12px] bg-primary-50 text-primary-700 px-2.5 py-1 rounded-lg flex items-center gap-1.5">education<button class="hover:text-primary-900"><i data-lucide="x" class="text-[12px]"></i></button></span>
+            <span class="text-[12px] bg-primary-50 text-primary-700 px-2.5 py-1 rounded-lg flex items-center gap-1.5">visa<button><i data-lucide="x" class="text-[12px]"></i></button></span>
+            <button class="text-[12px] border border-dashed border-slate-300 text-ink-mute px-2.5 py-1 rounded-lg hover:border-slate-400">+ Add</button>
+          </div></div>
+        <div><label class="text-[12px] font-medium text-ink-mute block mb-1.5">Assets</label>
+          <div class="flex gap-2">
+            <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-accent-100 to-primary-100 border border-slate-200"></div>
+            <button onclick="go('assets','Repository / Assets')" class="w-14 h-14 rounded-lg border border-dashed border-slate-300 grid place-items-center text-ink-faint hover:border-slate-400 hover:text-ink-mute"><i data-lucide="plus" class="text-[18px]"></i></button>
+          </div></div>
+      </div>
+
+      <div class="bg-white rounded-card border border-primary-200 shadow-soft overflow-hidden">
+        <div class="px-4 h-12 flex items-center gap-2 bg-gradient-to-r from-primary-50 to-accent-50 border-b border-primary-100">
+          <i data-lucide="sparkles" class="text-[16px] text-primary-600"></i><span class="text-[13.5px] font-semibold text-primary-700">AI actions</span></div>
+        <div class="p-2">
+          <button class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] text-ink-soft hover:bg-primary-50 transition"><i data-lucide="wand-sparkles" class="text-[15px] text-primary-600"></i>Improve writing</button>
+          <button class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] text-ink-soft hover:bg-primary-50 transition"><i data-lucide="align-left" class="text-[15px] text-primary-600"></i>Summarise</button>
+          <button class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] text-ink-soft hover:bg-primary-50 transition"><i data-lucide="refresh-cw" class="text-[15px] text-primary-600"></i>Rewrite</button>
+          <button class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] text-ink-soft hover:bg-primary-50 transition"><i data-lucide="share-2" class="text-[15px] text-primary-600"></i>Generate social post</button>
+          <button class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] text-ink-soft hover:bg-primary-50 transition"><i data-lucide="search" class="text-[15px] text-primary-600"></i>Generate SEO description</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ─────────── GENAI ─────────── -->
+<section class="scr" id="s-genai">
+  <div class="mb-6">
+    <h1 class="text-[24px] sm:text-[27px] font-semibold tracking-[-0.02em]">GenAI content</h1>
+    <p class="text-ink-mute text-[14px] mt-1">Turn scraped pages into publish-ready content.</p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-[380px,1fr] gap-5 items-start">
+    <div class="space-y-4 lg:sticky lg:top-[88px]">
+      <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5">
+        <h2 class="text-[16px] font-semibold mb-4">What would you like to create?</h2>
+        <textarea rows="5" placeholder="Describe the content you need — audience, angle, key points…"
+          class="w-full rounded-xl border border-slate-300 p-3.5 text-[13.5px] leading-relaxed outline-none focus:border-accent-500 focus:ring-4 focus:ring-accent-500/10 resize-none placeholder:text-ink-faint transition"></textarea>
+
+        <div class="mt-4 space-y-3.5">
+          <div><label class="text-[12px] font-medium text-ink-mute block mb-1.5">Content type</label>
+            <div class="flex flex-wrap gap-1.5">
+              <button class="text-[12.5px] px-3 py-1.5 rounded-lg bg-primary-500 text-white font-medium">Article</button>
+              <button class="text-[12.5px] px-3 py-1.5 rounded-lg border border-slate-300 text-ink-soft hover:bg-slate-50">Blog</button>
+              <button class="text-[12.5px] px-3 py-1.5 rounded-lg border border-slate-300 text-ink-soft hover:bg-slate-50">LinkedIn</button>
+              <button class="text-[12.5px] px-3 py-1.5 rounded-lg border border-slate-300 text-ink-soft hover:bg-slate-50">Instagram</button>
+              <button class="text-[12.5px] px-3 py-1.5 rounded-lg border border-slate-300 text-ink-soft hover:bg-slate-50">Facebook</button>
+              <button class="text-[12.5px] px-3 py-1.5 rounded-lg border border-slate-300 text-ink-soft hover:bg-slate-50">X</button>
+              <button class="text-[12.5px] px-3 py-1.5 rounded-lg border border-slate-300 text-ink-soft hover:bg-slate-50">Newsletter</button>
+            </div></div>
+          <div class="grid grid-cols-2 gap-3">
+            <div><label class="text-[12px] font-medium text-ink-mute block mb-1.5">Tone</label>
+              <select class="w-full h-10 px-3 rounded-xl border border-slate-300 text-[13px] outline-none focus:border-accent-500"><option>Professional</option><option>Conversational</option><option>Authoritative</option><option>Friendly</option></select></div>
+            <div><label class="text-[12px] font-medium text-ink-mute block mb-1.5">Length</label>
+              <select class="w-full h-10 px-3 rounded-xl border border-slate-300 text-[13px] outline-none focus:border-accent-500"><option>Medium</option><option>Short</option><option>Long</option></select></div>
+          </div>
+          <div><label class="text-[12px] font-medium text-ink-mute block mb-1.5">Source content</label>
+            <button class="w-full h-10 px-3 rounded-xl border border-slate-300 text-[13px] text-left flex items-center gap-2 hover:bg-slate-50">
+              <i data-lucide="globe" class="text-[15px] text-ink-mute"></i><span class="truncate flex-1">#SC-1284 · Courses search</span><i data-lucide="chevron-down" class="text-[15px] text-ink-faint"></i></button></div>
+          <div><label class="text-[12px] font-medium text-ink-mute block mb-1.5">Assets</label>
+            <button class="w-full h-10 px-3 rounded-xl border border-dashed border-slate-300 text-[13px] text-ink-mute flex items-center gap-2 hover:border-slate-400">
+              <i data-lucide="image" class="text-[15px]"></i>Attach from repository</button></div>
+        </div>
+
+        <button class="w-full h-11 mt-5 rounded-xl bg-gradient-to-r from-primary-500 to-accent-500 text-white text-[14px] font-medium shadow-lift hover:opacity-95 transition flex items-center justify-center gap-2">
+          <i data-lucide="sparkles" class="text-[17px]"></i>Generate content</button>
+      </div>
+
+      <div class="bg-white rounded-card border border-slate-200/80 shadow-soft">
+        <div class="px-5 h-12 flex items-center border-b border-slate-100"><h3 class="text-[13.5px] font-semibold">Generation history</h3></div>
+        <div class="p-2">
+          <button class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-slate-50">
+            <p class="text-[13px] font-medium truncate">Study visa guide — article</p><p class="text-[11.5px] text-ink-faint mt-0.5">18 minutes ago</p></button>
+          <button class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-slate-50">
+            <p class="text-[13px] font-medium truncate">Scholarships — LinkedIn post</p><p class="text-[11.5px] text-ink-faint mt-0.5">Yesterday</p></button>
+          <button class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-slate-50">
+            <p class="text-[13px] font-medium truncate">Cost of living — newsletter</p><p class="text-[11.5px] text-ink-faint mt-0.5">Aug 10</p></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft min-h-[560px] flex flex-col">
+      <div class="flex items-center justify-between px-5 h-14 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <span class="w-7 h-7 rounded-lg bg-gradient-to-br from-primary-500 to-accent-500 grid place-items-center text-white"><i data-lucide="sparkles" class="text-[14px]"></i></span>
+          <h2 class="text-[14.5px] font-semibold">Generated content</h2>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <button class="h-9 px-3 rounded-lg border border-slate-300 text-[12.5px] hover:bg-slate-50 flex items-center gap-1.5"><i data-lucide="refresh-cw" class="text-[14px]"></i>Regenerate</button>
+          <button class="h-9 px-3 rounded-lg border border-slate-300 text-[12.5px] hover:bg-slate-50 flex items-center gap-1.5"><i data-lucide="copy" class="text-[14px]"></i>Copy</button>
+          <button onclick="go('editor','Content Studio / Content / Editor')" class="h-9 px-3 rounded-lg bg-primary-500 text-white text-[12.5px] font-medium hover:bg-primary-600">Save to content</button>
+        </div>
+      </div>
+      <div class="p-6 sm:p-8 overflow-y-auto flex-1">
+        <div class="max-w-[680px]">
+          <h1 class="text-[24px] font-semibold tracking-[-0.02em] leading-tight">Studying in Australia in 2026: what international students need to know</h1>
+          <p class="text-[15px] leading-[1.75] text-ink-soft mt-5">Australia remains one of the most popular destinations for international study, but the 2026 intake brings changes worth understanding before you apply.</p>
+          <h2 class="text-[18px] font-semibold mt-7">Start with the field, not the university</h2>
+          <p class="text-[15px] leading-[1.75] text-ink-soft mt-3">Entry requirements differ far more between disciplines than between institutions. A nursing programme in Adelaide and one in Perth will ask for broadly similar prerequisites, while engineering and nursing at the same university will not.</p>
+          <h2 class="text-[18px] font-semibold mt-7">Application timing</h2>
+          <p class="text-[15px] leading-[1.75] text-ink-soft mt-3">Most February intakes close applications in November. Some providers accept late applications into December, but scholarship deadlines rarely move.</p>
+        </div>
+      </div>
+      <div class="px-5 py-3.5 border-t border-slate-100 flex flex-wrap gap-2">
+        <button class="h-9 px-3.5 rounded-xl border border-slate-300 text-[13px] font-medium hover:bg-slate-50">Edit</button>
+        <button onclick="go('schedule','Poster / Schedule')" class="h-9 px-3.5 rounded-xl border border-slate-300 text-[13px] font-medium hover:bg-slate-50 flex items-center gap-1.5"><i data-lucide="calendar-clock" class="text-[15px]"></i>Schedule</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── POSTER / SCHEDULE ─────────── -->
+<section class="scr" id="s-schedule">
+  <div class="flex flex-wrap items-start justify-between gap-4 mb-5">
+    <div><h1 class="text-[24px] sm:text-[27px] font-semibold tracking-[-0.02em]">Scheduled posts</h1>
+    <p class="text-ink-mute text-[14px] mt-1">Everything queued to publish, across every channel.</p></div>
+    <button class="h-10 px-4 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-[13.5px] font-medium shadow-lift flex items-center gap-2"><i data-lucide="plus" class="text-[16px]"></i>Schedule post</button>
+  </div>
+
+  <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-3 mb-4 flex flex-wrap items-center gap-2.5">
+    <select class="h-10 px-3 pr-8 rounded-xl border border-slate-300 bg-white text-[13px] outline-none hover:bg-slate-50"><option>All platforms</option><option>LinkedIn</option><option>Instagram</option><option>Facebook</option><option>X</option><option>WordPress</option></select>
+    <select class="h-10 px-3 pr-8 rounded-xl border border-slate-300 bg-white text-[13px] outline-none hover:bg-slate-50"><option>All statuses</option><option>Draft</option><option>Scheduled</option><option>Publishing</option><option>Published</option><option>Failed</option></select>
+    <button class="h-10 px-3 rounded-xl border border-slate-300 bg-white text-[13px] hover:bg-slate-50 flex items-center gap-2 text-ink-soft"><i data-lucide="calendar" class="text-[15px]"></i>August 2026</button>
+    <select class="h-10 px-3 pr-8 rounded-xl border border-slate-300 bg-white text-[13px] outline-none hover:bg-slate-50"><option>All campaigns</option><option>Study intake 2026</option><option>Nomad visa series</option></select>
+  </div>
+
+  <div class="bg-white rounded-card border border-slate-200/80 shadow-soft overflow-hidden">
+    <div class="overflow-x-auto tbl-scroll">
+    <table class="w-full text-[13px]">
+      <thead><tr class="bg-slate-50/80 border-b border-slate-200 text-left">
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Content</th>
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Platform</th>
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Scheduled</th>
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Owner</th>
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Status</th>
+        <th class="px-5 py-3 w-12"></th>
+      </tr></thead>
+      <tbody class="divide-y divide-slate-100">
+        <tr class="hover:bg-slate-50/70 cursor-pointer">
+          <td class="px-5 py-3.5 font-medium max-w-[280px]"><div class="truncate">Digital nomad visa guide</div></td>
+          <td class="px-5 py-3.5"><span class="flex items-center gap-2 text-ink-soft"><i data-lucide="linkedin" class="text-[15px] text-accent-600"></i>LinkedIn</span></td>
+          <td class="px-5 py-3.5 text-ink-mute whitespace-nowrap tabular-nums">Aug 12, 10:00 AM</td>
+          <td class="px-5 py-3.5"><div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-primary-500 grid place-items-center text-white text-[10px] font-semibold">A</span>Admin</div></td>
+          <td class="px-5 py-3.5"><span class="text-[11px] font-semibold tracking-wide text-queued-700 bg-queued-50 border border-queued-500/25 px-2.5 py-1 rounded-lg">SCHEDULED</span></td>
+          <td class="px-5 py-3.5"><button class="p-1.5 rounded-lg hover:bg-slate-200/70 text-ink-faint"><i data-lucide="ellipsis-vertical" class="text-[16px]"></i></button></td>
+        </tr>
+        <tr class="hover:bg-slate-50/70 cursor-pointer">
+          <td class="px-5 py-3.5 font-medium max-w-[280px]"><div class="truncate">Australia study guide — carousel</div></td>
+          <td class="px-5 py-3.5"><span class="flex items-center gap-2 text-ink-soft"><i data-lucide="instagram" class="text-[15px] text-queued-500"></i>Instagram</span></td>
+          <td class="px-5 py-3.5 text-ink-mute whitespace-nowrap tabular-nums">Aug 12, 2:30 PM</td>
+          <td class="px-5 py-3.5"><div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-accent-500 grid place-items-center text-white text-[10px] font-semibold">M</span>Maya</div></td>
+          <td class="px-5 py-3.5"><span class="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-accent-600 bg-accent-50 border border-accent-500/25 px-2.5 py-1 rounded-lg"><span class="w-1.5 h-1.5 rounded-full bg-accent-500 pulse-dot"></span>PUBLISHING</span></td>
+          <td class="px-5 py-3.5"><button class="p-1.5 rounded-lg hover:bg-slate-200/70 text-ink-faint"><i data-lucide="ellipsis-vertical" class="text-[16px]"></i></button></td>
+        </tr>
+        <tr class="hover:bg-slate-50/70 cursor-pointer">
+          <td class="px-5 py-3.5 font-medium max-w-[280px]"><div class="truncate">Scholarship deadlines roundup</div></td>
+          <td class="px-5 py-3.5"><span class="flex items-center gap-2 text-ink-soft"><i data-lucide="facebook" class="text-[15px] text-accent-600"></i>Facebook</span></td>
+          <td class="px-5 py-3.5 text-ink-mute whitespace-nowrap tabular-nums">Aug 11, 9:00 AM</td>
+          <td class="px-5 py-3.5"><div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-queued-500 grid place-items-center text-white text-[10px] font-semibold">J</span>Jordan</div></td>
+          <td class="px-5 py-3.5"><span class="text-[11px] font-semibold tracking-wide text-ok-700 bg-ok-50 border border-ok-500/20 px-2.5 py-1 rounded-lg">PUBLISHED</span></td>
+          <td class="px-5 py-3.5"><button class="p-1.5 rounded-lg hover:bg-slate-200/70 text-ink-faint"><i data-lucide="ellipsis-vertical" class="text-[16px]"></i></button></td>
+        </tr>
+        <tr class="hover:bg-slate-50/70 cursor-pointer bg-err-50/25">
+          <td class="px-5 py-3.5 font-medium max-w-[280px]"><div class="truncate">Course search tips thread</div>
+            <div class="flex items-center gap-1 text-[11.5px] text-err-700 mt-0.5"><i data-lucide="triangle-alert" class="text-[12px]"></i>Channel rejected the post</div></td>
+          <td class="px-5 py-3.5"><span class="flex items-center gap-2 text-ink-soft"><i data-lucide="twitter" class="text-[15px] text-ink-soft"></i>X</span></td>
+          <td class="px-5 py-3.5 text-ink-mute whitespace-nowrap tabular-nums">Aug 11, 4:15 PM</td>
+          <td class="px-5 py-3.5"><div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-primary-500 grid place-items-center text-white text-[10px] font-semibold">A</span>Admin</div></td>
+          <td class="px-5 py-3.5"><span class="text-[11px] font-semibold tracking-wide text-err-700 bg-err-50 border border-err-500/25 px-2.5 py-1 rounded-lg">FAILED</span></td>
+          <td class="px-5 py-3.5"><button class="p-1.5 rounded-lg hover:bg-slate-200/70 text-ink-faint"><i data-lucide="ellipsis-vertical" class="text-[16px]"></i></button></td>
+        </tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ─────────── POSTER / CALENDAR ─────────── -->
+<section class="scr" id="s-calendar">
+  <div class="flex flex-wrap items-center justify-between gap-4 mb-5">
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-1">
+        <button class="h-9 w-9 grid place-items-center rounded-xl border border-slate-300 bg-white hover:bg-slate-50"><i data-lucide="chevron-left" class="text-[17px]"></i></button>
+        <button class="h-9 w-9 grid place-items-center rounded-xl border border-slate-300 bg-white hover:bg-slate-50"><i data-lucide="chevron-right" class="text-[17px]"></i></button>
+      </div>
+      <h1 class="text-[20px] sm:text-[23px] font-semibold tracking-[-0.02em]">August 2026</h1>
+      <button class="h-9 px-3 rounded-xl border border-slate-300 bg-white text-[13px] font-medium hover:bg-slate-50">Today</button>
+    </div>
+    <div class="flex items-center gap-2.5">
+      <div class="flex rounded-xl border border-slate-300 overflow-hidden bg-white">
+        <button class="h-9 px-3.5 text-[13px] bg-primary-50 text-primary-600 font-medium">Month</button>
+        <button class="h-9 px-3.5 text-[13px] text-ink-mute hover:bg-slate-50 border-l border-slate-300">Week</button>
+        <button class="h-9 px-3.5 text-[13px] text-ink-mute hover:bg-slate-50 border-l border-slate-300">Day</button>
+      </div>
+      <button class="h-9 px-3.5 rounded-xl bg-primary-500 text-white text-[13px] font-medium hover:bg-primary-600 flex items-center gap-1.5"><i data-lucide="plus" class="text-[15px]"></i>Schedule</button>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-card border border-slate-200/80 shadow-soft overflow-hidden">
+    <div class="grid grid-cols-7 border-b border-slate-200 bg-slate-50/80">
+      <div class="px-3 py-2.5 text-[11.5px] font-medium text-ink-mute uppercase tracking-wider">Mon</div>
+      <div class="px-3 py-2.5 text-[11.5px] font-medium text-ink-mute uppercase tracking-wider">Tue</div>
+      <div class="px-3 py-2.5 text-[11.5px] font-medium text-ink-mute uppercase tracking-wider">Wed</div>
+      <div class="px-3 py-2.5 text-[11.5px] font-medium text-ink-mute uppercase tracking-wider">Thu</div>
+      <div class="px-3 py-2.5 text-[11.5px] font-medium text-ink-mute uppercase tracking-wider">Fri</div>
+      <div class="px-3 py-2.5 text-[11.5px] font-medium text-ink-mute uppercase tracking-wider">Sat</div>
+      <div class="px-3 py-2.5 text-[11.5px] font-medium text-ink-mute uppercase tracking-wider">Sun</div>
+    </div>
+    <div class="grid grid-cols-7 divide-x divide-y divide-slate-100 border-slate-100">
+      <div class="min-h-[124px] p-2 text-ink-faint"><span class="text-[12.5px]">27</span></div>
+      <div class="min-h-[124px] p-2 text-ink-faint"><span class="text-[12.5px]">28</span></div>
+      <div class="min-h-[124px] p-2 text-ink-faint"><span class="text-[12.5px]">29</span></div>
+      <div class="min-h-[124px] p-2 text-ink-faint"><span class="text-[12.5px]">30</span></div>
+      <div class="min-h-[124px] p-2 text-ink-faint"><span class="text-[12.5px]">31</span></div>
+      <div class="min-h-[124px] p-2"><span class="text-[12.5px]">1</span></div>
+      <div class="min-h-[124px] p-2"><span class="text-[12.5px]">2</span></div>
+
+      <div class="min-h-[124px] p-2"><span class="text-[12.5px]">3</span></div>
+      <div class="min-h-[124px] p-2"><span class="text-[12.5px]">4</span>
+        <div class="mt-1.5 rounded-lg border-l-[3px] border-accent-500 bg-accent-50/60 px-2 py-1.5 cursor-grab hover:shadow-soft transition">
+          <p class="text-[10.5px] font-medium text-accent-600 tabular-nums">9:00 AM · LinkedIn</p>
+          <p class="text-[11.5px] truncate mt-0.5">Intake deadlines</p></div></div>
+      <div class="min-h-[124px] p-2"><span class="text-[12.5px]">5</span></div>
+      <div class="min-h-[124px] p-2"><span class="text-[12.5px]">6</span></div>
+      <div class="min-h-[124px] p-2"><span class="text-[12.5px]">7</span>
+        <div class="mt-1.5 rounded-lg border-l-[3px] border-queued-500 bg-queued-50/60 px-2 py-1.5 cursor-grab hover:shadow-soft transition">
+          <p class="text-[10.5px] font-medium text-queued-700 tabular-nums">1:00 PM · Instagram</p>
+          <p class="text-[11.5px] truncate mt-0.5">Campus reel</p></div></div>
+      <div class="min-h-[124px] p-2 bg-slate-50/40"><span class="text-[12.5px] text-ink-faint">8</span></div>
+      <div class="min-h-[124px] p-2 bg-slate-50/40"><span class="text-[12.5px] text-ink-faint">9</span></div>
+
+      <div class="min-h-[124px] p-2"><span class="text-[12.5px]">10</span></div>
+      <div class="min-h-[124px] p-2"><span class="text-[12.5px]">11</span>
+        <div class="mt-1.5 rounded-lg border-l-[3px] border-ok-500 bg-ok-50/60 px-2 py-1.5 cursor-grab hover:shadow-soft transition">
+          <p class="text-[10.5px] font-medium text-ok-700 tabular-nums">9:00 AM · Facebook</p>
+          <p class="text-[11.5px] truncate mt-0.5">Scholarships roundup</p></div>
+        <div class="mt-1 rounded-lg border-l-[3px] border-err-500 bg-err-50/60 px-2 py-1.5 cursor-grab hover:shadow-soft transition">
+          <p class="text-[10.5px] font-medium text-err-700 tabular-nums">4:15 PM · X</p>
+          <p class="text-[11.5px] truncate mt-0.5">Search tips thread</p></div></div>
+      <div class="min-h-[124px] p-2 ring-2 ring-inset ring-primary-500/40 bg-primary-50/25">
+        <span class="text-[12.5px] font-semibold w-6 h-6 rounded-full bg-primary-500 text-white grid place-items-center">12</span>
+        <div onclick="openDrawer()" class="mt-1.5 rounded-lg border-l-[3px] border-accent-500 bg-accent-50/60 px-2 py-1.5 cursor-grab hover:shadow-soft transition">
+          <p class="text-[10.5px] font-medium text-accent-600 tabular-nums">10:00 AM · LinkedIn</p>
+          <p class="text-[11.5px] truncate mt-0.5">Digital nomad visa guide</p></div>
+        <div class="mt-1 rounded-lg border-l-[3px] border-queued-500 bg-queued-50/60 px-2 py-1.5 cursor-grab hover:shadow-soft transition">
+          <p class="text-[10.5px] font-medium text-queued-700 tabular-nums">2:30 PM · Instagram</p>
+          <p class="text-[11.5px] truncate mt-0.5">Australia study guide</p></div></div>
+      <div class="min-h-[124px] p-2"><span class="text-[12.5px]">13</span></div>
+      <div class="min-h-[124px] p-2"><span class="text-[12.5px]">14</span>
+        <div class="mt-1.5 rounded-lg border-l-[3px] border-primary-500 bg-primary-50/60 px-2 py-1.5 cursor-grab hover:shadow-soft transition">
+          <p class="text-[10.5px] font-medium text-primary-600 tabular-nums">8:00 AM · Newsletter</p>
+          <p class="text-[11.5px] truncate mt-0.5">Weekly digest</p></div></div>
+      <div class="min-h-[124px] p-2 bg-slate-50/40"><span class="text-[12.5px] text-ink-faint">15</span></div>
+      <div class="min-h-[124px] p-2 bg-slate-50/40"><span class="text-[12.5px] text-ink-faint">16</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── ASSETS ─────────── -->
+<section class="scr" id="s-assets">
+  <div class="flex flex-wrap items-start justify-between gap-4 mb-5">
+    <div><h1 class="text-[24px] sm:text-[27px] font-semibold tracking-[-0.02em]">Assets</h1>
+    <p class="text-ink-mute text-[14px] mt-1">Images, video and documents available to your content.</p></div>
+    <button onclick="go('register','Repository / Register Asset')" class="h-10 px-4 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-[13.5px] font-medium shadow-lift flex items-center gap-2"><i data-lucide="plus" class="text-[16px]"></i>Register asset</button>
+  </div>
+
+  <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-3 mb-5 flex flex-wrap items-center gap-2.5">
+    <div class="flex items-center gap-2 flex-1 min-w-[200px] h-10 px-3 rounded-xl bg-slate-100/70 border border-transparent focus-within:bg-white focus-within:border-accent-500/40 focus-within:ring-4 focus-within:ring-accent-500/10 transition">
+      <i data-lucide="search" class="text-[16px] text-ink-faint"></i>
+      <input placeholder="Search assets…" class="bg-transparent text-[13px] w-full outline-none placeholder:text-ink-faint"></div>
+    <select class="h-10 px-3 pr-8 rounded-xl border border-slate-300 bg-white text-[13px] outline-none hover:bg-slate-50"><option>All types</option><option>Image</option><option>Video</option><option>Document</option><option>Graphic</option></select>
+    <select class="h-10 px-3 pr-8 rounded-xl border border-slate-300 bg-white text-[13px] outline-none hover:bg-slate-50"><option>All tags</option><option>campus</option><option>visa</option><option>brand</option></select>
+    <select class="h-10 px-3 pr-8 rounded-xl border border-slate-300 bg-white text-[13px] outline-none hover:bg-slate-50"><option>Any date</option><option>This month</option></select>
+    <div class="flex rounded-xl border border-slate-300 overflow-hidden ml-auto">
+      <button class="h-10 w-10 grid place-items-center bg-primary-50 text-primary-600"><i data-lucide="layout-grid" class="text-[16px]"></i></button>
+      <button class="h-10 w-10 grid place-items-center hover:bg-slate-50 text-ink-mute border-l border-slate-300"><i data-lucide="list" class="text-[16px]"></i></button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
+    <article class="bg-white rounded-card border border-slate-200/80 shadow-soft hover:shadow-lift transition overflow-hidden group cursor-pointer">
+      <div class="aspect-[4/3] bg-gradient-to-br from-accent-100 via-primary-100 to-queued-50 relative">
+        <span class="absolute top-2.5 left-2.5 text-[10.5px] font-medium bg-white/90 backdrop-blur px-2 py-1 rounded-md">Image</span>
+        <button class="absolute top-2.5 right-2.5 w-7 h-7 rounded-lg bg-white/90 backdrop-blur grid place-items-center opacity-0 group-hover:opacity-100 transition"><i data-lucide="ellipsis" class="text-[15px]"></i></button>
+      </div>
+      <div class="p-3.5">
+        <p class="text-[13px] font-medium truncate">sydney-harbour-dusk.jpg</p>
+        <p class="text-[11.5px] text-ink-faint mt-1 tabular-nums">2400 × 1600 · 1.8 MB</p>
+        <div class="flex gap-1 mt-2.5"><span class="text-[10.5px] bg-slate-100 text-ink-mute px-2 py-0.5 rounded-md">campus</span><span class="text-[10.5px] bg-slate-100 text-ink-mute px-2 py-0.5 rounded-md">hero</span></div>
+      </div>
+    </article>
+    <article class="bg-white rounded-card border border-slate-200/80 shadow-soft hover:shadow-lift transition overflow-hidden group cursor-pointer">
+      <div class="aspect-[4/3] bg-gradient-to-br from-queued-50 via-primary-100 to-accent-100 relative grid place-items-center">
+        <i data-lucide="play" class="text-[28px] text-white/80"></i>
+        <span class="absolute top-2.5 left-2.5 text-[10.5px] font-medium bg-white/90 backdrop-blur px-2 py-1 rounded-md">Video</span>
+      </div>
+      <div class="p-3.5">
+        <p class="text-[13px] font-medium truncate">campus-tour-melbourne.mp4</p>
+        <p class="text-[11.5px] text-ink-faint mt-1 tabular-nums">1920 × 1080 · 42 MB</p>
+        <div class="flex gap-1 mt-2.5"><span class="text-[10.5px] bg-slate-100 text-ink-mute px-2 py-0.5 rounded-md">campus</span></div>
+      </div>
+    </article>
+    <article class="bg-white rounded-card border border-slate-200/80 shadow-soft hover:shadow-lift transition overflow-hidden group cursor-pointer">
+      <div class="aspect-[4/3] bg-slate-100 relative grid place-items-center">
+        <i data-lucide="file-text" class="text-[32px] text-ink-faint"></i>
+        <span class="absolute top-2.5 left-2.5 text-[10.5px] font-medium bg-white/90 backdrop-blur px-2 py-1 rounded-md">Document</span>
+      </div>
+      <div class="p-3.5">
+        <p class="text-[13px] font-medium truncate">visa-checklist-2026.pdf</p>
+        <p class="text-[11.5px] text-ink-faint mt-1 tabular-nums">A4 · 320 KB</p>
+        <div class="flex gap-1 mt-2.5"><span class="text-[10.5px] bg-slate-100 text-ink-mute px-2 py-0.5 rounded-md">visa</span></div>
+      </div>
+    </article>
+    <article class="bg-white rounded-card border border-slate-200/80 shadow-soft hover:shadow-lift transition overflow-hidden group cursor-pointer">
+      <div class="aspect-[4/3] bg-gradient-to-br from-primary-500 to-accent-500 relative">
+        <span class="absolute top-2.5 left-2.5 text-[10.5px] font-medium bg-white/90 backdrop-blur px-2 py-1 rounded-md">Graphic</span>
+      </div>
+      <div class="p-3.5">
+        <p class="text-[13px] font-medium truncate">dnc-logo-mark.svg</p>
+        <p class="text-[11.5px] text-ink-faint mt-1 tabular-nums">Vector · 12 KB</p>
+        <div class="flex gap-1 mt-2.5"><span class="text-[10.5px] bg-slate-100 text-ink-mute px-2 py-0.5 rounded-md">brand</span></div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ─────────── REGISTER ASSET ─────────── -->
+<section class="scr" id="s-register">
+  <button onclick="go('assets','Repository / Assets')" class="text-[13px] text-ink-mute hover:text-ink flex items-center gap-1.5 mb-4"><i data-lucide="arrow-left" class="text-[15px]"></i>Back to assets</button>
+  <div class="mb-6"><h1 class="text-[24px] sm:text-[27px] font-semibold tracking-[-0.02em]">Register asset</h1>
+  <p class="text-ink-mute text-[14px] mt-1">Add a file to the repository so content and posts can use it.</p></div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-[1.2fr,1fr] gap-5 items-start max-w-[1080px]">
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5">
+      <div class="rounded-xl border-2 border-dashed border-slate-300 hover:border-primary-500/50 hover:bg-primary-50/25 transition p-10 text-center cursor-pointer">
+        <div class="w-14 h-14 rounded-2xl bg-primary-50 text-primary-600 grid place-items-center mx-auto"><i data-lucide="upload-cloud" class="text-[26px]"></i></div>
+        <p class="text-[15px] font-medium mt-4">Drop files here or browse</p>
+        <p class="text-[12.5px] text-ink-mute mt-1.5">JPG, PNG, SVG, MP4 or PDF · up to 200 MB each</p>
+        <button class="h-10 px-4 mt-5 rounded-xl border border-slate-300 bg-white text-[13.5px] font-medium hover:bg-slate-50">Browse files</button>
+      </div>
+
+      <div class="mt-4 space-y-2.5">
+        <div class="rounded-xl border border-slate-200 p-3.5">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-accent-50 text-accent-600 grid place-items-center shrink-0"><i data-lucide="image" class="text-[18px]"></i></div>
+            <div class="min-w-0 flex-1">
+              <p class="text-[13px] font-medium truncate">sydney-harbour-dusk.jpg</p>
+              <p class="text-[11.5px] text-ink-faint tabular-nums">1.8 MB · uploading 64%</p>
+            </div>
+            <button class="p-1.5 rounded-lg hover:bg-slate-100 text-ink-faint"><i data-lucide="x" class="text-[15px]"></i></button>
+          </div>
+          <div class="h-1.5 rounded-full bg-slate-100 mt-3 overflow-hidden"><div class="h-full w-[64%] rounded-full bg-accent-500"></div></div>
+        </div>
+        <div class="rounded-xl border border-ok-500/30 bg-ok-50/40 p-3.5 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-white text-ok-700 grid place-items-center shrink-0"><i data-lucide="circle-check-big" class="text-[18px]"></i></div>
+          <div class="min-w-0 flex-1">
+            <p class="text-[13px] font-medium truncate">visa-checklist-2026.pdf</p>
+            <p class="text-[11.5px] text-ok-700">Uploaded</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5 space-y-4">
+      <div><label class="text-[12.5px] font-medium block mb-1.5">Asset name</label>
+        <input value="Sydney Harbour at dusk" class="w-full h-10 px-3 rounded-xl border border-slate-300 text-[13.5px] outline-none focus:border-accent-500 focus:ring-4 focus:ring-accent-500/10 transition"></div>
+      <div><label class="text-[12.5px] font-medium block mb-1.5">Description</label>
+        <textarea rows="3" placeholder="Where this can be used, and what it shows." class="w-full rounded-xl border border-slate-300 p-3 text-[13.5px] outline-none focus:border-accent-500 focus:ring-4 focus:ring-accent-500/10 resize-none transition"></textarea></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="text-[12.5px] font-medium block mb-1.5">Asset type</label>
+          <select class="w-full h-10 px-3 rounded-xl border border-slate-300 text-[13.5px] outline-none focus:border-accent-500"><option>Image</option><option>Video</option><option>Document</option><option>Graphic</option></select></div>
+        <div><label class="text-[12.5px] font-medium block mb-1.5">Campaign</label>
+          <select class="w-full h-10 px-3 rounded-xl border border-slate-300 text-[13.5px] outline-none focus:border-accent-500"><option>Study intake 2026</option><option>Nomad visa series</option><option>None</option></select></div>
+      </div>
+      <div><label class="text-[12.5px] font-medium block mb-1.5">Tags</label>
+        <div class="min-h-[40px] rounded-xl border border-slate-300 p-2 flex flex-wrap gap-1.5">
+          <span class="text-[12px] bg-primary-50 text-primary-700 px-2.5 py-1 rounded-lg flex items-center gap-1.5">campus<button><i data-lucide="x" class="text-[12px]"></i></button></span>
+          <span class="text-[12px] bg-primary-50 text-primary-700 px-2.5 py-1 rounded-lg flex items-center gap-1.5">hero<button><i data-lucide="x" class="text-[12px]"></i></button></span>
+          <input placeholder="Add a tag…" class="flex-1 min-w-[100px] text-[13px] outline-none px-1 placeholder:text-ink-faint"></div></div>
+      <div><label class="text-[12.5px] font-medium block mb-1.5">Source</label>
+        <input placeholder="Photographer, agency or URL" class="w-full h-10 px-3 rounded-xl border border-slate-300 text-[13.5px] outline-none focus:border-accent-500"></div>
+      <div><label class="text-[12.5px] font-medium block mb-1.5">Usage rights</label>
+        <textarea rows="2" placeholder="Licence terms and any restrictions on use." class="w-full rounded-xl border border-slate-300 p-3 text-[13.5px] outline-none focus:border-accent-500 resize-none"></textarea></div>
+      <div class="flex gap-2.5 pt-1">
+        <button class="flex-1 h-11 rounded-xl bg-primary-500 text-white text-[14px] font-medium hover:bg-primary-600 shadow-lift">Register asset</button>
+        <button onclick="go('assets','Repository / Assets')" class="h-11 px-5 rounded-xl border border-slate-300 text-[14px] font-medium hover:bg-slate-50">Cancel</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ─────────── REPOSITORY / CHANNELS ─────────── -->
+<section class="scr" id="s-channels">
+  <div class="flex flex-wrap items-start justify-between gap-4 mb-5">
+    <div><h1 class="text-[24px] sm:text-[27px] font-semibold tracking-[-0.02em]">Channels</h1>
+    <p class="text-ink-mute text-[14px] mt-1">The social accounts and websites your content is distributed to.</p></div>
+    <button onclick="go('newchannel','Repository / Channels / Add channel')" class="h-10 px-4 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-[13.5px] font-medium shadow-lift flex items-center gap-2"><i data-lucide="plus" class="text-[16px]"></i>Add channel</button>
+  </div>
+
+  <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-3 mb-5 flex flex-wrap items-center gap-2.5">
+    <div class="flex items-center gap-2 flex-1 min-w-[200px] h-10 px-3 rounded-xl bg-slate-100/70 border border-transparent focus-within:bg-white focus-within:border-accent-500/40 focus-within:ring-4 focus-within:ring-accent-500/10 transition">
+      <i data-lucide="search" class="text-[16px] text-ink-faint"></i>
+      <input placeholder="Search channels…" class="bg-transparent text-[13px] w-full outline-none placeholder:text-ink-faint"></div>
+    <div class="flex rounded-xl border border-slate-300 overflow-hidden bg-white">
+      <button class="h-10 px-3.5 text-[13px] bg-primary-50 text-primary-600 font-medium">All</button>
+      <button class="h-10 px-3.5 text-[13px] text-ink-mute hover:bg-slate-50 border-l border-slate-300">Social</button>
+      <button class="h-10 px-3.5 text-[13px] text-ink-mute hover:bg-slate-50 border-l border-slate-300">Website</button>
+    </div>
+    <select class="h-10 px-3 pr-8 rounded-xl border border-slate-300 bg-white text-[13px] outline-none hover:bg-slate-50"><option>All statuses</option><option>Active</option><option>Paused</option><option>Needs attention</option></select>
+  </div>
+
+  <h2 class="text-[13px] font-semibold uppercase tracking-wider text-ink-mute mb-3">Social accounts</h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mb-7">
+
+    <article class="bg-white rounded-card border border-slate-200/80 shadow-soft hover:shadow-lift transition p-5">
+      <div class="flex items-start gap-3">
+        <div class="w-11 h-11 rounded-xl bg-accent-50 grid place-items-center text-accent-600 shrink-0"><i data-lucide="linkedin" class="text-[20px]"></i></div>
+        <div class="min-w-0 flex-1">
+          <h3 class="text-[14.5px] font-semibold truncate">DNC company page</h3>
+          <p class="text-[12.5px] text-ink-mute truncate">linkedin.com/company/dncouncil</p>
+        </div>
+        <span class="text-[11px] font-medium text-ok-700 bg-ok-50 border border-ok-500/20 px-2 py-1 rounded-lg flex items-center gap-1.5 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-ok-500"></span>Active</span>
+      </div>
+      <div class="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-slate-100 text-[12px]">
+        <div><span class="text-ink-faint block">Scheduled</span><span class="font-medium tabular-nums">14</span></div>
+        <div><span class="text-ink-faint block">Published</span><span class="font-medium tabular-nums">186</span></div>
+        <div><span class="text-ink-faint block">Last post</span><span class="font-medium">3 hrs ago</span></div>
+      </div>
+      <div class="flex gap-2 mt-4">
+        <button class="flex-1 h-9 rounded-xl border border-slate-300 text-[12.5px] font-medium hover:bg-slate-50">Edit</button>
+        <button onclick="go('schedule','Poster / Schedule')" class="flex-1 h-9 rounded-xl border border-slate-300 text-[12.5px] font-medium hover:bg-slate-50">View queue</button>
+        <button class="h-9 w-9 grid place-items-center rounded-xl border border-slate-300 hover:bg-slate-50 text-ink-mute"><i data-lucide="ellipsis" class="text-[16px]"></i></button>
+      </div>
+    </article>
+
+    <article class="bg-white rounded-card border border-err-500/30 shadow-soft hover:shadow-lift transition p-5">
+      <div class="flex items-start gap-3">
+        <div class="w-11 h-11 rounded-xl bg-queued-50 grid place-items-center text-queued-500 shrink-0"><i data-lucide="instagram" class="text-[20px]"></i></div>
+        <div class="min-w-0 flex-1">
+          <h3 class="text-[14.5px] font-semibold truncate">@digitalnomadcouncil</h3>
+          <p class="text-[12.5px] text-ink-mute truncate">Instagram business account</p>
+        </div>
+        <span class="text-[11px] font-medium text-err-700 bg-err-50 border border-err-500/25 px-2 py-1 rounded-lg flex items-center gap-1.5 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-err-500"></span>Attention</span>
+      </div>
+      <p class="text-[12.5px] text-err-700 mt-3 flex items-start gap-1.5"><i data-lucide="triangle-alert" class="text-[13px] mt-0.5 shrink-0"></i>Access expired — 2 posts paused.</p>
+      <div class="grid grid-cols-3 gap-3 mt-3 pt-4 border-t border-slate-100 text-[12px]">
+        <div><span class="text-ink-faint block">Scheduled</span><span class="font-medium tabular-nums">9</span></div>
+        <div><span class="text-ink-faint block">Published</span><span class="font-medium tabular-nums">142</span></div>
+        <div><span class="text-ink-faint block">Last post</span><span class="font-medium">Aug 11</span></div>
+      </div>
+      <div class="flex gap-2 mt-4">
+        <button onclick="go('integrations','Integrations / Dashboard')" class="flex-1 h-9 rounded-xl bg-primary-500 text-white text-[12.5px] font-medium hover:bg-primary-600">Reconnect</button>
+        <button class="h-9 w-9 grid place-items-center rounded-xl border border-slate-300 hover:bg-slate-50 text-ink-mute"><i data-lucide="ellipsis" class="text-[16px]"></i></button>
+      </div>
+    </article>
+
+    <article class="bg-white rounded-card border border-slate-200/80 shadow-soft hover:shadow-lift transition p-5">
+      <div class="flex items-start gap-3">
+        <div class="w-11 h-11 rounded-xl bg-slate-100 grid place-items-center text-ink-soft shrink-0"><i data-lucide="twitter" class="text-[20px]"></i></div>
+        <div class="min-w-0 flex-1">
+          <h3 class="text-[14.5px] font-semibold truncate">@dncouncil</h3>
+          <p class="text-[12.5px] text-ink-mute truncate">X account</p>
+        </div>
+        <span class="text-[11px] font-medium text-ink-mute bg-slate-100 border border-slate-200 px-2 py-1 rounded-lg shrink-0">Paused</span>
+      </div>
+      <div class="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-slate-100 text-[12px]">
+        <div><span class="text-ink-faint block">Scheduled</span><span class="font-medium tabular-nums">0</span></div>
+        <div><span class="text-ink-faint block">Published</span><span class="font-medium tabular-nums">73</span></div>
+        <div><span class="text-ink-faint block">Last post</span><span class="font-medium">Aug 4</span></div>
+      </div>
+      <div class="flex gap-2 mt-4">
+        <button class="flex-1 h-9 rounded-xl border border-slate-300 text-[12.5px] font-medium hover:bg-slate-50">Resume</button>
+        <button class="flex-1 h-9 rounded-xl border border-slate-300 text-[12.5px] font-medium hover:bg-slate-50">Edit</button>
+        <button class="h-9 w-9 grid place-items-center rounded-xl border border-slate-300 hover:bg-slate-50 text-ink-mute"><i data-lucide="ellipsis" class="text-[16px]"></i></button>
+      </div>
+    </article>
+  </div>
+
+  <h2 class="text-[13px] font-semibold uppercase tracking-wider text-ink-mute mb-3">Websites</h2>
+  <div class="bg-white rounded-card border border-slate-200/80 shadow-soft overflow-hidden">
+    <div class="overflow-x-auto tbl-scroll">
+    <table class="w-full text-[13px]">
+      <thead><tr class="bg-slate-50/80 border-b border-slate-200 text-left">
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Channel</th>
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Destination</th>
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Post type</th>
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Owner</th>
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Last published</th>
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Status</th>
+        <th class="px-5 py-3 w-12"></th>
+      </tr></thead>
+      <tbody class="divide-y divide-slate-100">
+        <tr class="hover:bg-slate-50/70 cursor-pointer">
+          <td class="px-5 py-3.5"><div class="flex items-center gap-2.5">
+            <span class="w-7 h-7 rounded-lg bg-slate-100 grid place-items-center text-ink-soft"><i data-lucide="globe" class="text-[15px]"></i></span>
+            <span class="font-medium">DNC main blog</span></div></td>
+          <td class="px-5 py-3.5 text-ink-soft max-w-[240px]"><div class="truncate">dncouncil.org/blog</div></td>
+          <td class="px-5 py-3.5 text-ink-soft">Article · Guides</td>
+          <td class="px-5 py-3.5"><div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-primary-500 grid place-items-center text-white text-[10px] font-semibold">A</span>Admin</div></td>
+          <td class="px-5 py-3.5 text-ink-mute whitespace-nowrap">Yesterday 23:40</td>
+          <td class="px-5 py-3.5"><span class="text-[11px] font-semibold tracking-wide text-ok-700 bg-ok-50 border border-ok-500/20 px-2.5 py-1 rounded-lg">ACTIVE</span></td>
+          <td class="px-5 py-3.5"><button class="p-1.5 rounded-lg hover:bg-slate-200/70 text-ink-faint"><i data-lucide="ellipsis-vertical" class="text-[16px]"></i></button></td>
+        </tr>
+        <tr class="hover:bg-slate-50/70 cursor-pointer">
+          <td class="px-5 py-3.5"><div class="flex items-center gap-2.5">
+            <span class="w-7 h-7 rounded-lg bg-slate-100 grid place-items-center text-ink-soft"><i data-lucide="globe" class="text-[15px]"></i></span>
+            <span class="font-medium">Study hub</span></div></td>
+          <td class="px-5 py-3.5 text-ink-soft max-w-[240px]"><div class="truncate">study.dncouncil.org/resources</div></td>
+          <td class="px-5 py-3.5 text-ink-soft">Article · Resources</td>
+          <td class="px-5 py-3.5"><div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-accent-500 grid place-items-center text-white text-[10px] font-semibold">M</span>Maya</div></td>
+          <td class="px-5 py-3.5 text-ink-mute whitespace-nowrap">Aug 10 14:22</td>
+          <td class="px-5 py-3.5"><span class="text-[11px] font-semibold tracking-wide text-ok-700 bg-ok-50 border border-ok-500/20 px-2.5 py-1 rounded-lg">ACTIVE</span></td>
+          <td class="px-5 py-3.5"><button class="p-1.5 rounded-lg hover:bg-slate-200/70 text-ink-faint"><i data-lucide="ellipsis-vertical" class="text-[16px]"></i></button></td>
+        </tr>
+        <tr class="hover:bg-slate-50/70 cursor-pointer">
+          <td class="px-5 py-3.5"><div class="flex items-center gap-2.5">
+            <span class="w-7 h-7 rounded-lg bg-slate-100 grid place-items-center text-ink-soft"><i data-lucide="mail" class="text-[15px]"></i></span>
+            <span class="font-medium">Weekly digest</span></div></td>
+          <td class="px-5 py-3.5 text-ink-soft max-w-[240px]"><div class="truncate">Newsletter · 8,400 subscribers</div></td>
+          <td class="px-5 py-3.5 text-ink-soft">Newsletter</td>
+          <td class="px-5 py-3.5"><div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-queued-500 grid place-items-center text-white text-[10px] font-semibold">J</span>Jordan</div></td>
+          <td class="px-5 py-3.5 text-ink-mute whitespace-nowrap">Aug 7 08:00</td>
+          <td class="px-5 py-3.5"><span class="text-[11px] font-semibold tracking-wide text-ink-mute bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-lg">PAUSED</span></td>
+          <td class="px-5 py-3.5"><button class="p-1.5 rounded-lg hover:bg-slate-200/70 text-ink-faint"><i data-lucide="ellipsis-vertical" class="text-[16px]"></i></button></td>
+        </tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ─────────── ADD CHANNEL ─────────── -->
+<section class="scr" id="s-newchannel">
+  <button onclick="go('channels','Repository / Channels')" class="text-[13px] text-ink-mute hover:text-ink flex items-center gap-1.5 mb-4"><i data-lucide="arrow-left" class="text-[15px]"></i>Back to channels</button>
+  <div class="mb-6"><h1 class="text-[24px] sm:text-[27px] font-semibold tracking-[-0.02em]">Add channel</h1>
+  <p class="text-ink-mute text-[14px] mt-1">Set up a destination your content can be published to.</p></div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-[1fr,340px] gap-5 items-start max-w-[1100px]">
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft">
+      <div class="p-5 sm:p-6 space-y-6">
+
+        <div>
+          <label class="text-[13.5px] font-medium block mb-2">Channel type</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button class="rounded-xl border-2 border-primary-500 bg-primary-50/40 p-4 text-left">
+              <div class="flex items-center gap-2.5">
+                <span class="w-9 h-9 rounded-lg bg-white grid place-items-center text-primary-600 shrink-0"><i data-lucide="share-2" class="text-[18px]"></i></span>
+                <span class="text-[13.5px] font-semibold">Social account</span>
+                <i data-lucide="circle-check" class="text-[17px] text-primary-500 ml-auto"></i></div>
+              <p class="text-[12.5px] text-ink-mute mt-2 leading-relaxed">A page or profile you post to — LinkedIn, Instagram, Facebook, X.</p>
+            </button>
+            <button class="rounded-xl border-2 border-slate-200 p-4 text-left hover:border-slate-300 transition">
+              <div class="flex items-center gap-2.5">
+                <span class="w-9 h-9 rounded-lg bg-slate-100 grid place-items-center text-ink-soft shrink-0"><i data-lucide="globe" class="text-[18px]"></i></span>
+                <span class="text-[13.5px] font-semibold">Website</span></div>
+              <p class="text-[12.5px] text-ink-mute mt-2 leading-relaxed">A site or newsletter that receives published posts.</p>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div><label class="text-[13.5px] font-medium block mb-1.5">Channel name</label>
+            <input placeholder="DNC company page" class="w-full h-11 px-3.5 rounded-xl border border-slate-300 text-[13.5px] outline-none focus:border-accent-500 focus:ring-4 focus:ring-accent-500/10 transition placeholder:text-ink-faint">
+            <p class="text-[12px] text-ink-mute mt-1.5">How this destination appears when scheduling.</p></div>
+          <div><label class="text-[13.5px] font-medium block mb-1.5">Platform</label>
+            <select class="w-full h-11 px-3 rounded-xl border border-slate-300 text-[13.5px] outline-none focus:border-accent-500"><option>LinkedIn</option><option>Instagram</option><option>Facebook</option><option>X / Twitter</option><option>WordPress</option><option>Newsletter</option></select></div>
+        </div>
+
+        <div>
+          <label class="text-[13.5px] font-medium block mb-1.5">Account handle or destination URL</label>
+          <div class="flex items-center gap-2 h-11 px-3.5 rounded-xl border border-slate-300 focus-within:border-accent-500 focus-within:ring-4 focus-within:ring-accent-500/10 transition">
+            <i data-lucide="at-sign" class="text-[16px] text-ink-faint shrink-0"></i>
+            <input placeholder="linkedin.com/company/dncouncil" class="w-full text-[13.5px] outline-none placeholder:text-ink-faint bg-transparent"></div>
+          <p class="text-[12.5px] text-ink-mute mt-1.5">For websites, include the path posts should be published to.</p>
+        </div>
+
+        <div>
+          <label class="text-[13.5px] font-medium block mb-1.5">Connection</label>
+          <div class="rounded-xl border border-slate-200 bg-slate-50 p-3.5 flex items-center gap-3">
+            <span class="w-9 h-9 rounded-lg bg-white grid place-items-center text-accent-600 shrink-0"><i data-lucide="linkedin" class="text-[17px]"></i></span>
+            <div class="min-w-0 flex-1"><p class="text-[13px] font-medium">LinkedIn</p>
+              <p class="text-[12px] text-ok-700 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-ok-500"></span>Connected</p></div>
+            <button onclick="go('integrations','Integrations / Dashboard')" class="h-9 px-3 rounded-lg border border-slate-300 bg-white text-[12.5px] font-medium hover:bg-slate-50 whitespace-nowrap">Manage</button>
+          </div>
+          <p class="text-[12.5px] text-ink-mute mt-1.5">Channels publish through an integration. Connect one first if it isn't listed.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div><label class="text-[13.5px] font-medium block mb-1.5">Default campaign</label>
+            <select class="w-full h-11 px-3 rounded-xl border border-slate-300 text-[13.5px] outline-none focus:border-accent-500"><option>None</option><option>Study intake 2026</option><option>Nomad visa series</option></select></div>
+          <div><label class="text-[13.5px] font-medium block mb-1.5">Owner</label>
+            <select class="w-full h-11 px-3 rounded-xl border border-slate-300 text-[13.5px] outline-none focus:border-accent-500"><option>Admin</option><option>Maya</option><option>Jordan</option></select></div>
+        </div>
+
+        <div><label class="text-[13.5px] font-medium block mb-1.5">Notes</label>
+          <textarea rows="2" placeholder="Posting rules, tone or approval requirements for this channel." class="w-full rounded-xl border border-slate-300 p-3 text-[13.5px] outline-none focus:border-accent-500 focus:ring-4 focus:ring-accent-500/10 resize-none transition placeholder:text-ink-faint"></textarea></div>
+
+      </div>
+      <div class="px-5 sm:px-6 py-4 border-t border-slate-100 flex flex-col sm:flex-row gap-2.5">
+        <button onclick="go('channels','Repository / Channels')" class="h-11 px-5 rounded-xl bg-primary-500 text-white text-[14px] font-medium hover:bg-primary-600 shadow-lift transition">Add channel</button>
+        <button onclick="go('channels','Repository / Channels')" class="h-11 px-5 rounded-xl border border-slate-300 text-[14px] font-medium hover:bg-slate-50 transition">Cancel</button>
+      </div>
+    </div>
+
+    <aside class="space-y-4">
+      <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5">
+        <h2 class="text-[13.5px] font-semibold mb-3">Channels and integrations</h2>
+        <p class="text-[13px] text-ink-soft leading-relaxed">An integration is the connection to a service. A channel is a specific place that service publishes to.</p>
+        <p class="text-[13px] text-ink-soft leading-relaxed mt-3">One LinkedIn integration can serve several channels — a company page, a founder profile, a regional page — each with its own queue and owner.</p>
+      </div>
+      <div class="rounded-card border border-accent-500/25 bg-accent-50/50 p-4 flex gap-3">
+        <i data-lucide="info" class="text-[17px] text-accent-600 shrink-0 mt-0.5"></i>
+        <p class="text-[13px] text-ink-soft leading-relaxed">New channels start paused. Publish a test post before scheduling to it.</p>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ─────────── INTEGRATIONS ─────────── -->
+<section class="scr" id="s-integrations">
+  <div class="mb-6"><h1 class="text-[24px] sm:text-[27px] font-semibold tracking-[-0.02em]">Integrations</h1>
+  <p class="text-ink-mute text-[14px] mt-1">Connect and manage the services powering your content workflow.</p></div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5">
+      <div class="flex items-start justify-between mb-3">
+        <div class="w-11 h-11 rounded-xl bg-slate-100 grid place-items-center text-ink-soft"><i data-lucide="globe" class="text-[20px]"></i></div>
+        <span class="text-[11px] font-medium text-ok-700 bg-ok-50 border border-ok-500/20 px-2 py-1 rounded-lg flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-ok-500"></span>Connected</span></div>
+      <h3 class="text-[14.5px] font-semibold">WordPress</h3>
+      <p class="text-[12.5px] text-ink-mute mt-1 leading-relaxed">Publish approved articles straight to your site.</p>
+      <div class="flex gap-2 mt-4"><button class="flex-1 h-9 rounded-xl border border-slate-300 text-[12.5px] font-medium hover:bg-slate-50">Configure</button>
+        <button class="h-9 px-3 rounded-xl text-[12.5px] text-err-700 hover:bg-err-50">Disconnect</button></div>
+    </div>
+
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5">
+      <div class="flex items-start justify-between mb-3">
+        <div class="w-11 h-11 rounded-xl bg-accent-50 grid place-items-center text-accent-600"><i data-lucide="linkedin" class="text-[20px]"></i></div>
+        <span class="text-[11px] font-medium text-ok-700 bg-ok-50 border border-ok-500/20 px-2 py-1 rounded-lg flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-ok-500"></span>Connected</span></div>
+      <h3 class="text-[14.5px] font-semibold">LinkedIn</h3>
+      <p class="text-[12.5px] text-ink-mute mt-1 leading-relaxed">Schedule posts to your company page.</p>
+      <div class="flex gap-2 mt-4"><button class="flex-1 h-9 rounded-xl border border-slate-300 text-[12.5px] font-medium hover:bg-slate-50">Configure</button>
+        <button class="h-9 px-3 rounded-xl text-[12.5px] text-err-700 hover:bg-err-50">Disconnect</button></div>
+    </div>
+
+    <div class="bg-white rounded-card border border-err-500/30 shadow-soft p-5">
+      <div class="flex items-start justify-between mb-3">
+        <div class="w-11 h-11 rounded-xl bg-queued-50 grid place-items-center text-queued-500"><i data-lucide="instagram" class="text-[20px]"></i></div>
+        <span class="text-[11px] font-medium text-err-700 bg-err-50 border border-err-500/25 px-2 py-1 rounded-lg flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-err-500"></span>Error</span></div>
+      <h3 class="text-[14.5px] font-semibold">Instagram</h3>
+      <p class="text-[12.5px] text-err-700 mt-1 leading-relaxed">Access expired. Reconnect to resume publishing.</p>
+      <div class="flex gap-2 mt-4"><button class="flex-1 h-9 rounded-xl bg-primary-500 text-white text-[12.5px] font-medium hover:bg-primary-600">Reconnect</button></div>
+    </div>
+
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5">
+      <div class="flex items-start justify-between mb-3">
+        <div class="w-11 h-11 rounded-xl bg-accent-50 grid place-items-center text-accent-600"><i data-lucide="facebook" class="text-[20px]"></i></div>
+        <span class="text-[11px] font-medium text-ink-mute bg-slate-100 border border-slate-200 px-2 py-1 rounded-lg">Not connected</span></div>
+      <h3 class="text-[14.5px] font-semibold">Facebook</h3>
+      <p class="text-[12.5px] text-ink-mute mt-1 leading-relaxed">Publish to pages and groups you manage.</p>
+      <div class="flex gap-2 mt-4"><button class="flex-1 h-9 rounded-xl bg-primary-500 text-white text-[12.5px] font-medium hover:bg-primary-600">Connect</button></div>
+    </div>
+
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5">
+      <div class="flex items-start justify-between mb-3">
+        <div class="w-11 h-11 rounded-xl bg-slate-100 grid place-items-center text-ink-soft"><i data-lucide="twitter" class="text-[20px]"></i></div>
+        <span class="text-[11px] font-medium text-ok-700 bg-ok-50 border border-ok-500/20 px-2 py-1 rounded-lg flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-ok-500"></span>Connected</span></div>
+      <h3 class="text-[14.5px] font-semibold">X / Twitter</h3>
+      <p class="text-[12.5px] text-ink-mute mt-1 leading-relaxed">Post threads and single updates.</p>
+      <div class="flex gap-2 mt-4"><button class="flex-1 h-9 rounded-xl border border-slate-300 text-[12.5px] font-medium hover:bg-slate-50">Configure</button>
+        <button class="h-9 px-3 rounded-xl text-[12.5px] text-err-700 hover:bg-err-50">Disconnect</button></div>
+    </div>
+
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5">
+      <div class="flex items-start justify-between mb-3">
+        <div class="w-11 h-11 rounded-xl bg-ok-50 grid place-items-center text-ok-700"><i data-lucide="hard-drive" class="text-[20px]"></i></div>
+        <span class="text-[11px] font-medium text-ok-700 bg-ok-50 border border-ok-500/20 px-2 py-1 rounded-lg flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-ok-500"></span>Connected</span></div>
+      <h3 class="text-[14.5px] font-semibold">Google Drive</h3>
+      <p class="text-[12.5px] text-ink-mute mt-1 leading-relaxed">Import assets from shared folders.</p>
+      <div class="flex gap-2 mt-4"><button class="flex-1 h-9 rounded-xl border border-slate-300 text-[12.5px] font-medium hover:bg-slate-50">Configure</button>
+        <button class="h-9 px-3 rounded-xl text-[12.5px] text-err-700 hover:bg-err-50">Disconnect</button></div>
+    </div>
+
+    <div class="bg-white rounded-card border border-primary-200 shadow-soft p-5">
+      <div class="flex items-start justify-between mb-3">
+        <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 grid place-items-center text-white"><i data-lucide="sparkles" class="text-[20px]"></i></div>
+        <span class="text-[11px] font-medium text-ok-700 bg-ok-50 border border-ok-500/20 px-2 py-1 rounded-lg flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-ok-500"></span>Connected</span></div>
+      <h3 class="text-[14.5px] font-semibold">AI provider</h3>
+      <p class="text-[12.5px] text-ink-mute mt-1 leading-relaxed">Powers generation and rewriting in Content Studio.</p>
+      <div class="flex gap-2 mt-4"><button class="flex-1 h-9 rounded-xl border border-slate-300 text-[12.5px] font-medium hover:bg-slate-50">Configure</button></div>
+    </div>
+
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5">
+      <div class="flex items-start justify-between mb-3">
+        <div class="w-11 h-11 rounded-xl bg-slate-100 grid place-items-center text-ink-soft"><i data-lucide="webhook" class="text-[20px]"></i></div>
+        <span class="text-[11px] font-medium text-ink-mute bg-slate-100 border border-slate-200 px-2 py-1 rounded-lg">Not connected</span></div>
+      <h3 class="text-[14.5px] font-semibold">Webhook / API</h3>
+      <p class="text-[12.5px] text-ink-mute mt-1 leading-relaxed">Send job and content events to your own systems.</p>
+      <div class="flex gap-2 mt-4"><button class="flex-1 h-9 rounded-xl bg-primary-500 text-white text-[12.5px] font-medium hover:bg-primary-600">Connect</button></div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-card border border-slate-200/80 shadow-soft">
+    <div class="px-5 h-14 flex items-center border-b border-slate-100"><h2 class="text-[15px] font-semibold">Recent integration activity</h2></div>
+    <div class="divide-y divide-slate-100">
+      <div class="px-5 py-3.5 flex items-center gap-4 text-[13px]">
+        <span class="w-2 h-2 rounded-full bg-ok-500 shrink-0"></span>
+        <span class="font-medium w-[110px]">WordPress</span>
+        <span class="text-ink-soft flex-1 truncate">Published “Scholarship deadlines roundup”</span>
+        <span class="text-ink-faint tabular-nums whitespace-nowrap">Yesterday 23:40</span></div>
+      <div class="px-5 py-3.5 flex items-center gap-4 text-[13px]">
+        <span class="w-2 h-2 rounded-full bg-err-500 shrink-0"></span>
+        <span class="font-medium w-[110px]">Instagram</span>
+        <span class="text-err-700 flex-1 truncate">Token expired — reconnect required</span>
+        <span class="text-ink-faint tabular-nums whitespace-nowrap">Aug 11 18:02</span></div>
+      <div class="px-5 py-3.5 flex items-center gap-4 text-[13px]">
+        <span class="w-2 h-2 rounded-full bg-ok-500 shrink-0"></span>
+        <span class="font-medium w-[110px]">Google Drive</span>
+        <span class="text-ink-soft flex-1 truncate">Imported 12 assets from “Campus 2026”</span>
+        <span class="text-ink-faint tabular-nums whitespace-nowrap">Aug 11 09:15</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── STATES GALLERY ─────────── -->
+<section class="scr" id="s-states">
+  <div class="mb-6"><h1 class="text-[24px] sm:text-[27px] font-semibold tracking-[-0.02em]">States gallery</h1>
+  <p class="text-ink-mute text-[14px] mt-1">Loading, empty and error states used across the platform.</p></div>
+
+  <h2 class="text-[13px] font-semibold uppercase tracking-wider text-ink-mute mb-3">Skeleton loaders</h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5">
+      <div class="w-10 h-10 rounded-xl shimmer"></div>
+      <div class="h-7 w-24 rounded-lg shimmer mt-4"></div>
+      <div class="h-3.5 w-20 rounded shimmer mt-2.5"></div>
+      <div class="h-3 w-28 rounded shimmer mt-3"></div>
+    </div>
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5">
+      <div class="w-10 h-10 rounded-xl shimmer"></div>
+      <div class="h-7 w-24 rounded-lg shimmer mt-4"></div>
+      <div class="h-3.5 w-20 rounded shimmer mt-2.5"></div>
+      <div class="h-3 w-28 rounded shimmer mt-3"></div>
+    </div>
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft overflow-hidden">
+      <div class="aspect-[4/3] shimmer"></div>
+      <div class="p-3.5"><div class="h-3.5 w-32 rounded shimmer"></div><div class="h-3 w-20 rounded shimmer mt-2"></div></div>
+    </div>
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5 space-y-3">
+      <div class="h-3.5 w-full rounded shimmer"></div><div class="h-3.5 w-4/5 rounded shimmer"></div>
+      <div class="h-3.5 w-full rounded shimmer"></div><div class="h-3.5 w-3/5 rounded shimmer"></div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-card border border-slate-200/80 shadow-soft overflow-hidden mb-8">
+    <div class="px-5 h-12 border-b border-slate-100 flex items-center gap-4">
+      <div class="h-3 w-20 rounded shimmer"></div><div class="h-3 w-40 rounded shimmer"></div><div class="h-3 w-16 rounded shimmer"></div></div>
+    <div class="divide-y divide-slate-100">
+      <div class="px-5 py-4 flex items-center gap-4"><div class="h-3.5 w-20 rounded shimmer"></div><div class="h-3.5 flex-1 rounded shimmer"></div><div class="h-6 w-24 rounded-lg shimmer"></div></div>
+      <div class="px-5 py-4 flex items-center gap-4"><div class="h-3.5 w-20 rounded shimmer"></div><div class="h-3.5 flex-1 rounded shimmer"></div><div class="h-6 w-24 rounded-lg shimmer"></div></div>
+      <div class="px-5 py-4 flex items-center gap-4"><div class="h-3.5 w-20 rounded shimmer"></div><div class="h-3.5 flex-1 rounded shimmer"></div><div class="h-6 w-24 rounded-lg shimmer"></div></div>
+    </div>
+  </div>
+
+  <h2 class="text-[13px] font-semibold uppercase tracking-wider text-ink-mute mb-3">Empty states</h2>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-10 text-center">
+      <div class="w-16 h-16 rounded-2xl bg-primary-50 text-primary-500 grid place-items-center mx-auto"><i data-lucide="globe" class="text-[30px]"></i></div>
+      <h3 class="text-[17px] font-semibold mt-5">No scrape jobs yet</h3>
+      <p class="text-[13.5px] text-ink-mute mt-2 max-w-[340px] mx-auto leading-relaxed">Start your first scraping job to collect content from the web.</p>
+      <button onclick="go('newjob','Scraper / Jobs / New job')" class="h-10 px-4 mt-5 rounded-xl bg-primary-500 text-white text-[13.5px] font-medium hover:bg-primary-600 shadow-lift">Create scrape job</button>
+    </div>
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-10 text-center">
+      <div class="w-16 h-16 rounded-2xl bg-accent-50 text-accent-500 grid place-items-center mx-auto"><i data-lucide="file-text" class="text-[30px]"></i></div>
+      <h3 class="text-[17px] font-semibold mt-5">Your content workspace is empty</h3>
+      <p class="text-[13.5px] text-ink-mute mt-2 max-w-[340px] mx-auto leading-relaxed">Turn scraped pages into reusable content.</p>
+      <button onclick="go('scraped','Content Studio / Scraped')" class="h-10 px-4 mt-5 rounded-xl bg-primary-500 text-white text-[13.5px] font-medium hover:bg-primary-600 shadow-lift">Browse scraped content</button>
+    </div>
+  </div>
+
+  <h2 class="text-[13px] font-semibold uppercase tracking-wider text-ink-mute mb-3">Error states</h2>
+  <div class="space-y-4">
+    <div class="bg-white rounded-card border border-err-500/30 shadow-soft p-5 flex items-start gap-4">
+      <div class="w-10 h-10 rounded-xl bg-err-50 text-err-700 grid place-items-center shrink-0"><i data-lucide="triangle-alert" class="text-[19px]"></i></div>
+      <div class="min-w-0 flex-1">
+        <h3 class="text-[14.5px] font-semibold text-err-700">Scraping failed</h3>
+        <p class="text-[13.5px] text-ink-soft mt-1">We couldn't complete this job. Review the execution details or try again.</p>
+        <div class="flex gap-2 mt-4">
+          <button onclick="go('execution','Scraper / Execution')" class="h-9 px-3.5 rounded-xl border border-slate-300 text-[13px] font-medium hover:bg-slate-50">View details</button>
+          <button class="h-9 px-3.5 rounded-xl bg-primary-500 text-white text-[13px] font-medium hover:bg-primary-600">Retry</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-card border border-warn-500/30 bg-warn-50/50 p-4 flex items-start gap-3">
+      <i data-lucide="circle-alert" class="text-[18px] text-warn-700 mt-0.5 shrink-0"></i>
+      <div><p class="text-[13.5px] font-medium text-warn-700">Instagram needs reconnecting</p>
+      <p class="text-[13px] text-ink-soft mt-0.5">Two scheduled posts are paused until access is restored.</p></div>
+      <button class="ml-auto h-9 px-3.5 rounded-xl bg-white border border-warn-500/30 text-[13px] font-medium hover:bg-warn-50 whitespace-nowrap">Reconnect</button>
+    </div>
+
+    <div class="rounded-card border border-slate-200 bg-white p-4 flex items-start gap-3">
+      <i data-lucide="info" class="text-[18px] text-accent-600 mt-0.5 shrink-0"></i>
+      <div><p class="text-[13.5px] font-medium">This URL was scraped 2 hours ago</p>
+      <p class="text-[13px] text-ink-soft mt-0.5">Running it again will create a new job and a new result.</p></div>
+    </div>
+  </div>
+</section>
+
+</main>
+</div>
+
+<!-- ══════════ NOTIFICATIONS DRAWER ══════════ -->
+<div id="drawerScrim" onclick="closeDrawer()" class="hidden fixed inset-0 bg-ink/40 z-50"></div>
+<aside id="drawer" class="fixed inset-y-0 right-0 z-[60] w-full sm:w-[400px] bg-white shadow-pop translate-x-full transition-transform duration-250 flex flex-col">
+  <div class="flex items-center justify-between px-5 h-16 border-b border-slate-200 shrink-0">
+    <h2 class="text-[16px] font-semibold">Notifications</h2>
+    <div class="flex items-center gap-1">
+      <button class="text-[12.5px] text-primary-600 font-medium px-2.5 py-1.5 rounded-lg hover:bg-primary-50">Mark all read</button>
+      <button onclick="closeDrawer()" class="p-2 rounded-lg hover:bg-slate-100"><i data-lucide="x" class="text-[19px]"></i></button>
+    </div>
+  </div>
+  <div class="px-5 py-3 border-b border-slate-100 flex gap-1.5 overflow-x-auto shrink-0">
+    <button class="text-[12.5px] px-3 py-1.5 rounded-lg bg-primary-500 text-white font-medium whitespace-nowrap">All</button>
+    <button class="text-[12.5px] px-3 py-1.5 rounded-lg text-ink-mute hover:bg-slate-100 whitespace-nowrap">Scraping</button>
+    <button class="text-[12.5px] px-3 py-1.5 rounded-lg text-ink-mute hover:bg-slate-100 whitespace-nowrap">Content</button>
+    <button class="text-[12.5px] px-3 py-1.5 rounded-lg text-ink-mute hover:bg-slate-100 whitespace-nowrap">Publishing</button>
+    <button class="text-[12.5px] px-3 py-1.5 rounded-lg text-ink-mute hover:bg-slate-100 whitespace-nowrap">Integrations</button>
+    <button class="text-[12.5px] px-3 py-1.5 rounded-lg text-ink-mute hover:bg-slate-100 whitespace-nowrap">System</button>
+  </div>
+  <div class="flex-1 overflow-y-auto divide-y divide-slate-100">
+    <div class="px-5 py-4 flex gap-3 bg-primary-50/30 relative">
+      <span class="absolute left-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-primary-500"></span>
+      <div class="w-8 h-8 rounded-lg bg-ok-50 text-ok-700 grid place-items-center shrink-0"><i data-lucide="circle-check-big" class="text-[16px]"></i></div>
+      <div class="min-w-0"><p class="text-[13.5px] leading-snug">Scrape job <span class="font-medium">#SC-1284</span> completed successfully.</p>
+      <p class="text-[11.5px] text-ink-faint mt-1">2 minutes ago</p></div>
+    </div>
+    <div class="px-5 py-4 flex gap-3 bg-primary-50/30 relative">
+      <span class="absolute left-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-primary-500"></span>
+      <div class="w-8 h-8 rounded-lg bg-err-50 text-err-700 grid place-items-center shrink-0"><i data-lucide="triangle-alert" class="text-[16px]"></i></div>
+      <div class="min-w-0"><p class="text-[13.5px] leading-snug">Scrape job <span class="font-medium">#SC-1282</span> failed.</p>
+      <p class="text-[11.5px] text-ink-faint mt-1">33 minutes ago</p>
+      <button onclick="closeDrawer();go('execution','Scraper / Execution')" class="text-[12.5px] font-medium text-primary-600 mt-2 hover:underline">View execution</button></div>
+    </div>
+    <div class="px-5 py-4 flex gap-3">
+      <div class="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 grid place-items-center shrink-0"><i data-lucide="send" class="text-[16px]"></i></div>
+      <div class="min-w-0"><p class="text-[13.5px] leading-snug">Scheduled LinkedIn post published.</p>
+      <p class="text-[11.5px] text-ink-faint mt-1">3 hours ago</p></div>
+    </div>
+    <div class="px-5 py-4 flex gap-3">
+      <div class="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 grid place-items-center shrink-0"><i data-lucide="sparkles" class="text-[16px]"></i></div>
+      <div class="min-w-0"><p class="text-[13.5px] leading-snug">AI draft ready for <span class="font-medium">Study visa guide</span>.</p>
+      <p class="text-[11.5px] text-ink-faint mt-1">Yesterday</p></div>
+    </div>
+    <div class="px-5 py-4 flex gap-3">
+      <div class="w-8 h-8 rounded-lg bg-warn-50 text-warn-700 grid place-items-center shrink-0"><i data-lucide="plug" class="text-[16px]"></i></div>
+      <div class="min-w-0"><p class="text-[13.5px] leading-snug">Instagram access expired — reconnect to resume publishing.</p>
+      <p class="text-[11.5px] text-ink-faint mt-1">Yesterday</p></div>
+    </div>
+  </div>
+</aside>
+
+<!-- ══════════ TOAST ══════════ -->
+<div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[70] opacity-0 translate-y-4 pointer-events-none transition-all duration-200">
+  <div class="bg-rail text-white rounded-xl shadow-pop px-4 py-3 flex items-center gap-3 min-w-[280px]">
+    <span class="w-6 h-6 rounded-full bg-ok-500 grid place-items-center shrink-0"><i data-lucide="check" class="text-[14px]"></i></span>
+    <p class="text-[13.5px] flex-1">Job queued — we'll process it shortly.</p>
+    <button onclick="go('jobs','Scraper / Jobs')" class="text-[13px] font-medium text-accent-500 hover:text-accent-500/80 whitespace-nowrap">View</button>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const icons = () => window.lucide && lucide.createIcons();
+
+/* nav */
+function go(screen, crumb){
+  document.querySelectorAll('.scr').forEach(s => s.classList.remove('on'));
+  const el = $('s-'+screen); if(el) el.classList.add('on');
+  $('crumb').textContent = crumb;
+  document.querySelectorAll('[data-nav]').forEach(a=>{
+    const active = a.dataset.nav === screen;
+    a.classList.toggle('bg-white/10', active);
+    a.classList.toggle('text-white', active);
+    a.classList.toggle('font-semibold', active);
+  });
+  const owner = {jobs:'g-scraper',newjob:'g-scraper',execution:'g-scraper',detail:'g-scraper',
+    scraped:'g-studio',content:'g-studio',editor:'g-studio',genai:'g-studio',
+    schedule:'g-poster',calendar:'g-poster',assets:'g-assets',register:'g-assets',channels:'g-assets',newchannel:'g-assets',
+    integrations:'g-integ'}[screen];
+  if(owner) $(owner).classList.add('open');
+  closeRail();
+  window.scrollTo({top:0,behavior:'instant'});
+  icons();
+  return false;
+}
+function toggleGrp(id){ $(id).classList.toggle('open'); }
+function tog(id){ const e=$(id); if(e) e.classList.toggle('hidden'); }
+
+/* sidebar */
+function openRail(){ $('rail').classList.remove('-translate-x-full'); $('scrim').classList.remove('hidden'); }
+function closeRail(){ if(window.innerWidth<1024){ $('rail').classList.add('-translate-x-full'); $('scrim').classList.add('hidden'); } }
+function collapseRail(){
+  const r=$('rail'), s=$('shell');
+  r.classList.toggle('rail-collapsed');
+  const c=r.classList.contains('rail-collapsed');
+  r.classList.toggle('w-[260px]', !c);
+  s.classList.toggle('lg:pl-[260px]', !c);
+  s.classList.toggle('lg:pl-[72px]', c);
+}
+
+/* new job page */
+function startJob(){
+  go('jobs','Scraper / Jobs');
+  const t=$('toast');
+  t.classList.remove('opacity-0','translate-y-4');
+  setTimeout(()=>t.classList.add('opacity-0','translate-y-4'), 3200);
+}
+function stepPage(d){
+  const i=$('pageNum');
+  let v=(parseInt(i.value,10)||1)+d;
+  i.value = Math.min(1000, Math.max(1, v));
+}
+
+/* drawer */
+function openDrawer(){ $('drawerScrim').classList.remove('hidden'); $('drawer').classList.remove('translate-x-full'); }
+function closeDrawer(){ $('drawerScrim').classList.add('hidden'); $('drawer').classList.add('translate-x-full'); }
+
+/* tabs */
+function tab(group, idx, btn){
+  document.querySelectorAll('.tab-'+group).forEach(b=>{
+    b.classList.remove('border-primary-500','text-primary-600');
+    b.classList.add('border-transparent','text-ink-mute');
+  });
+  btn.classList.add('border-primary-500','text-primary-600');
+  btn.classList.remove('border-transparent','text-ink-mute');
+  document.querySelectorAll('.pane-'+group).forEach((p,i)=> p.classList.toggle('hidden', i!==idx));
+}
+
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape'){ closeDrawer(); closeRail(); }
+});
+
+$('g-scraper').classList.add('open');
+go('dashboard','Dashboard');
+icons();
+</script>

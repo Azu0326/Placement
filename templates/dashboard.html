@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex flex-wrap items-start justify-between gap-4 mb-7">
+    <div>
+      <h1 class="text-[26px] sm:text-[30px] font-semibold tracking-[-0.02em]">Good morning, Admin</h1>
+      <p class="text-ink-mute text-[14px] mt-1">Here's what's happening across your content operations.</p>
+    </div>
+    <div class="flex items-center gap-2.5">
+      <button onclick="window.location='{% url 'content_list' %}'" class="h-10 px-4 rounded-xl border border-slate-300 bg-white text-[13.5px] font-medium hover:bg-slate-50 shadow-soft transition">Create content</button>
+      <button onclick="window.location='{% url 'job_new' %}'" class="h-10 px-4 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-[13.5px] font-medium shadow-lift transition flex items-center gap-2">
+        <i data-lucide="plus" class="text-[16px]"></i>New scrape job</button>
+    </div>
+  </div>
+
+  <!-- KPI -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5 relative overflow-hidden">
+      <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary-500 to-accent-500"></div>
+      <div class="flex items-start justify-between">
+        <div class="w-10 h-10 rounded-xl bg-primary-50 text-primary-600 grid place-items-center"><i data-lucide="globe" class="text-[19px]"></i></div>
+        <span class="text-[12px] font-medium text-ok-700 bg-ok-50 px-2 py-1 rounded-lg flex items-center gap-1"><i data-lucide="trending-up" class="text-[13px]"></i>+12%</span>
+      </div>
+      <div class="mt-4 text-[30px] font-semibold tracking-[-0.02em] tabular-nums">1,284</div>
+      <div class="text-[13px] text-ink-mute mt-0.5">Scrape jobs</div>
+      <div class="text-[12px] text-ink-faint mt-2">+12% this month</div>
+    </div>
+
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5 relative overflow-hidden">
+      <div class="absolute inset-x-0 top-0 h-1 bg-ok-500"></div>
+      <div class="flex items-start justify-between">
+        <div class="w-10 h-10 rounded-xl bg-ok-50 text-ok-700 grid place-items-center"><i data-lucide="circle-check-big" class="text-[19px]"></i></div>
+        <span class="text-[12px] font-medium text-ok-700 bg-ok-50 px-2 py-1 rounded-lg">91.6%</span>
+      </div>
+      <div class="mt-4 text-[30px] font-semibold tracking-[-0.02em] tabular-nums">1,176</div>
+      <div class="text-[13px] text-ink-mute mt-0.5">Successful</div>
+      <div class="text-[12px] text-ink-faint mt-2">91.6% success rate</div>
+    </div>
+
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5 relative overflow-hidden">
+      <div class="absolute inset-x-0 top-0 h-1 bg-accent-500"></div>
+      <div class="flex items-start justify-between">
+        <div class="w-10 h-10 rounded-xl bg-accent-50 text-accent-600 grid place-items-center"><i data-lucide="file-text" class="text-[19px]"></i></div>
+        <span class="text-[12px] font-medium text-accent-600 bg-accent-50 px-2 py-1 rounded-lg flex items-center gap-1"><i data-lucide="trending-up" class="text-[13px]"></i>+284</span>
+      </div>
+      <div class="mt-4 text-[30px] font-semibold tracking-[-0.02em] tabular-nums">3,842</div>
+      <div class="text-[13px] text-ink-mute mt-0.5">Content items</div>
+      <div class="text-[12px] text-ink-faint mt-2">+284 this month</div>
+    </div>
+
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5 relative overflow-hidden">
+      <div class="absolute inset-x-0 top-0 h-1 bg-queued-500"></div>
+      <div class="flex items-start justify-between">
+        <div class="w-10 h-10 rounded-xl bg-queued-50 text-queued-700 grid place-items-center"><i data-lucide="calendar-clock" class="text-[19px]"></i></div>
+        <span class="text-[12px] font-medium text-queued-700 bg-queued-50 px-2 py-1 rounded-lg">12 today</span>
+      </div>
+      <div class="mt-4 text-[30px] font-semibold tracking-[-0.02em] tabular-nums">48</div>
+      <div class="text-[13px] text-ink-mute mt-0.5">Scheduled posts</div>
+      <div class="text-[12px] text-ink-faint mt-2">12 publishing today</div>
+    </div>
+  </div>
+
+  <!-- two column -->
+  <div class="grid grid-cols-1 xl:grid-cols-[1.85fr,1fr] gap-5 mb-6">
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft">
+      <div class="flex items-center justify-between px-5 h-14 border-b border-slate-100">
+        <h2 class="text-[15px] font-semibold">Recent scrape jobs</h2>
+        <button onclick="window.location='{% url 'jobs' %}'" class="text-[13px] font-medium text-primary-600 hover:text-primary-700 flex items-center gap-1">View all <i data-lucide="arrow-right" class="text-[14px]"></i></button>
+      </div>
+      <div class="divide-y divide-slate-100">
+        <div onclick="window.location='{% url 'job_detail' 'SC-1284' %}'" class="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50/70 cursor-pointer transition">
+          <div class="w-9 h-9 rounded-lg bg-ok-50 text-ok-700 grid place-items-center shrink-0"><i data-lucide="check" class="text-[17px]"></i></div>
+          <div class="min-w-0 flex-1">
+            <div class="text-[13.5px] font-medium truncate">search.studyaustralia.gov.au/courses</div>
+            <div class="text-[12px] text-ink-faint mt-0.5">#SC-1284 · Page 10 · 8.4 sec</div>
+          </div>
+          <span class="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-ok-700 bg-ok-50 border border-ok-500/20 px-2.5 py-1 rounded-lg">COMPLETED</span>
+          <span class="text-[12px] text-ink-faint hidden md:block tabular-nums w-[52px] text-right">02:52</span>
+        </div>
+        <div onclick="window.location='{% url 'job_detail' 'SC-1284' %}'" class="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50/70 cursor-pointer transition">
+          <div class="w-9 h-9 rounded-lg bg-ok-50 text-ok-700 grid place-items-center shrink-0"><i data-lucide="check" class="text-[17px]"></i></div>
+          <div class="min-w-0 flex-1">
+            <div class="text-[13.5px] font-medium truncate">search.studyaustralia.gov.au/courses</div>
+            <div class="text-[12px] text-ink-faint mt-0.5">#SC-1283 · Page 1 · 6.1 sec</div>
+          </div>
+          <span class="hidden sm:inline-flex text-[11px] font-semibold tracking-wide text-ok-700 bg-ok-50 border border-ok-500/20 px-2.5 py-1 rounded-lg">COMPLETED</span>
+          <span class="text-[12px] text-ink-faint hidden md:block tabular-nums w-[52px] text-right">02:41</span>
+        </div>
+        <div onclick="window.location='{% url 'job_detail' 'SC-1284' %}'" class="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50/70 cursor-pointer transition">
+          <div class="w-9 h-9 rounded-lg bg-err-50 text-err-700 grid place-items-center shrink-0"><i data-lucide="triangle-alert" class="text-[17px]"></i></div>
+          <div class="min-w-0 flex-1">
+            <div class="text-[13.5px] font-medium truncate">search.studyaustralia.gov.au/scholarships</div>
+            <div class="text-[12px] text-err-700 mt-0.5">#SC-1282 · Page 2 · Worker did not complete in time</div>
+          </div>
+          <span class="hidden sm:inline-flex text-[11px] font-semibold tracking-wide text-err-700 bg-err-50 border border-err-500/25 px-2.5 py-1 rounded-lg">FAILED</span>
+          <span class="text-[12px] text-ink-faint hidden md:block tabular-nums w-[52px] text-right">02:19</span>
+        </div>
+        <div class="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50/70 cursor-pointer transition">
+          <div class="w-9 h-9 rounded-lg bg-accent-50 text-accent-600 grid place-items-center shrink-0 pulse-dot"><i data-lucide="loader-circle" class="text-[17px]"></i></div>
+          <div class="min-w-0 flex-1">
+            <div class="text-[13.5px] font-medium truncate">nomadlist.com/australia</div>
+            <div class="text-[12px] text-ink-faint mt-0.5">#SC-1281 · Page 3 · Parsing content</div>
+          </div>
+          <span class="hidden sm:inline-flex text-[11px] font-semibold tracking-wide text-accent-600 bg-accent-50 border border-accent-500/25 px-2.5 py-1 rounded-lg">RUNNING</span>
+          <span class="text-[12px] text-ink-faint hidden md:block tabular-nums w-[52px] text-right">02:04</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft">
+      <div class="flex items-center justify-between px-5 h-14 border-b border-slate-100">
+        <h2 class="text-[15px] font-semibold">Platform activity</h2>
+        <button class="text-ink-faint hover:text-ink-soft p-1 rounded"><i data-lucide="ellipsis" class="text-[17px]"></i></button>
+      </div>
+      <div class="p-5 space-y-4">
+        <div class="flex gap-3">
+          <div class="w-8 h-8 rounded-lg bg-ok-50 text-ok-700 grid place-items-center shrink-0"><i data-lucide="circle-check-big" class="text-[15px]"></i></div>
+          <div class="min-w-0"><p class="text-[13px] leading-snug">Scrape job <span class="font-medium">#SC-1284</span> completed</p><p class="text-[11.5px] text-ink-faint mt-0.5">2 minutes ago</p></div>
+        </div>
+        <div class="flex gap-3">
+          <div class="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 grid place-items-center shrink-0"><i data-lucide="sparkles" class="text-[15px]"></i></div>
+          <div class="min-w-0"><p class="text-[13px] leading-snug">AI content generated for <span class="font-medium">Study visa guide</span></p><p class="text-[11.5px] text-ink-faint mt-0.5">18 minutes ago</p></div>
+        </div>
+        <div class="flex gap-3">
+          <div class="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 grid place-items-center shrink-0"><i data-lucide="image" class="text-[15px]"></i></div>
+          <div class="min-w-0"><p class="text-[13px] leading-snug">Asset registered — <span class="font-medium">sydney-harbour.jpg</span></p><p class="text-[11.5px] text-ink-faint mt-0.5">1 hour ago</p></div>
+        </div>
+        <div class="flex gap-3">
+          <div class="w-8 h-8 rounded-lg bg-queued-50 text-queued-700 grid place-items-center shrink-0"><i data-lucide="send" class="text-[15px]"></i></div>
+          <div class="min-w-0"><p class="text-[13px] leading-snug">Post scheduled to <span class="font-medium">LinkedIn</span> for 10:00 AM</p><p class="text-[11.5px] text-ink-faint mt-0.5">3 hours ago</p></div>
+        </div>
+        <div class="flex gap-3">
+          <div class="w-8 h-8 rounded-lg bg-slate-100 text-ink-soft grid place-items-center shrink-0"><i data-lucide="refresh-cw" class="text-[15px]"></i></div>
+          <div class="min-w-0"><p class="text-[13px] leading-snug">WordPress integration synchronised</p><p class="text-[11.5px] text-ink-faint mt-0.5">Yesterday, 11:40 PM</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- pipeline -->
+  <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5 sm:p-6">
+    <div class="flex items-center justify-between mb-6">
+      <div><h2 class="text-[15px] font-semibold">Content pipeline</h2>
+      <p class="text-[12.5px] text-ink-mute mt-0.5">Items currently at each stage.</p></div>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-0 md:flex md:items-stretch">
+      <div class="flex-1 rounded-xl border border-slate-200 p-4 md:rounded-r-none">
+        <div class="flex items-center gap-2 text-ink-mute"><i data-lucide="download" class="text-[15px]"></i><span class="text-[12px] font-medium uppercase tracking-wide">Scraped</span></div>
+        <div class="text-[24px] font-semibold mt-2 tabular-nums">1,176</div>
+      </div>
+      <div class="hidden md:grid place-items-center w-9 text-ink-faint"><i data-lucide="chevron-right" class="text-[18px]"></i></div>
+      <div class="flex-1 rounded-xl border border-slate-200 p-4">
+        <div class="flex items-center gap-2 text-ink-mute"><i data-lucide="file-text" class="text-[15px]"></i><span class="text-[12px] font-medium uppercase tracking-wide">Content</span></div>
+        <div class="text-[24px] font-semibold mt-2 tabular-nums">842</div>
+      </div>
+      <div class="hidden md:grid place-items-center w-9 text-ink-faint"><i data-lucide="chevron-right" class="text-[18px]"></i></div>
+      <div class="flex-1 rounded-xl border border-primary-200 bg-primary-50/40 p-4">
+        <div class="flex items-center gap-2 text-primary-600"><i data-lucide="sparkles" class="text-[15px]"></i><span class="text-[12px] font-medium uppercase tracking-wide">GenAI</span></div>
+        <div class="text-[24px] font-semibold mt-2 tabular-nums text-primary-700">316</div>
+      </div>
+      <div class="hidden md:grid place-items-center w-9 text-ink-faint"><i data-lucide="chevron-right" class="text-[18px]"></i></div>
+      <div class="flex-1 rounded-xl border border-slate-200 p-4">
+        <div class="flex items-center gap-2 text-ink-mute"><i data-lucide="calendar-clock" class="text-[15px]"></i><span class="text-[12px] font-medium uppercase tracking-wide">Scheduled</span></div>
+        <div class="text-[24px] font-semibold mt-2 tabular-nums">48</div>
+      </div>
+      <div class="hidden md:grid place-items-center w-9 text-ink-faint"><i data-lucide="chevron-right" class="text-[18px]"></i></div>
+      <div class="flex-1 rounded-xl border border-slate-200 p-4 md:rounded-l-none">
+        <div class="flex items-center gap-2 text-ok-700"><i data-lucide="badge-check" class="text-[15px]"></i><span class="text-[12px] font-medium uppercase tracking-wide">Published</span></div>
+        <div class="text-[24px] font-semibold mt-2 tabular-nums">1,460</div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

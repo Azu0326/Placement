@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+  <div>
+    <h1 class="text-[24px] sm:text-[27px] font-semibold tracking-[-0.02em]">Scrape jobs</h1>
+    <p class="text-ink-mute text-[14px] mt-1">Create, monitor and manage website scraping jobs.</p>
+  </div>
+  <div class="flex items-center gap-2.5">
+    <button type="button" class="h-10 px-4 rounded-xl border border-slate-300 bg-white text-[13.5px] font-medium hover:bg-slate-50 shadow-soft transition flex items-center gap-2">
+      <i data-lucide="download" class="text-[16px]"></i>Export CSV</button>
+    <button type="button" class="h-10 px-4 rounded-xl border border-slate-300 bg-white text-[13.5px] font-medium hover:bg-slate-50 shadow-soft transition flex items-center gap-2">
+      <i data-lucide="database" class="text-[16px]"></i>Export SQLite</button>
+    <a href="{% url 'job_new' %}" class="h-10 px-4 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-[13.5px] font-medium shadow-lift transition flex items-center gap-2">
+      <i data-lucide="plus" class="text-[16px]"></i>New scrape job</a>
+  </div>
+</div>
+
+<div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-3 mb-4 flex flex-wrap items-center gap-2.5">
+  <div class="flex items-center gap-2 flex-1 min-w-[200px] h-10 px-3 rounded-xl bg-slate-100/70 border border-transparent focus-within:bg-white focus-within:border-accent-500/40 focus-within:ring-4 focus-within:ring-accent-500/10 transition">
+    <i data-lucide="search" class="text-[16px] text-ink-faint"></i>
+    <input placeholder="Search by URL…" class="bg-transparent text-[13px] w-full outline-none placeholder:text-ink-faint">
+  </div>
+  <select class="h-10 px-3 pr-8 rounded-xl border border-slate-300 bg-white text-[13px] outline-none hover:bg-slate-50 focus:border-accent-500 transition">
+    <option>All statuses</option><option>Queued</option><option>Running</option><option>Completed</option><option>Failed</option>
+  </select>
+  <button type="button" class="h-10 px-3 rounded-xl border border-slate-300 bg-white text-[13px] hover:bg-slate-50 transition flex items-center gap-2 text-ink-soft">
+    <i data-lucide="calendar" class="text-[15px]"></i>Last 30 days</button>
+  <button type="button" class="h-10 w-10 grid place-items-center rounded-xl border border-slate-300 bg-white hover:bg-slate-50 transition text-ink-soft">
+    <i data-lucide="refresh-cw" class="text-[15px]"></i></button>
+</div>
+
+<div class="hidden md:block bg-white rounded-card border border-slate-200/80 shadow-soft overflow-hidden">
+  <div class="overflow-x-auto tbl-scroll">
+  <table class="w-full text-[13px]">
+    <thead>
+      <tr class="bg-slate-50/80 border-b border-slate-200 text-left">
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Job ID</th>
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">URL</th>
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Page</th>
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Status</th>
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Attempts</th>
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Created</th>
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Duration</th>
+        <th class="px-5 py-3 w-12"></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-slate-100">
+      {% for job in jobs %}
+      <tr class="hover:bg-slate-50/70 cursor-pointer transition{% if job.status == 'FAILED' %} bg-err-50/25{% endif %}"
+          onclick="window.location='{% url 'job_detail' job.id %}'">
+        <td class="px-5 py-3.5 font-medium tabular-nums">#{{ job.id }}</td>
+        <td class="px-5 py-3.5 max-w-[280px]">
+          <div class="truncate text-ink-soft">{{ job.url }}</div>
+          {% if job.status == 'FAILED' and job.message %}
+          <div class="flex items-center gap-1 text-[11.5px] text-err-700 mt-0.5"><i data-lucide="triangle-alert" class="text-[12px]"></i>{{ job.message }}</div>
+          {% endif %}
+        </td>
+        <td class="px-5 py-3.5 tabular-nums text-ink-soft">{{ job.page }}</td>
+        <td class="px-5 py-3.5">{% include "partials/_status_badge.html" with status=job.status show_dot=True %}</td>
+        <td class="px-5 py-3.5 tabular-nums text-ink-soft">{{ job.attempts }}</td>
+        <td class="px-5 py-3.5 text-ink-mute whitespace-nowrap">{{ job.created }}</td>
+        <td class="px-5 py-3.5 {% if job.duration %}tabular-nums text-ink-soft{% else %}text-ink-faint{% endif %}">{% if job.duration %}{{ job.duration }}{% else %}—{% endif %}</td>
+        <td class="px-5 py-3.5 relative">
+          <button type="button" data-action="toggle" data-target="job-menu-{{ job.id }}" onclick="event.stopPropagation()" class="p-1.5 rounded-lg hover:bg-slate-200/70 text-ink-faint">
+            <i data-lucide="ellipsis-vertical" class="text-[16px]"></i>
+          </button>
+          <div id="job-menu-{{ job.id }}" class="hidden absolute right-5 top-10 z-40 w-48 bg-white rounded-xl shadow-pop border border-slate-200 p-1.5">
+            <a href="{% url 'job_detail' job.id %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-ink-soft hover:bg-slate-50"><i data-lucide="eye" class="text-[15px]"></i>View</a>
+            <a href="{% url 'scraped' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-ink-soft hover:bg-slate-50"><i data-lucide="file-text" class="text-[15px]"></i>View content</a>
+            <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-ink-soft hover:bg-slate-50"><i data-lucide="rotate-cw" class="text-[15px]"></i>Retry</a>
+            <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-ink-soft hover:bg-slate-50"><i data-lucide="download" class="text-[15px]"></i>Export CSV</a>
+            <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-ink-soft hover:bg-slate-50"><i data-lucide="database" class="text-[15px]"></i>Export SQLite</a>
+            <div class="h-px bg-slate-100 my-1"></div>
+            <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-err-700 hover:bg-err-50"><i data-lucide="trash-2" class="text-[15px]"></i>Delete</a>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 border-t border-slate-100">
+    <p class="text-[12.5px] text-ink-mute">Showing <span class="font-medium text-ink">{{ jobs_meta.showing_from }}–{{ jobs_meta.showing_to }}</span> of <span class="font-medium text-ink">{{ jobs_meta.total }}</span></p>
+    <div class="flex items-center gap-1">
+      <button type="button" class="h-8 px-3 rounded-lg border border-slate-300 text-[12.5px] text-ink-mute hover:bg-slate-50 disabled:opacity-40" disabled>Previous</button>
+      <button type="button" class="h-8 w-8 rounded-lg bg-primary-500 text-white text-[12.5px] font-medium">1</button>
+      <button type="button" class="h-8 w-8 rounded-lg text-[12.5px] text-ink-soft hover:bg-slate-100">2</button>
+      <button type="button" class="h-8 w-8 rounded-lg text-[12.5px] text-ink-soft hover:bg-slate-100">3</button>
+      <span class="px-1 text-ink-faint text-[12.5px]">…</span>
+      <button type="button" class="h-8 w-8 rounded-lg text-[12.5px] text-ink-soft hover:bg-slate-100">{{ jobs_meta.page_count }}</button>
+      <button type="button" class="h-8 px-3 rounded-lg border border-slate-300 text-[12.5px] text-ink-soft hover:bg-slate-50">Next</button>
+    </div>
+  </div>
+</div>
+
+<div class="md:hidden space-y-3">
+  {% for job in jobs %}
+  <div class="bg-white rounded-card border {% if job.status == 'FAILED' %}border-err-500/30{% else %}border-slate-200/80{% endif %} shadow-soft p-4">
+    <a href="{% url 'job_detail' job.id %}" class="block">
+      <div class="flex items-center justify-between gap-3">
+        <span class="text-[13px] font-semibold tabular-nums">#{{ job.id }}</span>
+        {% include "partials/_status_badge.html" with status=job.status show_dot=True %}
+      </div>
+      <p class="text-[13px] text-ink-soft mt-2 break-all">{{ job.url }}</p>
+      {% if job.status == 'FAILED' and job.message %}
+      <p class="text-[12px] text-err-700 mt-1.5 flex items-center gap-1"><i data-lucide="triangle-alert" class="text-[13px]"></i>{{ job.message }}</p>
+      {% endif %}
+      <div class="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-slate-100 text-[12px]">
+        <div><span class="text-ink-faint block">Page</span>{{ job.page }}</div>
+        <div><span class="text-ink-faint block">Attempts</span>{{ job.attempts }}</div>
+        <div><span class="text-ink-faint block">Duration</span>{% if job.duration %}{{ job.duration }}{% else %}—{% endif %}</div>
+      </div>
+    </a>
+    {% if job.status == 'FAILED' %}
+    <div class="flex gap-2 mt-3 pt-3 border-t border-slate-100">
+      <button type="button" class="flex-1 h-11 rounded-xl bg-primary-500 text-white text-[13px] font-medium">Retry</button>
+      <a href="{% url 'job_detail' job.id %}" class="flex-1 h-11 rounded-xl border border-slate-300 text-[13px] font-medium grid place-items-center">View details</a>
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
+
+{% block page_js %}
+{% if show_queued_toast %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (typeof window.showToast === 'function') window.showToast();
+  });
+</script>
+{% endif %}
+{% endblock %}

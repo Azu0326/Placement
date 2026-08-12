@@ -1,0 +1,111 @@
+{% load static %}
+<aside id="rail" class="fixed inset-y-0 left-0 z-50 w-[260px] bg-rail text-rail-text flex flex-col
+       -translate-x-full lg:translate-x-0 transition-transform duration-200">
+
+  <div class="h-16 flex items-center gap-3 px-4 border-b border-rail-line shrink-0">
+    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 grid place-items-center text-white shrink-0">
+      <i data-lucide="git-fork" class="text-[18px]"></i>
+    </div>
+    <div class="brandtxt leading-tight min-w-0">
+      <div class="text-white font-semibold text-[15px] tracking-tight">DNC</div>
+      <div class="text-[11px] text-rail-text/70 truncate">Content Platform</div>
+    </div>
+    <button type="button" data-action="close-rail" class="lg:hidden ml-auto p-1.5 rounded-lg hover:bg-white/10 text-rail-text">
+      <i data-lucide="x" class="text-[18px]"></i>
+    </button>
+  </div>
+
+  <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+    <a href="{% url 'dashboard' %}" data-nav="dashboard"
+       class="navlink flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium hover:bg-white/[.07] transition{% if nav_key == 'dashboard' %} bg-white/10 text-white font-semibold{% endif %}">
+      <i data-lucide="layout-dashboard" class="text-[18px] shrink-0"></i><span class="lbl">Dashboard</span>
+    </a>
+
+    <div class="grp{% if nav_group == 'g-scraper' %} open{% endif %}" id="g-scraper">
+      <button type="button" data-action="toggle-grp" data-target="g-scraper" class="navlink w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium hover:bg-white/[.07] transition">
+        <i data-lucide="globe" class="text-[18px] shrink-0"></i><span class="lbl flex-1 text-left">Scraper</span>
+        <i data-lucide="chevron-right" class="chev text-[15px] opacity-60"></i>
+      </button>
+      <div class="sub mt-1 ml-[26px] pl-3 border-l border-rail-line space-y-0.5">
+        <a href="{% url 'jobs' %}" data-nav="jobs" class="navlink block px-3 py-2 rounded-lg text-[13px] hover:bg-white/[.07] hover:text-white transition{% if nav_key == 'jobs' or nav_key == 'newjob' or nav_key == 'detail' %} bg-white/10 text-white font-semibold{% endif %}">Jobs</a>
+        <a href="{% url 'execution' %}" data-nav="execution" class="navlink block px-3 py-2 rounded-lg text-[13px] hover:bg-white/[.07] hover:text-white transition{% if nav_key == 'execution' %} bg-white/10 text-white font-semibold{% endif %}">Execution</a>
+      </div>
+    </div>
+
+    <div class="grp{% if nav_group == 'g-studio' %} open{% endif %}" id="g-studio">
+      <button type="button" data-action="toggle-grp" data-target="g-studio" class="navlink w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium hover:bg-white/[.07] transition">
+        <i data-lucide="sparkles" class="text-[18px] shrink-0"></i><span class="lbl flex-1 text-left">Content Studio</span>
+        <i data-lucide="chevron-right" class="chev text-[15px] opacity-60"></i>
+      </button>
+      <div class="sub mt-1 ml-[26px] pl-3 border-l border-rail-line space-y-0.5">
+        <a href="{% url 'scraped' %}" data-nav="scraped" class="navlink block px-3 py-2 rounded-lg text-[13px] hover:bg-white/[.07] hover:text-white transition{% if nav_key == 'scraped' %} bg-white/10 text-white font-semibold{% endif %}">Scraped</a>
+        <a href="{% url 'content_list' %}" data-nav="content" class="navlink block px-3 py-2 rounded-lg text-[13px] hover:bg-white/[.07] hover:text-white transition{% if nav_key == 'content' or nav_key == 'editor' %} bg-white/10 text-white font-semibold{% endif %}">Content</a>
+        <a href="{% url 'genai' %}" data-nav="genai" class="navlink block px-3 py-2 rounded-lg text-[13px] hover:bg-white/[.07] hover:text-white transition{% if nav_key == 'genai' %} bg-white/10 text-white font-semibold{% endif %}">GenAI Content</a>
+      </div>
+    </div>
+
+    <div class="grp{% if nav_group == 'g-poster' %} open{% endif %}" id="g-poster">
+      <button type="button" data-action="toggle-grp" data-target="g-poster" class="navlink w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium hover:bg-white/[.07] transition">
+        <i data-lucide="send" class="text-[18px] shrink-0"></i><span class="lbl flex-1 text-left">Poster</span>
+        <i data-lucide="chevron-right" class="chev text-[15px] opacity-60"></i>
+      </button>
+      <div class="sub mt-1 ml-[26px] pl-3 border-l border-rail-line space-y-0.5">
+        <a href="{% url 'schedule' %}" data-nav="schedule" class="navlink block px-3 py-2 rounded-lg text-[13px] hover:bg-white/[.07] hover:text-white transition{% if nav_key == 'schedule' %} bg-white/10 text-white font-semibold{% endif %}">Schedule</a>
+        <a href="{% url 'calendar' %}" data-nav="calendar" class="navlink block px-3 py-2 rounded-lg text-[13px] hover:bg-white/[.07] hover:text-white transition{% if nav_key == 'calendar' %} bg-white/10 text-white font-semibold{% endif %}">Calendar</a>
+      </div>
+    </div>
+
+    <div class="grp{% if nav_group == 'g-assets' %} open{% endif %}" id="g-assets">
+      <button type="button" data-action="toggle-grp" data-target="g-assets" class="navlink w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium hover:bg-white/[.07] transition">
+        <i data-lucide="folder-open" class="text-[18px] shrink-0"></i><span class="lbl flex-1 text-left">Repository</span>
+        <i data-lucide="chevron-right" class="chev text-[15px] opacity-60"></i>
+      </button>
+      <div class="sub mt-1 ml-[26px] pl-3 border-l border-rail-line space-y-0.5">
+        <a href="{% url 'assets' %}" data-nav="assets" class="navlink block px-3 py-2 rounded-lg text-[13px] hover:bg-white/[.07] hover:text-white transition{% if nav_key == 'assets' %} bg-white/10 text-white font-semibold{% endif %}">Assets</a>
+        <a href="{% url 'asset_register' %}" data-nav="register" class="navlink block px-3 py-2 rounded-lg text-[13px] hover:bg-white/[.07] hover:text-white transition{% if nav_key == 'register' %} bg-white/10 text-white font-semibold{% endif %}">Register Asset</a>
+        <a href="{% url 'channels' %}" data-nav="channels" class="navlink block px-3 py-2 rounded-lg text-[13px] hover:bg-white/[.07] hover:text-white transition{% if nav_key == 'channels' or nav_key == 'newchannel' %} bg-white/10 text-white font-semibold{% endif %}">Channels</a>
+      </div>
+    </div>
+
+    <div class="grp{% if nav_group == 'g-integ' %} open{% endif %}" id="g-integ">
+      <button type="button" data-action="toggle-grp" data-target="g-integ" class="navlink w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium hover:bg-white/[.07] transition">
+        <i data-lucide="plug" class="text-[18px] shrink-0"></i><span class="lbl flex-1 text-left">Integrations</span>
+        <i data-lucide="chevron-right" class="chev text-[15px] opacity-60"></i>
+      </button>
+      <div class="sub mt-1 ml-[26px] pl-3 border-l border-rail-line space-y-0.5">
+        <a href="{% url 'integrations' %}" data-nav="integrations" class="navlink block px-3 py-2 rounded-lg text-[13px] hover:bg-white/[.07] hover:text-white transition{% if nav_key == 'integrations' %} bg-white/10 text-white font-semibold{% endif %}">Dashboard</a>
+      </div>
+    </div>
+
+    <div class="pt-3 mt-3 border-t border-rail-line">
+      <a href="{% url 'states' %}" data-nav="states"
+         class="navlink flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium hover:bg-white/[.07] transition{% if nav_key == 'states' %} bg-white/10 text-white font-semibold{% endif %}">
+        <i data-lucide="layers" class="text-[18px] shrink-0"></i><span class="lbl">States gallery</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="px-3 py-3 border-t border-rail-line space-y-1 shrink-0">
+    <a href="#" class="navlink flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] hover:bg-white/[.07] transition">
+      <i data-lucide="settings" class="text-[17px] shrink-0"></i><span class="lbl">Settings</span></a>
+    <a href="#" class="navlink flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] hover:bg-white/[.07] transition">
+      <i data-lucide="circle-help" class="text-[17px] shrink-0"></i><span class="lbl">Help &amp; documentation</span></a>
+
+    <div class="relative pt-1">
+      <button type="button" data-action="toggle" data-target="usermenu" class="navlink w-full flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-white/[.07] transition">
+        <div class="w-8 h-8 rounded-full bg-primary-500 grid place-items-center text-white text-[12px] font-semibold shrink-0">{{ demo_user.initials }}</div>
+        <div class="usermeta min-w-0 text-left flex-1">
+          <div class="text-[13px] text-white font-medium leading-tight">{{ demo_user.name }}</div>
+          <div class="text-[11px] text-rail-text/70 truncate">{{ demo_user.email }}</div>
+        </div>
+        <i data-lucide="chevron-up" class="usermeta text-[15px] opacity-60"></i>
+      </button>
+      <div id="usermenu" class="hidden absolute bottom-full left-0 right-0 mb-2 bg-white rounded-xl shadow-pop border border-slate-200 p-1.5 z-10">
+        <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-ink-soft hover:bg-slate-50"><i data-lucide="user" class="text-[15px]"></i>Profile</a>
+        <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-ink-soft hover:bg-slate-50"><i data-lucide="sliders-horizontal" class="text-[15px]"></i>Preferences</a>
+        <div class="h-px bg-slate-100 my-1"></div>
+        <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-err-700 hover:bg-err-50"><i data-lucide="log-out" class="text-[15px]"></i>Log out</a>
+      </div>
+    </div>
+  </div>
+</aside>

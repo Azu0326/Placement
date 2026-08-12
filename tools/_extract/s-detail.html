@@ -1,0 +1,178 @@
+<button onclick="go('jobs','Scraper / Jobs')" class="text-[13px] text-ink-mute hover:text-ink flex items-center gap-1.5 mb-4"><i data-lucide="arrow-left" class="text-[15px]"></i>Back to jobs</button>
+
+  <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+    <div class="min-w-0">
+      <div class="flex items-center gap-3">
+        <h1 class="text-[24px] sm:text-[27px] font-semibold tracking-[-0.02em] tabular-nums">#SC-1284</h1>
+        <span class="text-[11px] font-semibold tracking-wide text-ok-700 bg-ok-50 border border-ok-500/20 px-2.5 py-1 rounded-lg">COMPLETED</span>
+      </div>
+      <a href="#" class="text-[13.5px] text-accent-600 hover:underline mt-1.5 inline-flex items-center gap-1.5 break-all">
+        search.studyaustralia.gov.au/courses <i data-lucide="external-link" class="text-[14px] shrink-0"></i></a>
+    </div>
+    <div class="flex items-center gap-2.5">
+      <button class="h-10 px-4 rounded-xl border border-slate-300 bg-white text-[13.5px] font-medium hover:bg-slate-50 shadow-soft flex items-center gap-2"><i data-lucide="rotate-cw" class="text-[16px]"></i>Retry</button>
+      <div class="relative">
+        <button onclick="tog('expMenu')" class="h-10 px-4 rounded-xl border border-slate-300 bg-white text-[13.5px] font-medium hover:bg-slate-50 shadow-soft flex items-center gap-2">
+          <i data-lucide="download" class="text-[16px]"></i>Export<i data-lucide="chevron-down" class="text-[15px] text-ink-faint"></i></button>
+        <div id="expMenu" class="hidden absolute right-0 top-full mt-2 w-52 bg-white rounded-xl shadow-pop border border-slate-200 p-1.5 z-20">
+          <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-ink-soft hover:bg-slate-50"><i data-lucide="download" class="text-[15px]"></i>Export CSV</a>
+          <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-ink-soft hover:bg-slate-50"><i data-lucide="database" class="text-[15px]"></i>Export SQLite</a>
+          <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-ink-soft hover:bg-slate-50"><i data-lucide="braces" class="text-[15px]"></i>Export JSON</a>
+        </div>
+      </div>
+      <button class="h-10 w-10 grid place-items-center rounded-xl border border-slate-300 bg-white hover:bg-slate-50 shadow-soft"><i data-lucide="ellipsis" class="text-[17px]"></i></button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-6">
+    <div class="bg-white rounded-xl border border-slate-200/80 shadow-soft p-4"><div class="text-[11.5px] text-ink-faint uppercase tracking-wider">Status</div><div class="text-[15px] font-semibold mt-1.5 text-ok-700">Completed</div></div>
+    <div class="bg-white rounded-xl border border-slate-200/80 shadow-soft p-4"><div class="text-[11.5px] text-ink-faint uppercase tracking-wider">Page</div><div class="text-[15px] font-semibold mt-1.5 tabular-nums">10</div></div>
+    <div class="bg-white rounded-xl border border-slate-200/80 shadow-soft p-4"><div class="text-[11.5px] text-ink-faint uppercase tracking-wider">Attempts</div><div class="text-[15px] font-semibold mt-1.5 tabular-nums">1</div></div>
+    <div class="bg-white rounded-xl border border-slate-200/80 shadow-soft p-4"><div class="text-[11.5px] text-ink-faint uppercase tracking-wider">Duration</div><div class="text-[15px] font-semibold mt-1.5 tabular-nums">8.4 sec</div></div>
+    <div class="bg-white rounded-xl border border-slate-200/80 shadow-soft p-4"><div class="text-[11.5px] text-ink-faint uppercase tracking-wider">Created</div><div class="text-[14px] font-semibold mt-1.5 tabular-nums">02:52:04</div></div>
+    <div class="bg-white rounded-xl border border-slate-200/80 shadow-soft p-4"><div class="text-[11.5px] text-ink-faint uppercase tracking-wider">Completed</div><div class="text-[14px] font-semibold mt-1.5 tabular-nums">02:52:12</div></div>
+  </div>
+
+  <div class="border-b border-slate-200 mb-6 overflow-x-auto">
+    <div class="flex gap-1 min-w-max">
+      <button onclick="tab('d',0,this)" class="tab-d h-11 px-4 text-[13.5px] font-medium border-b-2 border-primary-500 text-primary-600">Overview</button>
+      <button onclick="tab('d',1,this)" class="tab-d h-11 px-4 text-[13.5px] font-medium border-b-2 border-transparent text-ink-mute hover:text-ink">Scraped content</button>
+      <button onclick="tab('d',2,this)" class="tab-d h-11 px-4 text-[13.5px] font-medium border-b-2 border-transparent text-ink-mute hover:text-ink">Execution</button>
+      <button onclick="tab('d',3,this)" class="tab-d h-11 px-4 text-[13.5px] font-medium border-b-2 border-transparent text-ink-mute hover:text-ink">Raw data</button>
+    </div>
+  </div>
+
+  <div class="pane-d">
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-6 max-w-2xl">
+      <h3 class="text-[15px] font-semibold mb-5">Job lifecycle</h3>
+      <ol class="relative">
+        <li class="flex gap-4 pb-6 relative">
+          <div class="absolute left-[11px] top-6 bottom-0 w-px bg-slate-200"></div>
+          <span class="w-6 h-6 rounded-full bg-queued-50 border-2 border-queued-500 grid place-items-center shrink-0 z-10"><span class="w-2 h-2 rounded-full bg-queued-500"></span></span>
+          <div><p class="text-[13.5px] font-medium">Queued</p><p class="text-[12.5px] text-ink-mute mt-0.5">Job accepted and added to the processing queue.</p><p class="text-[12px] text-ink-faint mt-1 tabular-nums">Aug 12, 2026 · 02:52:04</p></div>
+        </li>
+        <li class="flex gap-4 pb-6 relative">
+          <div class="absolute left-[11px] top-6 bottom-0 w-px bg-slate-200"></div>
+          <span class="w-6 h-6 rounded-full bg-accent-50 border-2 border-accent-500 grid place-items-center shrink-0 z-10"><span class="w-2 h-2 rounded-full bg-accent-500"></span></span>
+          <div><p class="text-[13.5px] font-medium">Running</p><p class="text-[12.5px] text-ink-mute mt-0.5">Page fetched and content parsed.</p><p class="text-[12px] text-ink-faint mt-1 tabular-nums">Aug 12, 2026 · 02:52:05</p></div>
+        </li>
+        <li class="flex gap-4">
+          <span class="w-6 h-6 rounded-full bg-ok-500 grid place-items-center shrink-0 text-white z-10"><i data-lucide="check" class="text-[14px]"></i></span>
+          <div><p class="text-[13.5px] font-medium">Completed</p><p class="text-[12.5px] text-ink-mute mt-0.5">Result stored. 42 headings, 118 links extracted.</p><p class="text-[12px] text-ink-faint mt-1 tabular-nums">Aug 12, 2026 · 02:52:12</p></div>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="pane-d hidden space-y-3">
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft">
+      <button onclick="tog('sc1')" class="w-full flex items-center gap-3 px-5 py-4 text-left">
+        <i data-lucide="heading" class="text-[17px] text-ink-mute"></i>
+        <span class="text-[14px] font-medium flex-1">Title</span>
+        <i data-lucide="chevron-down" class="text-[17px] text-ink-faint"></i></button>
+      <div id="sc1" class="px-5 pb-5 -mt-1"><p class="text-[13.5px] text-ink-soft bg-slate-50 rounded-lg border border-slate-200 p-3.5">Study in Australia — Courses and universities search</p></div>
+    </div>
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft">
+      <button onclick="tog('sc2')" class="w-full flex items-center gap-3 px-5 py-4 text-left">
+        <i data-lucide="text" class="text-[17px] text-ink-mute"></i>
+        <span class="text-[14px] font-medium flex-1">Meta description</span>
+        <i data-lucide="chevron-down" class="text-[17px] text-ink-faint"></i></button>
+      <div id="sc2" class="hidden px-5 pb-5 -mt-1"><p class="text-[13.5px] text-ink-soft bg-slate-50 rounded-lg border border-slate-200 p-3.5">Search thousands of courses at Australian universities and colleges, compare institutions and plan your studies.</p></div>
+    </div>
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft">
+      <button onclick="tog('sc3')" class="w-full flex items-center gap-3 px-5 py-4 text-left">
+        <i data-lucide="list" class="text-[17px] text-ink-mute"></i>
+        <span class="text-[14px] font-medium flex-1">Headings</span>
+        <span class="text-[12px] text-ink-faint bg-slate-100 px-2 py-0.5 rounded-md tabular-nums">42</span>
+        <i data-lucide="chevron-down" class="text-[17px] text-ink-faint"></i></button>
+      <div id="sc3" class="hidden px-5 pb-5 -mt-1 space-y-1.5">
+        <div class="flex gap-3 text-[13px] p-2.5 rounded-lg hover:bg-slate-50"><span class="text-[11px] font-mono text-primary-600 bg-primary-50 px-1.5 py-0.5 rounded shrink-0 h-fit">H1</span><span class="text-ink-soft">Find your course in Australia</span></div>
+        <div class="flex gap-3 text-[13px] p-2.5 rounded-lg hover:bg-slate-50"><span class="text-[11px] font-mono text-accent-600 bg-accent-50 px-1.5 py-0.5 rounded shrink-0 h-fit">H2</span><span class="text-ink-soft">Undergraduate programmes</span></div>
+        <div class="flex gap-3 text-[13px] p-2.5 rounded-lg hover:bg-slate-50"><span class="text-[11px] font-mono text-accent-600 bg-accent-50 px-1.5 py-0.5 rounded shrink-0 h-fit">H2</span><span class="text-ink-soft">Postgraduate programmes</span></div>
+        <div class="flex gap-3 text-[13px] p-2.5 rounded-lg hover:bg-slate-50"><span class="text-[11px] font-mono text-ink-mute bg-slate-100 px-1.5 py-0.5 rounded shrink-0 h-fit">H3</span><span class="text-ink-soft">Entry requirements</span></div>
+      </div>
+    </div>
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft">
+      <button onclick="tog('sc4')" class="w-full flex items-center gap-3 px-5 py-4 text-left">
+        <i data-lucide="pilcrow" class="text-[17px] text-ink-mute"></i><span class="text-[14px] font-medium flex-1">Paragraphs</span>
+        <span class="text-[12px] text-ink-faint bg-slate-100 px-2 py-0.5 rounded-md tabular-nums">96</span>
+        <i data-lucide="chevron-down" class="text-[17px] text-ink-faint"></i></button>
+      <div id="sc4" class="hidden px-5 pb-5"></div>
+    </div>
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft">
+      <button onclick="tog('sc5')" class="w-full flex items-center gap-3 px-5 py-4 text-left">
+        <i data-lucide="link" class="text-[17px] text-ink-mute"></i><span class="text-[14px] font-medium flex-1">Links</span>
+        <span class="text-[12px] text-ink-faint bg-slate-100 px-2 py-0.5 rounded-md tabular-nums">118</span>
+        <i data-lucide="chevron-down" class="text-[17px] text-ink-faint"></i></button>
+      <div id="sc5" class="hidden px-5 pb-5"></div>
+    </div>
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft">
+      <button onclick="tog('sc6')" class="w-full flex items-center gap-3 px-5 py-4 text-left">
+        <i data-lucide="image" class="text-[17px] text-ink-mute"></i><span class="text-[14px] font-medium flex-1">Images</span>
+        <span class="text-[12px] text-ink-faint bg-slate-100 px-2 py-0.5 rounded-md tabular-nums">24</span>
+        <i data-lucide="chevron-down" class="text-[17px] text-ink-faint"></i></button>
+      <div id="sc6" class="hidden px-5 pb-5"></div>
+    </div>
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft">
+      <button onclick="tog('sc7')" class="w-full flex items-center gap-3 px-5 py-4 text-left">
+        <i data-lucide="table" class="text-[17px] text-ink-mute"></i><span class="text-[14px] font-medium flex-1">Tables</span>
+        <span class="text-[12px] text-ink-faint bg-slate-100 px-2 py-0.5 rounded-md tabular-nums">3</span>
+        <i data-lucide="chevron-down" class="text-[17px] text-ink-faint"></i></button>
+      <div id="sc7" class="hidden px-5 pb-5"></div>
+    </div>
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft">
+      <button onclick="tog('sc8')" class="w-full flex items-center gap-3 px-5 py-4 text-left">
+        <i data-lucide="file-text" class="text-[17px] text-ink-mute"></i><span class="text-[14px] font-medium flex-1">Raw text</span>
+        <span class="text-[12px] text-ink-faint bg-slate-100 px-2 py-0.5 rounded-md">14,208 chars</span>
+        <i data-lucide="chevron-down" class="text-[17px] text-ink-faint"></i></button>
+      <div id="sc8" class="hidden px-5 pb-5"></div>
+    </div>
+  </div>
+
+  <div class="pane-d hidden">
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-6">
+      <h3 class="text-[15px] font-semibold mb-5">Execution detail</h3>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-5 mb-6 text-[12.5px]">
+        <div><span class="text-ink-faint block mb-1">Attempt</span><span class="font-medium">1 of 3</span></div>
+        <div><span class="text-ink-faint block mb-1">Queue wait</span><span class="font-medium tabular-nums">1.1 sec</span></div>
+        <div><span class="text-ink-faint block mb-1">Fetch time</span><span class="font-medium tabular-nums">3.8 sec</span></div>
+        <div><span class="text-ink-faint block mb-1">Parse time</span><span class="font-medium tabular-nums">3.5 sec</span></div>
+      </div>
+      <div class="rounded-lg bg-rail-deep p-4 font-mono text-[12px] text-slate-300 leading-relaxed overflow-x-auto">
+        <div><span class="text-slate-500">02:52:04</span> job accepted · page=10</div>
+        <div><span class="text-slate-500">02:52:05</span> worker started</div>
+        <div><span class="text-slate-500">02:52:05</span> GET /courses?page=10 → 200</div>
+        <div><span class="text-slate-500">02:52:09</span> parsed 42 headings, 118 links, 24 images</div>
+        <div><span class="text-slate-500">02:52:12</span> <span class="text-ok-500">result stored · status=COMPLETED</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pane-d hidden">
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft overflow-hidden">
+      <div class="flex items-center justify-between px-5 h-14 border-b border-slate-100">
+        <h3 class="text-[15px] font-semibold">Raw data</h3>
+        <div class="flex gap-2">
+          <button class="h-9 px-3 rounded-lg border border-slate-300 text-[12.5px] hover:bg-slate-50 flex items-center gap-1.5"><i data-lucide="copy" class="text-[14px]"></i>Copy JSON</button>
+          <button class="h-9 px-3 rounded-lg border border-slate-300 text-[12.5px] hover:bg-slate-50 flex items-center gap-1.5"><i data-lucide="download" class="text-[14px]"></i>Download JSON</button>
+        </div>
+      </div>
+      <pre class="bg-rail-deep text-slate-300 p-5 text-[12.5px] font-mono leading-relaxed overflow-x-auto"><span class="text-slate-500">{</span>
+  <span class="text-accent-500">"job_id"</span>: <span class="text-ok-500">"SC-1284"</span>,
+  <span class="text-accent-500">"url"</span>: <span class="text-ok-500">"https://search.studyaustralia.gov.au/courses"</span>,
+  <span class="text-accent-500">"page"</span>: <span class="text-warn-500">10</span>,
+  <span class="text-accent-500">"status"</span>: <span class="text-ok-500">"COMPLETED"</span>,
+  <span class="text-accent-500">"attempts"</span>: <span class="text-warn-500">1</span>,
+  <span class="text-accent-500">"duration_ms"</span>: <span class="text-warn-500">8412</span>,
+  <span class="text-accent-500">"result"</span>: <span class="text-slate-500">{</span>
+    <span class="text-accent-500">"title"</span>: <span class="text-ok-500">"Study in Australia — Courses and universities search"</span>,
+    <span class="text-accent-500">"headings"</span>: <span class="text-warn-500">42</span>,
+    <span class="text-accent-500">"links"</span>: <span class="text-warn-500">118</span>,
+    <span class="text-accent-500">"images"</span>: <span class="text-warn-500">24</span>,
+    <span class="text-accent-500">"word_count"</span>: <span class="text-warn-500">2140</span>
+  <span class="text-slate-500">}</span>,
+  <span class="text-accent-500">"created_at"</span>: <span class="text-ok-500">"2026-08-12T02:52:04Z"</span>,
+  <span class="text-accent-500">"completed_at"</span>: <span class="text-ok-500">"2026-08-12T02:52:12Z"</span>
+<span class="text-slate-500">}</span></pre>
+    </div>
+  </div>

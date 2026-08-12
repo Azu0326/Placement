@@ -1,0 +1,66 @@
+<div class="flex items-center justify-between gap-3 mb-5">
+    <button onclick="go('content','Content Studio / Content')" class="text-[13px] text-ink-mute hover:text-ink flex items-center gap-1.5"><i data-lucide="arrow-left" class="text-[15px]"></i>Back to content</button>
+    <div class="flex items-center gap-2.5">
+      <span class="text-[12.5px] text-ink-faint hidden sm:flex items-center gap-1.5"><i data-lucide="cloud" class="text-[14px]"></i>Saved 30 seconds ago</span>
+      <button class="h-9 px-3.5 rounded-xl border border-slate-300 bg-white text-[13px] font-medium hover:bg-slate-50">Preview</button>
+      <button class="h-9 px-3.5 rounded-xl bg-primary-500 text-white text-[13px] font-medium hover:bg-primary-600">Send for review</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-[1fr,320px] gap-5 items-start">
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft">
+      <div class="flex items-center gap-1 px-4 h-12 border-b border-slate-100 overflow-x-auto">
+        <button class="h-8 w-8 grid place-items-center rounded-lg hover:bg-slate-100 text-ink-soft"><i data-lucide="bold" class="text-[16px]"></i></button>
+        <button class="h-8 w-8 grid place-items-center rounded-lg hover:bg-slate-100 text-ink-soft"><i data-lucide="italic" class="text-[16px]"></i></button>
+        <button class="h-8 w-8 grid place-items-center rounded-lg hover:bg-slate-100 text-ink-soft"><i data-lucide="link" class="text-[16px]"></i></button>
+        <div class="w-px h-5 bg-slate-200 mx-1.5"></div>
+        <button class="h-8 w-8 grid place-items-center rounded-lg hover:bg-slate-100 text-ink-soft"><i data-lucide="heading-1" class="text-[16px]"></i></button>
+        <button class="h-8 w-8 grid place-items-center rounded-lg hover:bg-slate-100 text-ink-soft"><i data-lucide="heading-2" class="text-[16px]"></i></button>
+        <button class="h-8 w-8 grid place-items-center rounded-lg hover:bg-slate-100 text-ink-soft"><i data-lucide="list" class="text-[16px]"></i></button>
+        <button class="h-8 w-8 grid place-items-center rounded-lg hover:bg-slate-100 text-ink-soft"><i data-lucide="quote" class="text-[16px]"></i></button>
+        <div class="w-px h-5 bg-slate-200 mx-1.5"></div>
+        <button class="h-8 w-8 grid place-items-center rounded-lg hover:bg-slate-100 text-ink-soft"><i data-lucide="image" class="text-[16px]"></i></button>
+        <span class="ml-auto text-[12px] text-ink-faint whitespace-nowrap pl-3">1,842 words</span>
+      </div>
+      <div class="px-6 sm:px-10 py-8 max-w-[720px] mx-auto">
+        <h1 class="text-[30px] font-semibold tracking-[-0.02em] leading-tight" contenteditable="true">Studying in Australia: a 2026 guide for international students</h1>
+        <p class="text-[15.5px] leading-[1.75] text-ink-soft mt-6" contenteditable="true">Australia hosts more than 600,000 international students each year, spread across universities, vocational colleges and English language centres. This guide walks through what has changed for the 2026 intake.</p>
+        <h2 class="text-[20px] font-semibold mt-8 tracking-[-0.01em]" contenteditable="true">Choosing a course</h2>
+        <p class="text-[15.5px] leading-[1.75] text-ink-soft mt-3" contenteditable="true">Start with the field rather than the institution. Entry requirements vary far more by discipline than by university, and the recognised qualification frameworks differ between undergraduate and postgraduate study.</p>
+        <p class="text-[15.5px] leading-[1.75] text-ink-soft mt-4" contenteditable="true">Applications for the February intake typically close in November, though some programmes accept late applications into December.</p>
+      </div>
+    </div>
+
+    <aside class="space-y-4 lg:sticky lg:top-[88px]">
+      <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-4 space-y-4">
+        <div><label class="text-[12px] font-medium text-ink-mute block mb-1.5">Status</label>
+          <select class="w-full h-10 px-3 rounded-xl border border-slate-300 text-[13px] outline-none focus:border-accent-500"><option>Review</option><option>Draft</option><option>Approved</option><option>Published</option></select></div>
+        <div><label class="text-[12px] font-medium text-ink-mute block mb-1.5">Source</label>
+          <button onclick="go('detail','Scraper / Jobs / #SC-1284')" class="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 text-[13px] text-left flex items-center gap-2 hover:bg-slate-100">
+            <i data-lucide="globe" class="text-[15px] text-ink-mute"></i><span class="truncate">#SC-1284 · studyaustralia</span></button></div>
+        <div><label class="text-[12px] font-medium text-ink-mute block mb-1.5">Tags</label>
+          <div class="flex flex-wrap gap-1.5">
+            <span class="text-[12px] bg-primary-50 text-primary-700 px-2.5 py-1 rounded-lg flex items-center gap-1.5">education<button class="hover:text-primary-900"><i data-lucide="x" class="text-[12px]"></i></button></span>
+            <span class="text-[12px] bg-primary-50 text-primary-700 px-2.5 py-1 rounded-lg flex items-center gap-1.5">visa<button><i data-lucide="x" class="text-[12px]"></i></button></span>
+            <button class="text-[12px] border border-dashed border-slate-300 text-ink-mute px-2.5 py-1 rounded-lg hover:border-slate-400">+ Add</button>
+          </div></div>
+        <div><label class="text-[12px] font-medium text-ink-mute block mb-1.5">Assets</label>
+          <div class="flex gap-2">
+            <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-accent-100 to-primary-100 border border-slate-200"></div>
+            <button onclick="go('assets','Repository / Assets')" class="w-14 h-14 rounded-lg border border-dashed border-slate-300 grid place-items-center text-ink-faint hover:border-slate-400 hover:text-ink-mute"><i data-lucide="plus" class="text-[18px]"></i></button>
+          </div></div>
+      </div>
+
+      <div class="bg-white rounded-card border border-primary-200 shadow-soft overflow-hidden">
+        <div class="px-4 h-12 flex items-center gap-2 bg-gradient-to-r from-primary-50 to-accent-50 border-b border-primary-100">
+          <i data-lucide="sparkles" class="text-[16px] text-primary-600"></i><span class="text-[13.5px] font-semibold text-primary-700">AI actions</span></div>
+        <div class="p-2">
+          <button class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] text-ink-soft hover:bg-primary-50 transition"><i data-lucide="wand-sparkles" class="text-[15px] text-primary-600"></i>Improve writing</button>
+          <button class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] text-ink-soft hover:bg-primary-50 transition"><i data-lucide="align-left" class="text-[15px] text-primary-600"></i>Summarise</button>
+          <button class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] text-ink-soft hover:bg-primary-50 transition"><i data-lucide="refresh-cw" class="text-[15px] text-primary-600"></i>Rewrite</button>
+          <button class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] text-ink-soft hover:bg-primary-50 transition"><i data-lucide="share-2" class="text-[15px] text-primary-600"></i>Generate social post</button>
+          <button class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] text-ink-soft hover:bg-primary-50 transition"><i data-lucide="search" class="text-[15px] text-primary-600"></i>Generate SEO description</button>
+        </div>
+      </div>
+    </aside>
+  </div>

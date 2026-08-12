@@ -1,0 +1,71 @@
+{
+  "_comment": [
+    "Template for the Scrapos web task definition. Rendered by",
+    "deploy/scripts/register-task-definition.sh.",
+    "",
+    "Matches outvier-ecs-cluster-production conventions:",
+    "  - EC2 launch type with bridge networking",
+    "  - hostPort 0 for dynamic ALB target registration",
+    "  - memoryReservation only (no task-level cpu/memory)",
+    "  - arm64 image for t4g.medium hosts",
+    "",
+    "Scrapos is a frontend demo: no Celery worker, no MySQL, no Redis.",
+    "Only SECRET_KEY is injected from Secrets Manager."
+  ],
+  "family": "__WEB_FAMILY__",
+  "networkMode": "bridge",
+  "requiresCompatibilities": ["EC2"],
+  "taskRoleArn": "__TASK_ROLE_ARN__",
+  "executionRoleArn": "__EXECUTION_ROLE_ARN__",
+  "containerDefinitions": [
+    {
+      "name": "scrapos",
+      "image": "__IMAGE__",
+      "essential": true,
+      "memoryReservation": __WEB_MEMORY_RESERVATION__,
+      "portMappings": [
+        {
+          "containerPort": 8000,
+          "hostPort": 0,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        { "name": "DJANGO_SETTINGS_MODULE", "value": "config.settings" },
+        { "name": "SERVICE_NAME", "value": "scrapos" },
+        { "name": "DEBUG", "value": "False" },
+        { "name": "ALLOWED_HOSTS", "value": "__PRODUCTION_DOMAIN__" },
+        { "name": "CSRF_TRUSTED_ORIGINS", "value": "https://__PRODUCTION_DOMAIN__" },
+        { "name": "DB_ENGINE", "value": "django.db.backends.sqlite3" },
+        { "name": "DB_NAME", "value": "/tmp/scrapos.sqlite3" },
+        { "name": "GUNICORN_WORKERS", "value": "2" },
+        { "name": "GUNICORN_TIMEOUT", "value": "60" },
+        { "name": "AWS_DEFAULT_REGION", "value": "__AWS_REGION__" }
+      ],
+      "secrets": [
+        {
+          "name": "SECRET_KEY",
+          "valueFrom": "__DJANGO_SECRET_ARN__:secret_key::"
+        }
+      ],
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "curl --fail --silent http://127.0.0.1:8000/healthz || exit 1"
+        ],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 30
+      },
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "__WEB_LOG_GROUP__",
+          "awslogs-region": "__AWS_REGION__",
+          "awslogs-stream-prefix": "web"
+        }
+      }
+    }
+  ]
+}

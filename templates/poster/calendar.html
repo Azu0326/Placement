@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex flex-wrap items-center justify-between gap-4 mb-5">
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-1">
+        <button class="h-9 w-9 grid place-items-center rounded-xl border border-slate-300 bg-white hover:bg-slate-50"><i data-lucide="chevron-left" class="text-[17px]"></i></button>
+        <button class="h-9 w-9 grid place-items-center rounded-xl border border-slate-300 bg-white hover:bg-slate-50"><i data-lucide="chevron-right" class="text-[17px]"></i></button>
+      </div>
+      <h1 class="text-[20px] sm:text-[23px] font-semibold tracking-[-0.02em]">August 2026</h1>
+      <button class="h-9 px-3 rounded-xl border border-slate-300 bg-white text-[13px] font-medium hover:bg-slate-50">Today</button>
+    </div>
+    <div class="flex items-center gap-2.5">
+      <div class="flex rounded-xl border border-slate-300 overflow-hidden bg-white">
+        <button class="h-9 px-3.5 text-[13px] bg-primary-50 text-primary-600 font-medium">Month</button>
+        <button class="h-9 px-3.5 text-[13px] text-ink-mute hover:bg-slate-50 border-l border-slate-300">Week</button>
+        <button class="h-9 px-3.5 text-[13px] text-ink-mute hover:bg-slate-50 border-l border-slate-300">Day</button>
+      </div>
+      <button class="h-9 px-3.5 rounded-xl bg-primary-500 text-white text-[13px] font-medium hover:bg-primary-600 flex items-center gap-1.5"><i data-lucide="plus" class="text-[15px]"></i>Schedule</button>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-card border border-slate-200/80 shadow-soft overflow-hidden">
+    <div class="grid grid-cols-7 border-b border-slate-200 bg-slate-50/80">
+      <div class="px-3 py-2.5 text-[11.5px] font-medium text-ink-mute uppercase tracking-wider">Mon</div>
+      <div class="px-3 py-2.5 text-[11.5px] font-medium text-ink-mute uppercase tracking-wider">Tue</div>
+      <div class="px-3 py-2.5 text-[11.5px] font-medium text-ink-mute uppercase tracking-wider">Wed</div>
+      <div class="px-3 py-2.5 text-[11.5px] font-medium text-ink-mute uppercase tracking-wider">Thu</div>
+      <div class="px-3 py-2.5 text-[11.5px] font-medium text-ink-mute uppercase tracking-wider">Fri</div>
+      <div class="px-3 py-2.5 text-[11.5px] font-medium text-ink-mute uppercase tracking-wider">Sat</div>
+      <div class="px-3 py-2.5 text-[11.5px] font-medium text-ink-mute uppercase tracking-wider">Sun</div>
+    </div>
+    <div class="grid grid-cols-7 divide-x divide-y divide-slate-100 border-slate-100">
+      <div class="min-h-[124px] p-2 text-ink-faint"><span class="text-[12.5px]">27</span></div>
+      <div class="min-h-[124px] p-2 text-ink-faint"><span class="text-[12.5px]">28</span></div>
+      <div class="min-h-[124px] p-2 text-ink-faint"><span class="text-[12.5px]">29</span></div>
+      <div class="min-h-[124px] p-2 text-ink-faint"><span class="text-[12.5px]">30</span></div>
+      <div class="min-h-[124px] p-2 text-ink-faint"><span class="text-[12.5px]">31</span></div>
+      <div class="min-h-[124px] p-2"><span class="text-[12.5px]">1</span></div>
+      <div class="min-h-[124px] p-2"><span class="text-[12.5px]">2</span></div>
+
+      <div class="min-h-[124px] p-2"><span class="text-[12.5px]">3</span></div>
+      <div class="min-h-[124px] p-2"><span class="text-[12.5px]">4</span>
+        <div class="mt-1.5 rounded-lg border-l-[3px] border-accent-500 bg-accent-50/60 px-2 py-1.5 cursor-grab hover:shadow-soft transition">
+          <p class="text-[10.5px] font-medium text-accent-600 tabular-nums">9:00 AM · LinkedIn</p>
+          <p class="text-[11.5px] truncate mt-0.5">Intake deadlines</p></div></div>
+      <div class="min-h-[124px] p-2"><span class="text-[12.5px]">5</span></div>
+      <div class="min-h-[124px] p-2"><span class="text-[12.5px]">6</span></div>
+      <div class="min-h-[124px] p-2"><span class="text-[12.5px]">7</span>
+        <div class="mt-1.5 rounded-lg border-l-[3px] border-queued-500 bg-queued-50/60 px-2 py-1.5 cursor-grab hover:shadow-soft transition">
+          <p class="text-[10.5px] font-medium text-queued-700 tabular-nums">1:00 PM · Instagram</p>
+          <p class="text-[11.5px] truncate mt-0.5">Campus reel</p></div></div>
+      <div class="min-h-[124px] p-2 bg-slate-50/40"><span class="text-[12.5px] text-ink-faint">8</span></div>
+      <div class="min-h-[124px] p-2 bg-slate-50/40"><span class="text-[12.5px] text-ink-faint">9</span></div>
+
+      <div class="min-h-[124px] p-2"><span class="text-[12.5px]">10</span></div>
+      <div class="min-h-[124px] p-2"><span class="text-[12.5px]">11</span>
+        <div class="mt-1.5 rounded-lg border-l-[3px] border-ok-500 bg-ok-50/60 px-2 py-1.5 cursor-grab hover:shadow-soft transition">
+          <p class="text-[10.5px] font-medium text-ok-700 tabular-nums">9:00 AM · Facebook</p>
+          <p class="text-[11.5px] truncate mt-0.5">Scholarships roundup</p></div>
+        <div class="mt-1 rounded-lg border-l-[3px] border-err-500 bg-err-50/60 px-2 py-1.5 cursor-grab hover:shadow-soft transition">
+          <p class="text-[10.5px] font-medium text-err-700 tabular-nums">4:15 PM · X</p>
+          <p class="text-[11.5px] truncate mt-0.5">Search tips thread</p></div></div>
+      <div class="min-h-[124px] p-2 ring-2 ring-inset ring-primary-500/40 bg-primary-50/25">
+        <span class="text-[12.5px] font-semibold w-6 h-6 rounded-full bg-primary-500 text-white grid place-items-center">12</span>
+        <div data-action="open-drawer" class="mt-1.5 rounded-lg border-l-[3px] border-accent-500 bg-accent-50/60 px-2 py-1.5 cursor-grab hover:shadow-soft transition">
+          <p class="text-[10.5px] font-medium text-accent-600 tabular-nums">10:00 AM · LinkedIn</p>
+          <p class="text-[11.5px] truncate mt-0.5">Digital nomad visa guide</p></div>
+        <div class="mt-1 rounded-lg border-l-[3px] border-queued-500 bg-queued-50/60 px-2 py-1.5 cursor-grab hover:shadow-soft transition">
+          <p class="text-[10.5px] font-medium text-queued-700 tabular-nums">2:30 PM · Instagram</p>
+          <p class="text-[11.5px] truncate mt-0.5">Australia study guide</p></div></div>
+      <div class="min-h-[124px] p-2"><span class="text-[12.5px]">13</span></div>
+      <div class="min-h-[124px] p-2"><span class="text-[12.5px]">14</span>
+        <div class="mt-1.5 rounded-lg border-l-[3px] border-primary-500 bg-primary-50/60 px-2 py-1.5 cursor-grab hover:shadow-soft transition">
+          <p class="text-[10.5px] font-medium text-primary-600 tabular-nums">8:00 AM · Newsletter</p>
+          <p class="text-[11.5px] truncate mt-0.5">Weekly digest</p></div></div>
+      <div class="min-h-[124px] p-2 bg-slate-50/40"><span class="text-[12.5px] text-ink-faint">15</span></div>
+      <div class="min-h-[124px] p-2 bg-slate-50/40"><span class="text-[12.5px] text-ink-faint">16</span></div>
+    </div>
+  </div>
+{% endblock %}

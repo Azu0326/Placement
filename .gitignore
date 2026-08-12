@@ -1,0 +1,20 @@
+# Tailwind standalone binary (re-fetch via tools/fetch-tooling.ps1)
+tools/tailwindcss.exe
+tools/tailwindcss-windows-*.exe
+
+# Python / Django
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.sqlite3
+db.sqlite3
+staticfiles/
+.env
+.DS_Store
+Thumbs.db
+
+# Deploy render artefacts
+deploy/ecs/*.rendered.json
+rollback-state.env
+build.env

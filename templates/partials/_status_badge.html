@@ -1,0 +1,16 @@
+{# Job status badge. Pass status as QUEUED|RUNNING|COMPLETED|FAILED (case-insensitive). #}
+{% with s=status|default:""|upper %}
+  {% if s == "COMPLETED" %}
+    <span class="badge-ok{% if class %} {{ class }}{% endif %}">COMPLETED</span>
+  {% elif s == "FAILED" %}
+    <span class="badge-err{% if class %} {{ class }}{% endif %}">FAILED</span>
+  {% elif s == "RUNNING" %}
+    <span class="badge-running{% if class %} {{ class }}{% endif %}">
+      {% if show_dot %}<span class="w-1.5 h-1.5 rounded-full bg-accent-500 pulse-dot"></span>{% endif %}RUNNING
+    </span>
+  {% elif s == "QUEUED" %}
+    <span class="badge-queued{% if class %} {{ class }}{% endif %}">QUEUED</span>
+  {% else %}
+    <span class="badge border border-slate-200 bg-slate-50 text-ink-mute{% if class %} {{ class }}{% endif %}">{{ status }}</span>
+  {% endif %}
+{% endwith %}

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+<button onclick="window.location='{% url 'assets' %}'" class="text-[13px] text-ink-mute hover:text-ink flex items-center gap-1.5 mb-4"><i data-lucide="arrow-left" class="text-[15px]"></i>Back to assets</button>
+  <div class="mb-6"><h1 class="text-[24px] sm:text-[27px] font-semibold tracking-[-0.02em]">Register asset</h1>
+  <p class="text-ink-mute text-[14px] mt-1">Add a file to the repository so content and posts can use it.</p></div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-[1.2fr,1fr] gap-5 items-start max-w-[1080px]">
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5">
+      <div class="rounded-xl border-2 border-dashed border-slate-300 hover:border-primary-500/50 hover:bg-primary-50/25 transition p-10 text-center cursor-pointer">
+        <div class="w-14 h-14 rounded-2xl bg-primary-50 text-primary-600 grid place-items-center mx-auto"><i data-lucide="upload-cloud" class="text-[26px]"></i></div>
+        <p class="text-[15px] font-medium mt-4">Drop files here or browse</p>
+        <p class="text-[12.5px] text-ink-mute mt-1.5">JPG, PNG, SVG, MP4 or PDF · up to 200 MB each</p>
+        <button class="h-10 px-4 mt-5 rounded-xl border border-slate-300 bg-white text-[13.5px] font-medium hover:bg-slate-50">Browse files</button>
+      </div>
+
+      <div class="mt-4 space-y-2.5">
+        <div class="rounded-xl border border-slate-200 p-3.5">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-accent-50 text-accent-600 grid place-items-center shrink-0"><i data-lucide="image" class="text-[18px]"></i></div>
+            <div class="min-w-0 flex-1">
+              <p class="text-[13px] font-medium truncate">sydney-harbour-dusk.jpg</p>
+              <p class="text-[11.5px] text-ink-faint tabular-nums">1.8 MB · uploading 64%</p>
+            </div>
+            <button class="p-1.5 rounded-lg hover:bg-slate-100 text-ink-faint"><i data-lucide="x" class="text-[15px]"></i></button>
+          </div>
+          <div class="h-1.5 rounded-full bg-slate-100 mt-3 overflow-hidden"><div class="h-full w-[64%] rounded-full bg-accent-500"></div></div>
+        </div>
+        <div class="rounded-xl border border-ok-500/30 bg-ok-50/40 p-3.5 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-white text-ok-700 grid place-items-center shrink-0"><i data-lucide="circle-check-big" class="text-[18px]"></i></div>
+          <div class="min-w-0 flex-1">
+            <p class="text-[13px] font-medium truncate">visa-checklist-2026.pdf</p>
+            <p class="text-[11.5px] text-ok-700">Uploaded</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5 space-y-4">
+      <div><label class="text-[12.5px] font-medium block mb-1.5">Asset name</label>
+        <input value="Sydney Harbour at dusk" class="w-full h-10 px-3 rounded-xl border border-slate-300 text-[13.5px] outline-none focus:border-accent-500 focus:ring-4 focus:ring-accent-500/10 transition"></div>
+      <div><label class="text-[12.5px] font-medium block mb-1.5">Description</label>
+        <textarea rows="3" placeholder="Where this can be used, and what it shows." class="w-full rounded-xl border border-slate-300 p-3 text-[13.5px] outline-none focus:border-accent-500 focus:ring-4 focus:ring-accent-500/10 resize-none transition"></textarea></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="text-[12.5px] font-medium block mb-1.5">Asset type</label>
+          <select class="w-full h-10 px-3 rounded-xl border border-slate-300 text-[13.5px] outline-none focus:border-accent-500"><option>Image</option><option>Video</option><option>Document</option><option>Graphic</option></select></div>
+        <div><label class="text-[12.5px] font-medium block mb-1.5">Campaign</label>
+          <select class="w-full h-10 px-3 rounded-xl border border-slate-300 text-[13.5px] outline-none focus:border-accent-500"><option>Study intake 2026</option><option>Nomad visa series</option><option>None</option></select></div>
+      </div>
+      <div><label class="text-[12.5px] font-medium block mb-1.5">Tags</label>
+        <div class="min-h-[40px] rounded-xl border border-slate-300 p-2 flex flex-wrap gap-1.5">
+          <span class="text-[12px] bg-primary-50 text-primary-700 px-2.5 py-1 rounded-lg flex items-center gap-1.5">campus<button><i data-lucide="x" class="text-[12px]"></i></button></span>
+          <span class="text-[12px] bg-primary-50 text-primary-700 px-2.5 py-1 rounded-lg flex items-center gap-1.5">hero<button><i data-lucide="x" class="text-[12px]"></i></button></span>
+          <input placeholder="Add a tag…" class="flex-1 min-w-[100px] text-[13px] outline-none px-1 placeholder:text-ink-faint"></div></div>
+      <div><label class="text-[12.5px] font-medium block mb-1.5">Source</label>
+        <input placeholder="Photographer, agency or URL" class="w-full h-10 px-3 rounded-xl border border-slate-300 text-[13.5px] outline-none focus:border-accent-500"></div>
+      <div><label class="text-[12.5px] font-medium block mb-1.5">Usage rights</label>
+        <textarea rows="2" placeholder="Licence terms and any restrictions on use." class="w-full rounded-xl border border-slate-300 p-3 text-[13.5px] outline-none focus:border-accent-500 resize-none"></textarea></div>
+      <div class="flex gap-2.5 pt-1">
+        <button class="flex-1 h-11 rounded-xl bg-primary-500 text-white text-[14px] font-medium hover:bg-primary-600 shadow-lift">Register asset</button>
+        <button onclick="window.location='{% url 'assets' %}'" class="h-11 px-5 rounded-xl border border-slate-300 text-[14px] font-medium hover:bg-slate-50">Cancel</button>
+      </div>
+    </div>
+  </div>
+{% endblock %}

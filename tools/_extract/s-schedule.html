@@ -1,0 +1,61 @@
+<div class="flex flex-wrap items-start justify-between gap-4 mb-5">
+    <div><h1 class="text-[24px] sm:text-[27px] font-semibold tracking-[-0.02em]">Scheduled posts</h1>
+    <p class="text-ink-mute text-[14px] mt-1">Everything queued to publish, across every channel.</p></div>
+    <button class="h-10 px-4 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-[13.5px] font-medium shadow-lift flex items-center gap-2"><i data-lucide="plus" class="text-[16px]"></i>Schedule post</button>
+  </div>
+
+  <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-3 mb-4 flex flex-wrap items-center gap-2.5">
+    <select class="h-10 px-3 pr-8 rounded-xl border border-slate-300 bg-white text-[13px] outline-none hover:bg-slate-50"><option>All platforms</option><option>LinkedIn</option><option>Instagram</option><option>Facebook</option><option>X</option><option>WordPress</option></select>
+    <select class="h-10 px-3 pr-8 rounded-xl border border-slate-300 bg-white text-[13px] outline-none hover:bg-slate-50"><option>All statuses</option><option>Draft</option><option>Scheduled</option><option>Publishing</option><option>Published</option><option>Failed</option></select>
+    <button class="h-10 px-3 rounded-xl border border-slate-300 bg-white text-[13px] hover:bg-slate-50 flex items-center gap-2 text-ink-soft"><i data-lucide="calendar" class="text-[15px]"></i>August 2026</button>
+    <select class="h-10 px-3 pr-8 rounded-xl border border-slate-300 bg-white text-[13px] outline-none hover:bg-slate-50"><option>All campaigns</option><option>Study intake 2026</option><option>Nomad visa series</option></select>
+  </div>
+
+  <div class="bg-white rounded-card border border-slate-200/80 shadow-soft overflow-hidden">
+    <div class="overflow-x-auto tbl-scroll">
+    <table class="w-full text-[13px]">
+      <thead><tr class="bg-slate-50/80 border-b border-slate-200 text-left">
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Content</th>
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Platform</th>
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Scheduled</th>
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Owner</th>
+        <th class="px-5 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Status</th>
+        <th class="px-5 py-3 w-12"></th>
+      </tr></thead>
+      <tbody class="divide-y divide-slate-100">
+        <tr class="hover:bg-slate-50/70 cursor-pointer">
+          <td class="px-5 py-3.5 font-medium max-w-[280px]"><div class="truncate">Digital nomad visa guide</div></td>
+          <td class="px-5 py-3.5"><span class="flex items-center gap-2 text-ink-soft"><i data-lucide="linkedin" class="text-[15px] text-accent-600"></i>LinkedIn</span></td>
+          <td class="px-5 py-3.5 text-ink-mute whitespace-nowrap tabular-nums">Aug 12, 10:00 AM</td>
+          <td class="px-5 py-3.5"><div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-primary-500 grid place-items-center text-white text-[10px] font-semibold">A</span>Admin</div></td>
+          <td class="px-5 py-3.5"><span class="text-[11px] font-semibold tracking-wide text-queued-700 bg-queued-50 border border-queued-500/25 px-2.5 py-1 rounded-lg">SCHEDULED</span></td>
+          <td class="px-5 py-3.5"><button class="p-1.5 rounded-lg hover:bg-slate-200/70 text-ink-faint"><i data-lucide="ellipsis-vertical" class="text-[16px]"></i></button></td>
+        </tr>
+        <tr class="hover:bg-slate-50/70 cursor-pointer">
+          <td class="px-5 py-3.5 font-medium max-w-[280px]"><div class="truncate">Australia study guide — carousel</div></td>
+          <td class="px-5 py-3.5"><span class="flex items-center gap-2 text-ink-soft"><i data-lucide="instagram" class="text-[15px] text-queued-500"></i>Instagram</span></td>
+          <td class="px-5 py-3.5 text-ink-mute whitespace-nowrap tabular-nums">Aug 12, 2:30 PM</td>
+          <td class="px-5 py-3.5"><div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-accent-500 grid place-items-center text-white text-[10px] font-semibold">M</span>Maya</div></td>
+          <td class="px-5 py-3.5"><span class="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-accent-600 bg-accent-50 border border-accent-500/25 px-2.5 py-1 rounded-lg"><span class="w-1.5 h-1.5 rounded-full bg-accent-500 pulse-dot"></span>PUBLISHING</span></td>
+          <td class="px-5 py-3.5"><button class="p-1.5 rounded-lg hover:bg-slate-200/70 text-ink-faint"><i data-lucide="ellipsis-vertical" class="text-[16px]"></i></button></td>
+        </tr>
+        <tr class="hover:bg-slate-50/70 cursor-pointer">
+          <td class="px-5 py-3.5 font-medium max-w-[280px]"><div class="truncate">Scholarship deadlines roundup</div></td>
+          <td class="px-5 py-3.5"><span class="flex items-center gap-2 text-ink-soft"><i data-lucide="facebook" class="text-[15px] text-accent-600"></i>Facebook</span></td>
+          <td class="px-5 py-3.5 text-ink-mute whitespace-nowrap tabular-nums">Aug 11, 9:00 AM</td>
+          <td class="px-5 py-3.5"><div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-queued-500 grid place-items-center text-white text-[10px] font-semibold">J</span>Jordan</div></td>
+          <td class="px-5 py-3.5"><span class="text-[11px] font-semibold tracking-wide text-ok-700 bg-ok-50 border border-ok-500/20 px-2.5 py-1 rounded-lg">PUBLISHED</span></td>
+          <td class="px-5 py-3.5"><button class="p-1.5 rounded-lg hover:bg-slate-200/70 text-ink-faint"><i data-lucide="ellipsis-vertical" class="text-[16px]"></i></button></td>
+        </tr>
+        <tr class="hover:bg-slate-50/70 cursor-pointer bg-err-50/25">
+          <td class="px-5 py-3.5 font-medium max-w-[280px]"><div class="truncate">Course search tips thread</div>
+            <div class="flex items-center gap-1 text-[11.5px] text-err-700 mt-0.5"><i data-lucide="triangle-alert" class="text-[12px]"></i>Channel rejected the post</div></td>
+          <td class="px-5 py-3.5"><span class="flex items-center gap-2 text-ink-soft"><i data-lucide="twitter" class="text-[15px] text-ink-soft"></i>X</span></td>
+          <td class="px-5 py-3.5 text-ink-mute whitespace-nowrap tabular-nums">Aug 11, 4:15 PM</td>
+          <td class="px-5 py-3.5"><div class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-primary-500 grid place-items-center text-white text-[10px] font-semibold">A</span>Admin</div></td>
+          <td class="px-5 py-3.5"><span class="text-[11px] font-semibold tracking-wide text-err-700 bg-err-50 border border-err-500/25 px-2.5 py-1 rounded-lg">FAILED</span></td>
+          <td class="px-5 py-3.5"><button class="p-1.5 rounded-lg hover:bg-slate-200/70 text-ink-faint"><i data-lucide="ellipsis-vertical" class="text-[16px]"></i></button></td>
+        </tr>
+      </tbody>
+    </table></div>
+  </div>

@@ -1,0 +1,64 @@
+<div class="flex flex-wrap items-start justify-between gap-4 mb-5">
+    <div><h1 class="text-[24px] sm:text-[27px] font-semibold tracking-[-0.02em]">Assets</h1>
+    <p class="text-ink-mute text-[14px] mt-1">Images, video and documents available to your content.</p></div>
+    <button onclick="go('register','Repository / Register Asset')" class="h-10 px-4 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-[13.5px] font-medium shadow-lift flex items-center gap-2"><i data-lucide="plus" class="text-[16px]"></i>Register asset</button>
+  </div>
+
+  <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-3 mb-5 flex flex-wrap items-center gap-2.5">
+    <div class="flex items-center gap-2 flex-1 min-w-[200px] h-10 px-3 rounded-xl bg-slate-100/70 border border-transparent focus-within:bg-white focus-within:border-accent-500/40 focus-within:ring-4 focus-within:ring-accent-500/10 transition">
+      <i data-lucide="search" class="text-[16px] text-ink-faint"></i>
+      <input placeholder="Search assets…" class="bg-transparent text-[13px] w-full outline-none placeholder:text-ink-faint"></div>
+    <select class="h-10 px-3 pr-8 rounded-xl border border-slate-300 bg-white text-[13px] outline-none hover:bg-slate-50"><option>All types</option><option>Image</option><option>Video</option><option>Document</option><option>Graphic</option></select>
+    <select class="h-10 px-3 pr-8 rounded-xl border border-slate-300 bg-white text-[13px] outline-none hover:bg-slate-50"><option>All tags</option><option>campus</option><option>visa</option><option>brand</option></select>
+    <select class="h-10 px-3 pr-8 rounded-xl border border-slate-300 bg-white text-[13px] outline-none hover:bg-slate-50"><option>Any date</option><option>This month</option></select>
+    <div class="flex rounded-xl border border-slate-300 overflow-hidden ml-auto">
+      <button class="h-10 w-10 grid place-items-center bg-primary-50 text-primary-600"><i data-lucide="layout-grid" class="text-[16px]"></i></button>
+      <button class="h-10 w-10 grid place-items-center hover:bg-slate-50 text-ink-mute border-l border-slate-300"><i data-lucide="list" class="text-[16px]"></i></button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
+    <article class="bg-white rounded-card border border-slate-200/80 shadow-soft hover:shadow-lift transition overflow-hidden group cursor-pointer">
+      <div class="aspect-[4/3] bg-gradient-to-br from-accent-100 via-primary-100 to-queued-50 relative">
+        <span class="absolute top-2.5 left-2.5 text-[10.5px] font-medium bg-white/90 backdrop-blur px-2 py-1 rounded-md">Image</span>
+        <button class="absolute top-2.5 right-2.5 w-7 h-7 rounded-lg bg-white/90 backdrop-blur grid place-items-center opacity-0 group-hover:opacity-100 transition"><i data-lucide="ellipsis" class="text-[15px]"></i></button>
+      </div>
+      <div class="p-3.5">
+        <p class="text-[13px] font-medium truncate">sydney-harbour-dusk.jpg</p>
+        <p class="text-[11.5px] text-ink-faint mt-1 tabular-nums">2400 × 1600 · 1.8 MB</p>
+        <div class="flex gap-1 mt-2.5"><span class="text-[10.5px] bg-slate-100 text-ink-mute px-2 py-0.5 rounded-md">campus</span><span class="text-[10.5px] bg-slate-100 text-ink-mute px-2 py-0.5 rounded-md">hero</span></div>
+      </div>
+    </article>
+    <article class="bg-white rounded-card border border-slate-200/80 shadow-soft hover:shadow-lift transition overflow-hidden group cursor-pointer">
+      <div class="aspect-[4/3] bg-gradient-to-br from-queued-50 via-primary-100 to-accent-100 relative grid place-items-center">
+        <i data-lucide="play" class="text-[28px] text-white/80"></i>
+        <span class="absolute top-2.5 left-2.5 text-[10.5px] font-medium bg-white/90 backdrop-blur px-2 py-1 rounded-md">Video</span>
+      </div>
+      <div class="p-3.5">
+        <p class="text-[13px] font-medium truncate">campus-tour-melbourne.mp4</p>
+        <p class="text-[11.5px] text-ink-faint mt-1 tabular-nums">1920 × 1080 · 42 MB</p>
+        <div class="flex gap-1 mt-2.5"><span class="text-[10.5px] bg-slate-100 text-ink-mute px-2 py-0.5 rounded-md">campus</span></div>
+      </div>
+    </article>
+    <article class="bg-white rounded-card border border-slate-200/80 shadow-soft hover:shadow-lift transition overflow-hidden group cursor-pointer">
+      <div class="aspect-[4/3] bg-slate-100 relative grid place-items-center">
+        <i data-lucide="file-text" class="text-[32px] text-ink-faint"></i>
+        <span class="absolute top-2.5 left-2.5 text-[10.5px] font-medium bg-white/90 backdrop-blur px-2 py-1 rounded-md">Document</span>
+      </div>
+      <div class="p-3.5">
+        <p class="text-[13px] font-medium truncate">visa-checklist-2026.pdf</p>
+        <p class="text-[11.5px] text-ink-faint mt-1 tabular-nums">A4 · 320 KB</p>
+        <div class="flex gap-1 mt-2.5"><span class="text-[10.5px] bg-slate-100 text-ink-mute px-2 py-0.5 rounded-md">visa</span></div>
+      </div>
+    </article>
+    <article class="bg-white rounded-card border border-slate-200/80 shadow-soft hover:shadow-lift transition overflow-hidden group cursor-pointer">
+      <div class="aspect-[4/3] bg-gradient-to-br from-primary-500 to-accent-500 relative">
+        <span class="absolute top-2.5 left-2.5 text-[10.5px] font-medium bg-white/90 backdrop-blur px-2 py-1 rounded-md">Graphic</span>
+      </div>
+      <div class="p-3.5">
+        <p class="text-[13px] font-medium truncate">dnc-logo-mark.svg</p>
+        <p class="text-[11.5px] text-ink-faint mt-1 tabular-nums">Vector · 12 KB</p>
+        <div class="flex gap-1 mt-2.5"><span class="text-[10.5px] bg-slate-100 text-ink-mute px-2 py-0.5 rounded-md">brand</span></div>
+      </div>
+    </article>
+  </div>

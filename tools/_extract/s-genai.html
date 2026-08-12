@@ -1,0 +1,82 @@
+<div class="mb-6">
+    <h1 class="text-[24px] sm:text-[27px] font-semibold tracking-[-0.02em]">GenAI content</h1>
+    <p class="text-ink-mute text-[14px] mt-1">Turn scraped pages into publish-ready content.</p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-[380px,1fr] gap-5 items-start">
+    <div class="space-y-4 lg:sticky lg:top-[88px]">
+      <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5">
+        <h2 class="text-[16px] font-semibold mb-4">What would you like to create?</h2>
+        <textarea rows="5" placeholder="Describe the content you need — audience, angle, key points…"
+          class="w-full rounded-xl border border-slate-300 p-3.5 text-[13.5px] leading-relaxed outline-none focus:border-accent-500 focus:ring-4 focus:ring-accent-500/10 resize-none placeholder:text-ink-faint transition"></textarea>
+
+        <div class="mt-4 space-y-3.5">
+          <div><label class="text-[12px] font-medium text-ink-mute block mb-1.5">Content type</label>
+            <div class="flex flex-wrap gap-1.5">
+              <button class="text-[12.5px] px-3 py-1.5 rounded-lg bg-primary-500 text-white font-medium">Article</button>
+              <button class="text-[12.5px] px-3 py-1.5 rounded-lg border border-slate-300 text-ink-soft hover:bg-slate-50">Blog</button>
+              <button class="text-[12.5px] px-3 py-1.5 rounded-lg border border-slate-300 text-ink-soft hover:bg-slate-50">LinkedIn</button>
+              <button class="text-[12.5px] px-3 py-1.5 rounded-lg border border-slate-300 text-ink-soft hover:bg-slate-50">Instagram</button>
+              <button class="text-[12.5px] px-3 py-1.5 rounded-lg border border-slate-300 text-ink-soft hover:bg-slate-50">Facebook</button>
+              <button class="text-[12.5px] px-3 py-1.5 rounded-lg border border-slate-300 text-ink-soft hover:bg-slate-50">X</button>
+              <button class="text-[12.5px] px-3 py-1.5 rounded-lg border border-slate-300 text-ink-soft hover:bg-slate-50">Newsletter</button>
+            </div></div>
+          <div class="grid grid-cols-2 gap-3">
+            <div><label class="text-[12px] font-medium text-ink-mute block mb-1.5">Tone</label>
+              <select class="w-full h-10 px-3 rounded-xl border border-slate-300 text-[13px] outline-none focus:border-accent-500"><option>Professional</option><option>Conversational</option><option>Authoritative</option><option>Friendly</option></select></div>
+            <div><label class="text-[12px] font-medium text-ink-mute block mb-1.5">Length</label>
+              <select class="w-full h-10 px-3 rounded-xl border border-slate-300 text-[13px] outline-none focus:border-accent-500"><option>Medium</option><option>Short</option><option>Long</option></select></div>
+          </div>
+          <div><label class="text-[12px] font-medium text-ink-mute block mb-1.5">Source content</label>
+            <button class="w-full h-10 px-3 rounded-xl border border-slate-300 text-[13px] text-left flex items-center gap-2 hover:bg-slate-50">
+              <i data-lucide="globe" class="text-[15px] text-ink-mute"></i><span class="truncate flex-1">#SC-1284 · Courses search</span><i data-lucide="chevron-down" class="text-[15px] text-ink-faint"></i></button></div>
+          <div><label class="text-[12px] font-medium text-ink-mute block mb-1.5">Assets</label>
+            <button class="w-full h-10 px-3 rounded-xl border border-dashed border-slate-300 text-[13px] text-ink-mute flex items-center gap-2 hover:border-slate-400">
+              <i data-lucide="image" class="text-[15px]"></i>Attach from repository</button></div>
+        </div>
+
+        <button class="w-full h-11 mt-5 rounded-xl bg-gradient-to-r from-primary-500 to-accent-500 text-white text-[14px] font-medium shadow-lift hover:opacity-95 transition flex items-center justify-center gap-2">
+          <i data-lucide="sparkles" class="text-[17px]"></i>Generate content</button>
+      </div>
+
+      <div class="bg-white rounded-card border border-slate-200/80 shadow-soft">
+        <div class="px-5 h-12 flex items-center border-b border-slate-100"><h3 class="text-[13.5px] font-semibold">Generation history</h3></div>
+        <div class="p-2">
+          <button class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-slate-50">
+            <p class="text-[13px] font-medium truncate">Study visa guide — article</p><p class="text-[11.5px] text-ink-faint mt-0.5">18 minutes ago</p></button>
+          <button class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-slate-50">
+            <p class="text-[13px] font-medium truncate">Scholarships — LinkedIn post</p><p class="text-[11.5px] text-ink-faint mt-0.5">Yesterday</p></button>
+          <button class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-slate-50">
+            <p class="text-[13px] font-medium truncate">Cost of living — newsletter</p><p class="text-[11.5px] text-ink-faint mt-0.5">Aug 10</p></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft min-h-[560px] flex flex-col">
+      <div class="flex items-center justify-between px-5 h-14 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <span class="w-7 h-7 rounded-lg bg-gradient-to-br from-primary-500 to-accent-500 grid place-items-center text-white"><i data-lucide="sparkles" class="text-[14px]"></i></span>
+          <h2 class="text-[14.5px] font-semibold">Generated content</h2>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <button class="h-9 px-3 rounded-lg border border-slate-300 text-[12.5px] hover:bg-slate-50 flex items-center gap-1.5"><i data-lucide="refresh-cw" class="text-[14px]"></i>Regenerate</button>
+          <button class="h-9 px-3 rounded-lg border border-slate-300 text-[12.5px] hover:bg-slate-50 flex items-center gap-1.5"><i data-lucide="copy" class="text-[14px]"></i>Copy</button>
+          <button onclick="go('editor','Content Studio / Content / Editor')" class="h-9 px-3 rounded-lg bg-primary-500 text-white text-[12.5px] font-medium hover:bg-primary-600">Save to content</button>
+        </div>
+      </div>
+      <div class="p-6 sm:p-8 overflow-y-auto flex-1">
+        <div class="max-w-[680px]">
+          <h1 class="text-[24px] font-semibold tracking-[-0.02em] leading-tight">Studying in Australia in 2026: what international students need to know</h1>
+          <p class="text-[15px] leading-[1.75] text-ink-soft mt-5">Australia remains one of the most popular destinations for international study, but the 2026 intake brings changes worth understanding before you apply.</p>
+          <h2 class="text-[18px] font-semibold mt-7">Start with the field, not the university</h2>
+          <p class="text-[15px] leading-[1.75] text-ink-soft mt-3">Entry requirements differ far more between disciplines than between institutions. A nursing programme in Adelaide and one in Perth will ask for broadly similar prerequisites, while engineering and nursing at the same university will not.</p>
+          <h2 class="text-[18px] font-semibold mt-7">Application timing</h2>
+          <p class="text-[15px] leading-[1.75] text-ink-soft mt-3">Most February intakes close applications in November. Some providers accept late applications into December, but scholarship deadlines rarely move.</p>
+        </div>
+      </div>
+      <div class="px-5 py-3.5 border-t border-slate-100 flex flex-wrap gap-2">
+        <button class="h-9 px-3.5 rounded-xl border border-slate-300 text-[13px] font-medium hover:bg-slate-50">Edit</button>
+        <button onclick="go('schedule','Poster / Schedule')" class="h-9 px-3.5 rounded-xl border border-slate-300 text-[13px] font-medium hover:bg-slate-50 flex items-center gap-1.5"><i data-lucide="calendar-clock" class="text-[15px]"></i>Schedule</button>
+      </div>
+    </div>
+  </div>
