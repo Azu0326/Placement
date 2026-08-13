@@ -131,12 +131,25 @@ build_push_ecr:
   variables:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_TLS_CERTDIR: ""
-    # Avoid buildx's prompt_toolkit progress UI on Alpine/musl, which crashes with:
-    # ImportError: ... pyexpat ... XML_SetAllocTrackerActivationThreshold
     BUILDKIT_PROGRESS: plain
+    AWS_CLI_IMAGE: "amazon/aws-cli:2.17.56"
   before_script:
-    # Install aws-cli without pulling a conflicting libexpat that breaks pyexpat.
-    - apk add --no-cache aws-cli --repository=https://dl-cdn.alpinelinux.org/alpine/v3.20/community --repository=https://dl-cdn.alpinelinux.org/alpine/v3.20/main
+    # Do not apk-install aws-cli on Alpine docker images: current aws-cli +
+    # prompt_toolkit + pyexpat/libexpat mismatch crashes every `aws` invocation.
+    # Run the official glibc aws-cli image via the dind daemon instead.
+    - |
+      cat >/usr/local/bin/aws <<EOF
+      #!/bin/sh
+      exec docker run --rm \
+        -e AWS_ACCESS_KEY_ID \
+        -e AWS_SECRET_ACCESS_KEY \
+        -e AWS_DEFAULT_REGION \
+        -e AWS_SESSION_TOKEN \
+        -e AWS_PAGER= \
+        ${AWS_CLI_IMAGE} "\$@"
+      EOF
+    - chmod +x /usr/local/bin/aws
+    - docker pull "$AWS_CLI_IMAGE"
     - aws sts get-caller-identity
     - docker run --privileged --rm tonistiigi/binfmt --install arm64
     - docker buildx create --use --name scrapos || docker buildx use scrapos
