@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "dashboard/_messages.html" %}
+
+<div class="mb-6 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="text-[24px] sm:text-[27px] font-semibold tracking-[-0.02em]">Users</h1>
+    <p class="text-ink-mute text-[14px] mt-1">Accounts that can sign in to Scrapos.</p>
+  </div>
+  <a href="{% url 'dashboard:user_new' %}"
+     class="h-10 px-4 rounded-xl bg-primary-500 text-white text-[13.5px] font-medium hover:bg-primary-600 shadow-lift transition inline-flex items-center gap-2">
+    <i data-lucide="user-plus" class="text-[16px]"></i>Invite user
+  </a>
+</div>
+
+{% if cognito_state != 'connected' %}
+  <div class="rounded-card border border-warn-500/30 bg-warn-50/50 p-4 flex items-start gap-3 mb-5">
+    <i data-lucide="circle-alert" class="text-[18px] text-warn-700 mt-0.5 shrink-0"></i>
+    <div>
+      <p class="text-[13.5px] font-medium text-warn-700">Cognito directory unavailable</p>
+      <p class="text-[13px] text-ink-soft mt-0.5">{{ cognito_status_detail }} Only locally known accounts are listed.</p>
+    </div>
+  </div>
+{% endif %}
+
+<form method="get" class="bg-white rounded-card border border-slate-200/80 shadow-soft p-4 mb-4">
+  <div class="flex flex-col lg:flex-row lg:items-end gap-3">
+    <div class="flex-1 min-w-0">
+      <label for="q" class="text-[12.5px] font-medium block mb-1.5">Search</label>
+      <div class="flex items-center gap-2 h-10 px-3 rounded-xl border border-slate-300 bg-white
+                  focus-within:border-accent-500 focus-within:ring-4 focus-within:ring-accent-500/10 transition">
+        <i data-lucide="search" class="text-[15px] text-ink-faint shrink-0"></i>
+        <input id="q" name="q" value="{{ search }}" placeholder="Email starts with…"
+               class="w-full text-[13px] outline-none bg-transparent placeholder:text-ink-faint">
+      </div>
+    </div>
+
+    <div>
+      <label for="role" class="text-[12.5px] font-medium block mb-1.5">Role</label>
+      <select id="role" name="role" class="select h-10 lg:w-[150px]">
+        <option value="">All roles</option>
+        <option value="administrator" {% if role_filter == 'administrator' %}selected{% endif %}>Administrators</option>
+        <option value="editor" {% if role_filter == 'editor' %}selected{% endif %}>Editors</option>
+        <option value="viewer" {% if role_filter == 'viewer' %}selected{% endif %}>Viewers</option>
+        <option value="superadmin" {% if role_filter == 'superadmin' %}selected{% endif %}>Bootstrap superadmin</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="status" class="text-[12.5px] font-medium block mb-1.5">Status</label>
+      <select id="status" name="status" class="select h-10 lg:w-[140px]">
+        <option value="">All statuses</option>
+        <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+        <option value="disabled" {% if status_filter == 'disabled' %}selected{% endif %}>Disabled</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="source" class="text-[12.5px] font-medium block mb-1.5">Source</label>
+      <select id="source" name="source" class="select h-10 lg:w-[150px]">
+        <option value="">All sources</option>
+        <option value="cognito" {% if source_filter == 'cognito' %}selected{% endif %}>Cognito</option>
+        <option value="bootstrap" {% if source_filter == 'bootstrap' %}selected{% endif %}>Bootstrap</option>
+      </select>
+    </div>
+
+    <div class="flex gap-2">
+      <button type="submit" class="h-10 px-4 rounded-xl bg-primary-500 text-white text-[13px] font-medium hover:bg-primary-600 transition">Apply</button>
+      <a href="{% url 'dashboard:users' %}" class="h-10 px-4 rounded-xl border border-slate-300 text-[13px] font-medium hover:bg-slate-50 transition grid place-items-center">Reset</a>
+    </div>
+  </div>
+</form>
+
+<div class="bg-white rounded-card border border-slate-200/80 shadow-soft overflow-hidden">
+  {% if rows %}
+    <div class="overflow-x-auto tbl-scroll">
+      <table class="w-full text-left">
+        <thead>
+          <tr class="text-[11.5px] font-medium uppercase tracking-[0.05em] text-ink-mute bg-slate-50/60">
+            <th class="px-5 py-3 font-medium">User</th>
+            <th class="px-5 py-3 font-medium">Cognito username</th>
+            <th class="px-5 py-3 font-medium">Role</th>
+            <th class="px-5 py-3 font-medium">Status</th>
+            <th class="px-5 py-3 font-medium">Source</th>
+            <th class="px-5 py-3 font-medium">Created</th>
+            <th class="px-5 py-3 font-medium">Last login</th>
+            <th class="px-5 py-3 font-medium text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          {% for row in rows %}
+            <tr class="hover:bg-slate-50/60 transition">
+              <td class="px-5 py-3.5">
+                <div class="flex items-center gap-3 min-w-0">
+                  <div class="w-8 h-8 rounded-full bg-primary-500 grid place-items-center text-white text-[11.5px] font-semibold shrink-0">{{ row.initials }}</div>
+                  <div class="min-w-0">
+                    <div class="text-[13px] font-medium truncate">{{ row.display_name|default:row.username }}</div>
+                    <div class="text-[12px] text-ink-mute truncate">{{ row.email|default:"—" }}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-5 py-3.5 text-[13px] text-ink-soft tabular">{{ row.username }}</td>
+              <td class="px-5 py-3.5">
+                {% if row.role == 'superadmin' %}<span class="badge-queued">Superadmin</span>
+                {% elif row.role == 'administrator' %}<span class="badge-running">Administrator</span>
+                {% elif row.role == 'editor' %}<span class="badge-warn">Editor</span>
+                {% else %}<span class="badge" style="background:#F1F5F9;color:#475569;border:1px solid #E2E8F0">Viewer</span>{% endif %}
+              </td>
+              <td class="px-5 py-3.5">
+                {% if row.status_label == 'Active' %}<span class="badge-ok">Active</span>
+                {% else %}<span class="badge-err">Disabled</span>{% endif %}
+              </td>
+              <td class="px-5 py-3.5">
+                {% if row.is_bootstrap %}
+                  <span class="badge-queued" title="Not stored in Cognito">Bootstrap Superadmin</span>
+                {% else %}
+                  <span class="text-[13px] text-ink-soft">Cognito</span>
+                {% endif %}
+              </td>
+              <td class="px-5 py-3.5 text-[13px] text-ink-mute tabular">{{ row.created_at|date:"j M Y"|default:"—" }}</td>
+              <td class="px-5 py-3.5 text-[13px] text-ink-mute tabular">{{ row.last_login|date:"j M Y, H:i"|default:"Never" }}</td>
+              <td class="px-5 py-3.5 text-right">
+                {% if row.is_bootstrap %}
+                  <span class="text-[12.5px] text-ink-faint">Managed via secret</span>
+                {% else %}
+                  <a href="{% url 'dashboard:user_detail' row.username %}"
+                     class="text-[13px] font-medium text-primary-500 hover:text-primary-600">Manage</a>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="p-10 text-center">
+      <div class="w-16 h-16 rounded-2xl bg-primary-50 text-primary-500 grid place-items-center mx-auto"><i data-lucide="users" class="text-[30px]"></i></div>
+      <h3 class="text-[17px] font-semibold mt-5">No users match these filters</h3>
+      <p class="text-[13.5px] text-ink-mute mt-2 max-w-[340px] mx-auto leading-relaxed">Clear the filters, or invite someone to the Cognito directory.</p>
+      <a href="{% url 'dashboard:users' %}" class="h-10 px-4 mt-5 rounded-xl border border-slate-300 text-[13.5px] font-medium hover:bg-slate-50 transition inline-grid place-items-center">Reset filters</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

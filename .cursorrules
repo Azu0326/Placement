@@ -27,3 +27,20 @@ Design tokens: design/design-tokens.md
 - Class-based views unless a function-based view is clearly simpler.
 - Template inheritance: base.html → partials/_sidebar.html + _header.html → page template.
 - Keep view logic out of templates beyond simple loops/conditionals.
+
+## Authentication and authorisation
+See docs/authentication.md for the full picture. When touching auth code:
+- The app is closed by default (LoginRequiredMiddleware). A new page is private
+  unless its path is added to the public allow-list — do not add one casually.
+- Every protected view needs its own `role_required` / `RoleRequiredMixin`.
+  Hiding a sidebar link is presentation, never authorisation.
+- All AWS calls go through `authentication.services.cognito_service`. Never
+  import boto3 in a view, and never let a botocore exception escape the service —
+  map it to an `authentication.exceptions` type.
+- Never store a Cognito password or token locally, and never put a credential in
+  a log line, an audit `metadata` value, or a template context.
+- Authentication failures show one generic message. Do not add copy that reveals
+  whether a username exists, is disabled, or needs a password reset.
+- The bootstrap superadmin is configuration, not a directory user: it must never
+  be created in, looked up in, or written to Cognito.
+- State-changing admin operations are POST with CSRF, never GET.

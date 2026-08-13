@@ -1,0 +1,7 @@
+{# Cognito integration status. Shows state, never identifiers or secrets. #}
+<span class="badge-{{ tone }}">
+  {% if tone == 'ok' %}<i data-lucide="circle-check" class="text-[13px]"></i>
+  {% elif tone == 'warn' %}<i data-lucide="circle-alert" class="text-[13px]"></i>
+  {% else %}<i data-lucide="triangle-alert" class="text-[13px]"></i>{% endif %}
+  {{ label }}
+</span>

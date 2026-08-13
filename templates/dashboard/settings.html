@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-[24px] sm:text-[27px] font-semibold tracking-[-0.02em]">Authentication settings</h1>
+  <p class="text-ink-mute text-[14px] mt-1">How Scrapos is wired to the DNC identity provider.</p>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-[1fr,340px] gap-5 items-start max-w-[1100px]">
+
+  <div class="space-y-5">
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft">
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-3">
+        <div>
+          <h2 class="text-[14.5px] font-semibold">Cognito integration</h2>
+          <p class="text-[12.5px] text-ink-mute mt-0.5">Configuration metadata. Client secrets and AWS credentials stay on the server.</p>
+        </div>
+        {% include "dashboard/_status_pill.html" with tone=cognito_status_tone label=cognito_status_label %}
+      </div>
+
+      <dl class="divide-y divide-slate-100">
+        {% for label, value in config_rows %}
+          <div class="px-5 py-3 flex flex-wrap items-center justify-between gap-3">
+            <dt class="text-[13px] text-ink-mute">{{ label }}</dt>
+            <dd class="text-[13px] font-medium tabular break-all text-right">{{ value }}</dd>
+          </div>
+        {% endfor %}
+      </dl>
+
+      <div class="px-5 py-4 border-t border-slate-100">
+        <p class="text-[13px] text-ink-soft">{{ cognito_status_detail }}</p>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft">
+      <div class="px-5 py-4 border-b border-slate-100">
+        <h2 class="text-[14.5px] font-semibold">Sign-in methods</h2>
+      </div>
+      <div class="p-5 space-y-3">
+        <div class="flex items-start justify-between gap-3 rounded-xl border border-slate-200 p-4">
+          <div>
+            <p class="text-[13.5px] font-medium">Scrapos password form</p>
+            <p class="text-[12.5px] text-ink-mute mt-0.5">Verified server-side against Cognito. Passwords are never stored locally.</p>
+          </div>
+          <span class="badge-ok shrink-0">Enabled</span>
+        </div>
+        <div class="flex items-start justify-between gap-3 rounded-xl border border-slate-200 p-4">
+          <div>
+            <p class="text-[13.5px] font-medium">DNC single sign-on</p>
+            <p class="text-[12.5px] text-ink-mute mt-0.5">OAuth2 authorization code flow through the hosted UI.</p>
+          </div>
+          {% if hosted_ui_enabled %}<span class="badge-ok shrink-0">Enabled</span>
+          {% else %}<span class="badge-warn shrink-0">Not configured</span>{% endif %}
+        </div>
+        <div class="flex items-start justify-between gap-3 rounded-xl border {% if bootstrap_enabled %}border-warn-500/30 bg-warn-50/40{% else %}border-slate-200{% endif %} p-4">
+          <div>
+            <p class="text-[13.5px] font-medium">Bootstrap superadmin</p>
+            <p class="text-[12.5px] text-ink-mute mt-0.5">
+              {% if bootstrap_enabled %}
+                Emergency, non-Cognito access as <span class="font-medium tabular">{{ bootstrap_username }}</span>.
+              {% else %}
+                Disabled. Cognito is the only way in.
+              {% endif %}
+            </p>
+          </div>
+          {% if bootstrap_enabled %}<span class="badge-warn shrink-0">Enabled</span>
+          {% else %}<span class="badge-ok shrink-0">Disabled</span>{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <aside class="space-y-4">
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5">
+      <h2 class="text-[14.5px] font-semibold mb-3">Where identity lives</h2>
+      <p class="text-[13px] text-ink-soft leading-relaxed">
+        Cognito owns authentication. Scrapos stores only application metadata against a
+        user's stable Cognito subject — never a password, token or refresh token.
+      </p>
+      <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+        <span class="text-[12.5px] text-ink-mute">Local user records</span>
+        <span class="text-[12.5px] font-medium tabular">{{ local_user_count }}</span>
+      </div>
+    </div>
+
+    {% if bootstrap_enabled %}
+      <div class="rounded-card border border-warn-500/30 bg-warn-50/50 p-4 flex items-start gap-3">
+        <i data-lucide="key-round" class="text-[17px] text-warn-700 mt-0.5 shrink-0"></i>
+        <div>
+          <p class="text-[13.5px] font-medium text-warn-700">Rotate the bootstrap credential</p>
+          <p class="text-[12.5px] text-ink-soft mt-1 leading-relaxed">
+            Update its hash in Secrets Manager and redeploy — no code change or commit is needed.
+            Full steps are in <span class="font-medium">docs/authentication.md</span>.
+          </p>
+        </div>
+      </div>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

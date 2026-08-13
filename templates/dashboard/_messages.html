@@ -1,0 +1,17 @@
+{% if messages %}
+  <div class="space-y-2.5 mb-5">
+    {% for message in messages %}
+      {% if message.tags == 'error' %}
+        <div role="alert" class="rounded-card border border-err-500/30 bg-err-50 px-4 py-3 flex items-start gap-2.5">
+          <i data-lucide="triangle-alert" class="text-[17px] text-err-700 mt-px shrink-0"></i>
+          <p class="text-[13px] text-err-700 font-medium">{{ message }}</p>
+        </div>
+      {% else %}
+        <div role="status" class="rounded-card border border-ok-500/25 bg-ok-50 px-4 py-3 flex items-start gap-2.5">
+          <i data-lucide="circle-check" class="text-[17px] text-ok-700 mt-px shrink-0"></i>
+          <p class="text-[13px] text-ok-700 font-medium">{{ message }}</p>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+{% endif %}

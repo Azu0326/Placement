@@ -1,3 +1,7 @@
 Django>=5.0,<6.0
 gunicorn>=23.0,<24.0
 whitenoise>=6.7,<7.0
+# Cognito administration and server-side password authentication.
+boto3>=1.35,<2.0
+# ID token verification (RS256 via JWKS). The crypto extra pulls `cryptography`.
+PyJWT[crypto]>=2.9,<3.0

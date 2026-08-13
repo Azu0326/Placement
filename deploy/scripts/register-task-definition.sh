@@ -18,9 +18,11 @@ esac
 
 if [ "${RENDER_ONLY:-0}" = "1" ]; then
     DJANGO_SECRET_ARN="${DJANGO_SECRET_ARN:-arn:aws:secretsmanager:$AWS_DEFAULT_REGION:000000000000:secret:render-check}"
+    COGNITO_SECRET_ARN="${COGNITO_SECRET_ARN:-arn:aws:secretsmanager:$AWS_DEFAULT_REGION:000000000000:secret:render-check-cognito}"
     IMAGE_URI="${IMAGE_URI:-render-check:latest}"
 else
     require_var DJANGO_SECRET_ARN "Set the ARN of the Secrets Manager secret holding secret_key."
+    COGNITO_SECRET_ARN=$(resolve_cognito_secret_arn)
 fi
 
 IMAGE=$(image_uri)
@@ -40,6 +42,10 @@ sed \
     -e "s|__AWS_REGION__|${AWS_DEFAULT_REGION}|g" \
     -e "s|__PRODUCTION_DOMAIN__|${PRODUCTION_DOMAIN}|g" \
     -e "s|__DJANGO_SECRET_ARN__|${DJANGO_SECRET_ARN}|g" \
+    -e "s|__COGNITO_SECRET_ARN__|${COGNITO_SECRET_ARN}|g" \
+    -e "s|__COGNITO_USER_POOL_ID__|${COGNITO_USER_POOL_ID}|g" \
+    -e "s|__COGNITO_DOMAIN__|${COGNITO_DOMAIN}|g" \
+    -e "s|__BOOTSTRAP_ADMIN_ENABLED__|${BOOTSTRAP_ADMIN_ENABLED}|g" \
     -e "s|__WEB_MEMORY_RESERVATION__|${WEB_MEMORY_RESERVATION}|g" \
     "$TEMPLATE" >"$RENDERED"
 

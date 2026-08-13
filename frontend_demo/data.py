@@ -5,12 +5,6 @@ Later screen phases pull rows from here instead of hardcoding placeholders
 into templates. No models, scrapers, or AI calls.
 """
 
-DEMO_USER = {
-    "name": "Admin",
-    "email": "admin@dncouncil.org",
-    "initials": "A",
-}
-
 DASHBOARD_KPIS = [
     {
         "label": "Jobs today",

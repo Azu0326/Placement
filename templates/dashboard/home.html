@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "dashboard/_messages.html" %}
+
+<div class="mb-6 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="text-[24px] sm:text-[27px] font-semibold tracking-[-0.02em]">Administration</h1>
+    <p class="text-ink-mute text-[14px] mt-1">Accounts, roles and authentication health for Scrapos.</p>
+  </div>
+  <a href="{% url 'dashboard:user_new' %}"
+     class="h-10 px-4 rounded-xl bg-primary-500 text-white text-[13.5px] font-medium hover:bg-primary-600 shadow-lift transition inline-flex items-center gap-2">
+    <i data-lucide="user-plus" class="text-[16px]"></i>Invite user
+  </a>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-5">
+  <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5">
+    <div class="w-10 h-10 rounded-xl bg-primary-50 text-primary-500 grid place-items-center"><i data-lucide="users" class="text-[19px]"></i></div>
+    <div class="text-[30px] font-semibold tabular mt-4 leading-none">{{ metrics.total_users }}</div>
+    <div class="text-[13.5px] text-ink-soft mt-2.5">Total users</div>
+    <div class="text-[12px] text-ink-faint mt-1">Cognito directory plus bootstrap</div>
+  </div>
+
+  <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5">
+    <div class="w-10 h-10 rounded-xl bg-ok-50 text-ok-700 grid place-items-center"><i data-lucide="user-check" class="text-[19px]"></i></div>
+    <div class="text-[30px] font-semibold tabular mt-4 leading-none">{{ metrics.active_users }}</div>
+    <div class="text-[13.5px] text-ink-soft mt-2.5">Active Cognito users</div>
+    <div class="text-[12px] text-ink-faint mt-1">Enabled in the directory</div>
+  </div>
+
+  <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5">
+    <div class="w-10 h-10 rounded-xl bg-err-50 text-err-700 grid place-items-center"><i data-lucide="user-x" class="text-[19px]"></i></div>
+    <div class="text-[30px] font-semibold tabular mt-4 leading-none">{{ metrics.disabled_users }}</div>
+    <div class="text-[13.5px] text-ink-soft mt-2.5">Disabled users</div>
+    <div class="text-[12px] text-ink-faint mt-1">Cannot sign in</div>
+  </div>
+
+  <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5">
+    <div class="w-10 h-10 rounded-xl bg-accent-50 text-accent-500 grid place-items-center"><i data-lucide="shield" class="text-[19px]"></i></div>
+    <div class="text-[30px] font-semibold tabular mt-4 leading-none">{{ metrics.administrators }}</div>
+    <div class="text-[13.5px] text-ink-soft mt-2.5">Administrators</div>
+    <div class="text-[12px] text-ink-faint mt-1">{{ metrics.editors }} editor{{ metrics.editors|pluralize }} · {{ metrics.viewers }} viewer{{ metrics.viewers|pluralize }}</div>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-[1fr,360px] gap-5 items-start">
+
+  <div class="bg-white rounded-card border border-slate-200/80 shadow-soft overflow-hidden">
+    <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-3">
+      <h2 class="text-[14.5px] font-semibold">Recent sign-ins</h2>
+      <a href="{% url 'dashboard:audit' %}" class="text-[13px] font-medium text-primary-500 hover:text-primary-600">View audit log</a>
+    </div>
+
+    {% if recent_logins %}
+      <div class="overflow-x-auto tbl-scroll">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="text-[11.5px] font-medium uppercase tracking-[0.05em] text-ink-mute bg-slate-50/60">
+              <th class="px-5 py-2.5 font-medium">User</th>
+              <th class="px-5 py-2.5 font-medium">Source</th>
+              <th class="px-5 py-2.5 font-medium">IP address</th>
+              <th class="px-5 py-2.5 font-medium">When</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            {% for event in recent_logins %}
+              <tr class="hover:bg-slate-50/60 transition">
+                <td class="px-5 py-3 text-[13px] font-medium">{{ event.actor|default:"—" }}</td>
+                <td class="px-5 py-3">
+                  {% if event.actor_auth_source == 'bootstrap' %}
+                    <span class="badge-queued">Bootstrap</span>
+                  {% else %}
+                    <span class="badge-running">Cognito</span>
+                  {% endif %}
+                </td>
+                <td class="px-5 py-3 text-[13px] text-ink-mute tabular">{{ event.ip_address|default:"—" }}</td>
+                <td class="px-5 py-3 text-[13px] text-ink-mute tabular">{{ event.created_at|date:"j M Y, H:i" }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="p-10 text-center">
+        <div class="w-14 h-14 rounded-2xl bg-slate-100 text-ink-faint grid place-items-center mx-auto"><i data-lucide="history" class="text-[26px]"></i></div>
+        <h3 class="text-[15px] font-semibold mt-4">No sign-ins recorded yet</h3>
+        <p class="text-[13px] text-ink-mute mt-1.5 max-w-[320px] mx-auto leading-relaxed">Sign-in events appear here as soon as someone authenticates.</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <aside class="space-y-4">
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5">
+      <div class="flex items-center justify-between gap-3">
+        <h2 class="text-[14.5px] font-semibold">Authentication</h2>
+        {% include "dashboard/_status_pill.html" with tone=cognito_status_tone label=cognito_status_label %}
+      </div>
+      <p class="text-[13px] text-ink-soft mt-3 leading-relaxed">{{ cognito_status_detail }}</p>
+
+      <dl class="mt-4 pt-4 border-t border-slate-100 space-y-2.5">
+        <div class="flex items-center justify-between gap-3">
+          <dt class="text-[12.5px] text-ink-mute">Identity provider</dt>
+          <dd class="text-[12.5px] font-medium">AWS Cognito</dd>
+        </div>
+        <div class="flex items-center justify-between gap-3">
+          <dt class="text-[12.5px] text-ink-mute">Region</dt>
+          <dd class="text-[12.5px] font-medium tabular">{{ cognito_region|default:"—" }}</dd>
+        </div>
+        <div class="flex items-center justify-between gap-3">
+          <dt class="text-[12.5px] text-ink-mute">User pool</dt>
+          <dd class="text-[12.5px] font-medium tabular truncate max-w-[170px]" title="{{ cognito_pool_id }}">{{ cognito_pool_id|default:"—" }}</dd>
+        </div>
+        <div class="flex items-center justify-between gap-3">
+          <dt class="text-[12.5px] text-ink-mute">Bootstrap access</dt>
+          <dd class="text-[12.5px] font-medium">{% if bootstrap_enabled %}Enabled{% else %}Disabled{% endif %}</dd>
+        </div>
+      </dl>
+
+      <a href="{% url 'dashboard:settings' %}" class="mt-4 h-9 w-full rounded-xl border border-slate-300 text-[13px] font-medium hover:bg-slate-50 transition grid place-items-center">Authentication settings</a>
+    </div>
+
+    {% if bootstrap_enabled %}
+      <div class="rounded-card border border-warn-500/30 bg-warn-50/50 p-4 flex items-start gap-3">
+        <i data-lucide="key-round" class="text-[17px] text-warn-700 mt-0.5 shrink-0"></i>
+        <div>
+          <p class="text-[13.5px] font-medium text-warn-700">Bootstrap superadmin is active</p>
+          <p class="text-[12.5px] text-ink-soft mt-1 leading-relaxed">
+            This account bypasses Cognito for setup and recovery. Disable it once Cognito administration is stable.
+          </p>
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5">
+      <h2 class="text-[14.5px] font-semibold mb-3.5">Quick actions</h2>
+      <div class="space-y-2">
+        <a href="{% url 'dashboard:users' %}" class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[13px] text-ink-soft hover:bg-slate-50 transition">
+          <i data-lucide="users" class="text-[16px] text-ink-mute"></i>Manage users</a>
+        <a href="{% url 'dashboard:groups' %}" class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[13px] text-ink-soft hover:bg-slate-50 transition">
+          <i data-lucide="shield" class="text-[16px] text-ink-mute"></i>Roles and groups</a>
+        <a href="{% url 'dashboard:audit' %}" class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[13px] text-ink-soft hover:bg-slate-50 transition">
+          <i data-lucide="scroll-text" class="text-[16px] text-ink-mute"></i>Audit log</a>
+      </div>
+    </div>
+  </aside>
+</div>
+{% endblock %}

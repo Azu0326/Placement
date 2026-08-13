@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Access denied{% endblock %}
+
+{% block content %}
+<div class="max-w-[520px] mx-auto py-12 text-center">
+  <div class="w-16 h-16 rounded-2xl bg-err-50 text-err-700 grid place-items-center mx-auto">
+    <i data-lucide="shield-x" class="text-[30px]"></i>
+  </div>
+  <h1 class="text-[22px] font-semibold tracking-[-0.02em] mt-5">Access denied</h1>
+  <p class="text-[13.5px] text-ink-mute mt-2 leading-relaxed">
+    Your account does not have permission to view this page. If you think this is wrong,
+    ask a Scrapos administrator to review your role.
+  </p>
+  <a href="{% url 'dashboard' %}"
+     class="h-10 px-4 mt-6 rounded-xl bg-primary-500 text-white text-[13.5px] font-medium hover:bg-primary-600 shadow-lift transition inline-grid place-items-center">
+    Back to dashboard
+  </a>
+</div>
+{% endblock %}

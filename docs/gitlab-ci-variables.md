@@ -22,3 +22,27 @@ Set these under **Settings → CI/CD → Variables** in the Scrapos project.
 
 Production build/deploy/verify run automatically on every successful `main`
 pipeline. Only `rollback_production` is manual.
+
+## Authentication variables
+
+Cognito configuration has sensible defaults in `deploy/scripts/common.sh` and
+does not normally need CI variables. Override only to point a pipeline at a
+different pool.
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `COGNITO_USER_POOL_ID` | `ap-southeast-2_8MQhnosSO` | Shared DNC user pool |
+| `COGNITO_DOMAIN` | `auth.dncouncil.org` | Hosted UI domain |
+| `COGNITO_SECRET_NAME` | `outvier-scrapos-cognito-production` | Secrets Manager entry holding the app client id and secret |
+| `COGNITO_SECRET_ARN` | resolved at deploy time | Set this only if the deploy role lacks `secretsmanager:DescribeSecret` |
+| `BOOTSTRAP_ADMIN_ENABLED` | `true` | Set to `false` to switch off the non-Cognito superadmin |
+
+The Cognito app client and its secret are created by Terraform in
+`outvier-infrastructure/terraform/modules/cognito`. The deploy script resolves
+the secret ARN from `COGNITO_SECRET_NAME` because Secrets Manager ARNs carry a
+random suffix and cannot be hardcoded.
+
+**No credential belongs in this file or in `.gitlab-ci.yml`.** The Django
+secret key, the Cognito client secret and the bootstrap superadmin hash all
+reach the container through Secrets Manager, referenced by ARN in the task
+definition. See `docs/authentication.md` for rotation.
