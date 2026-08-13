@@ -131,8 +131,12 @@ build_push_ecr:
   variables:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_TLS_CERTDIR: ""
+    # Avoid buildx's prompt_toolkit progress UI on Alpine/musl, which crashes with:
+    # ImportError: ... pyexpat ... XML_SetAllocTrackerActivationThreshold
+    BUILDKIT_PROGRESS: plain
   before_script:
-    - apk add --no-cache aws-cli
+    # Install aws-cli without pulling a conflicting libexpat that breaks pyexpat.
+    - apk add --no-cache aws-cli --repository=https://dl-cdn.alpinelinux.org/alpine/v3.20/community --repository=https://dl-cdn.alpinelinux.org/alpine/v3.20/main
     - aws sts get-caller-identity
     - docker run --privileged --rm tonistiigi/binfmt --install arm64
     - docker buildx create --use --name scrapos || docker buildx use scrapos
@@ -145,6 +149,7 @@ build_push_ecr:
     - aws ecr get-login-password | docker login --username AWS --password-stdin "$REGISTRY"
     - |
       docker buildx build \
+        --progress=plain \
         --platform "$BUILD_PLATFORM" \
         --tag "$IMAGE_SHA" \
         --tag "$IMAGE_STABLE" \
