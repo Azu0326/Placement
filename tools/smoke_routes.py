@@ -60,7 +60,7 @@ def main() -> int:
     if failed:
         print(f"{failed} route(s) failed", file=sys.stderr)
         return 1
-    print(f"All {len(paths)} routes OK (settings={settings.DJANGO_SETTINGS_MODULE})")
+    print(f"All {len(paths)} routes OK")
     return 0
 
 
