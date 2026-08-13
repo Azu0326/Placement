@@ -1,11 +1,10 @@
 # GitLab CI/CD for Scrapos.
 #
-# Flow (mirrors dnc_sc, simplified — no worker/migrations):
-#   validate ─ test ─ build_push_ecr (manual) ─ deploy_production (manual)
-#                     ─ verify_production
+# Flow (web-only; no worker/migrations):
+#   validate ─ test ─ build_push_ecr ─ deploy_production ─ verify_production
 #
-# Production jobs are main-only and manual. The image is tagged with the
-# commit SHA; :scrapos is only a convenience pointer.
+# Production deploy is automatic on main. rollback_production stays manual.
+# The image is tagged with the commit SHA; :scrapos is only a convenience pointer.
 
 stages:
   - validate
@@ -55,10 +54,10 @@ variables:
     - chmod +x deploy/scripts/*.sh
     - aws sts get-caller-identity
 
-.production_manual:
+.production_on_main:
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
-      when: manual
+      when: on_success
       allow_failure: false
 
 validate:

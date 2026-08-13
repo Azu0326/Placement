@@ -20,4 +20,5 @@ Set these under **Settings → CI/CD → Variables** in the Scrapos project.
 | `PRODUCTION_HEALTHCHECK_URL` | no | no | `https://scrapos.dncouncil.org/healthz` |
 | `DJANGO_SECRET_ARN` | yes | no | `arn:aws:secretsmanager:ap-southeast-2:738765516909:secret:outvier-scrapos-django-production-HaeaQZ` |
 
-Production jobs are manual on `main`, matching `dnc_sc`.
+Production build/deploy/verify run automatically on every successful `main`
+pipeline. Only `rollback_production` is manual.
