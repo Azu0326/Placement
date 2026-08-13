@@ -157,6 +157,25 @@
           <i data-lucide="shield-check" class="text-[17px] text-accent-500"></i>
           Continue with DNC single sign-on
         </a>
+
+        {% if social_providers %}
+          {# Each goes straight to that provider in the Cognito hosted UI. All
+             three resolve to the same Scrapos account when the pool has them
+             linked to one Cognito user. #}
+          <div class="grid grid-cols-3 gap-2.5 mt-3">
+            {% for provider in social_providers %}
+              <a href="{% url 'authentication:oauth_social' provider %}{% if next %}?next={{ next|urlencode }}{% endif %}"
+                 rel="nofollow"
+                 aria-label="Sign in with {{ provider|capfirst }}"
+                 class="h-11 rounded-xl border border-slate-300 bg-white text-[13px] font-medium
+                        hover:bg-slate-50 transition flex items-center justify-center gap-2">
+                <i data-lucide="{% if provider == 'google' %}chrome{% elif provider == 'facebook' %}facebook{% else %}apple{% endif %}"
+                   class="text-[16px] text-ink-mute"></i>
+                {{ provider|capfirst }}
+              </a>
+            {% endfor %}
+          </div>
+        {% endif %}
       {% endif %}
 
       <p class="text-[12.5px] text-ink-mute mt-8 text-center leading-relaxed">

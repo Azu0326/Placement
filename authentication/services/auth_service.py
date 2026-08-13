@@ -126,37 +126,50 @@ def _authenticate_cognito(username: str, password: str, *, service: CognitoServi
 def sync_user_from_claims(claims: dict, *, config=None):
     """Create or update the local mirror of a verified Cognito identity.
 
-    Matching is on ``sub`` — an email address can be reassigned, a subject
-    cannot. Role comes from the signed ``cognito:groups`` claim.
+    Resolution — "which Scrapos account is this?" — is delegated to
+    ``identity_service.resolve_user_from_claims``, which matches on the
+    person's provider identities rather than on the ``sub`` of a single Cognito
+    record. That is what lets someone sign in with Google today and Facebook
+    tomorrow and land on the same account.
+
+    This function only mirrors profile data onto whatever account came back.
+    Role always comes from the signed ``cognito:groups`` claim, so a sign-in
+    through a different provider cannot silently keep a stale role.
     """
-    from ..models import ScraposUser
+    from ..emails import is_apple_private_relay
+    from ..identity import email_is_verified, infer_provider
+    from .identity_service import resolve_user_from_claims
 
     config = config or get_cognito_config()
-    sub = claims["sub"]
-    username = claims.get("cognito:username") or claims.get("username") or claims.get("email") or sub
     groups = claims.get("cognito:groups") or []
-    role = role_from_groups(groups, config)
 
-    user = ScraposUser.objects.filter(cognito_sub=sub).first()
-    if user is None:
-        # A returning user whose row predates sub linkage, or first sign-in.
-        user = ScraposUser.objects.filter(username=username, cognito_sub__isnull=True).first()
-        if user is not None and user.auth_source != AUTH_SOURCE_COGNITO:
-            # Never let a Cognito login take over the bootstrap row.
-            user = None
-        if user is None:
-            user = ScraposUser(username=username)
-        user.cognito_sub = sub
+    user = resolve_user_from_claims(claims)
 
-    user.username = username
-    user.email = claims.get("email", "") or user.email
-    user.display_name = (
+    if not user.cognito_sub and claims.get("sub"):
+        # Backfill the first-seen subject on a row that predates it. Left alone
+        # once set: it names one Cognito record, not the person.
+        user.cognito_sub = claims["sub"]
+
+    # The username is a label, assigned once at provisioning. Reassigning it to
+    # ``cognito:username`` on every sign-in would rename the account to
+    # ``Google_1234…`` the first time someone used a social provider, and it is
+    # a unique column, so two identities of one person would collide on it.
+    claimed_email = claims.get("email", "") or ""
+    if claimed_email and email_is_verified(claims, infer_provider(claims)):
+        # Only ever overwrite from an address the provider vouched for, and
+        # never replace a real address with an Apple relay alias.
+        if not (is_apple_private_relay(claimed_email) and user.email and not is_apple_private_relay(user.email)):
+            user.email = claimed_email
+    elif not user.email:
+        user.email = claimed_email
+
+    display_name = (
         claims.get("name")
         or " ".join(filter(None, [claims.get("given_name", ""), claims.get("family_name", "")])).strip()
-        or user.display_name
     )
+    user.display_name = display_name or user.display_name
     user.auth_source = AUTH_SOURCE_COGNITO
-    user.role = role
+    user.role = role_from_groups(groups, config)
     user.is_active = True
     if user.has_usable_password():
         user.set_unusable_password()
