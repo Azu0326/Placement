@@ -1,10 +1,16 @@
 """Scrapos-side identity, audit and throttling records.
 
 Cognito owns authentication; Scrapos owns application metadata. The local user
-row is a mirror keyed on the stable Cognito ``sub``, never on email, and it
-never holds a password: ``AbstractBaseUser.password`` is left permanently
+row never holds a password: ``AbstractBaseUser.password`` is left permanently
 unusable so there is no local credential to steal or to drift out of sync with
 the directory.
+
+``ScraposUser`` is the canonical application identity. It is deliberately *not*
+keyed on one Cognito ``sub``: one person can hold several Cognito records
+(``Google_…``, ``Facebook_…``, ``SignInWithApple_…``, plus a native account),
+and each of those has a ``sub`` of its own. Those provider identities live in
+``LinkedIdentity`` rows pointing at the one ``ScraposUser``, mirroring the
+member portal's ``LinkedIdentity``/``Person`` split.
 """
 
 from __future__ import annotations
@@ -12,6 +18,7 @@ from __future__ import annotations
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.db import models
 
+from .identity import PROVIDER_CHOICES, PROVIDER_COGNITO
 from .roles import (
     AUTH_SOURCE_BOOTSTRAP,
     AUTH_SOURCE_CHOICES,
@@ -43,7 +50,11 @@ class ScraposUser(AbstractBaseUser):
         unique=True,
         null=True,
         blank=True,
-        help_text="Stable Cognito subject identifier. Null for the bootstrap account.",
+        help_text=(
+            "Cognito subject of the identity this account was first seen through. "
+            "Null for the bootstrap account. Not the resolution key — see "
+            "LinkedIdentity."
+        ),
     )
     email = models.EmailField(blank=True)
     display_name = models.CharField(max_length=200, blank=True)
@@ -103,6 +114,59 @@ class ScraposUser(AbstractBaseUser):
         return self.role == ROLE_SUPERADMIN
 
 
+class LinkedIdentity(models.Model):
+    """One authentication identity (native Cognito or federated) of a user.
+
+    A person keeps ONE ``ScraposUser`` however many of these exist. The unique
+    key is ``(provider, provider_subject)`` — the provider's own subject, which
+    is the only identifier that is stable across Cognito user records. The
+    Cognito ``sub`` and ``Username`` are recorded too, because they are what an
+    ID token hands us first, but they are per-record and therefore only
+    secondary lookup keys.
+
+    Nothing here is ever manufactured: every value is copied from a claim that
+    ``authentication.tokens.verify_id_token`` has already validated.
+    """
+
+    user = models.ForeignKey(
+        "authentication.ScraposUser",
+        on_delete=models.CASCADE,
+        related_name="linked_identities",
+    )
+    provider = models.CharField(max_length=30, choices=PROVIDER_CHOICES, default=PROVIDER_COGNITO)
+    #: Google's ``sub``, Facebook's user id, Apple's ``sub``; for a native
+    #: account, the Cognito ``sub``.
+    provider_subject = models.CharField(max_length=255)
+    #: The Cognito ``Username`` of this identity (``Google_1234…``, or the
+    #: email/uuid for a native user). Never the application's identity.
+    cognito_username = models.CharField(max_length=255, blank=True, default="", db_index=True)
+    #: The AWS-controlled Cognito ``sub`` of the record this identity was seen on.
+    cognito_sub = models.CharField(max_length=255, blank=True, default="", db_index=True)
+    email = models.EmailField(blank=True, default="")
+    normalized_email = models.CharField(max_length=254, blank=True, default="", db_index=True)
+    email_verified = models.BooleanField(default=False)
+    first_seen_at = models.DateTimeField(auto_now_add=True)
+    last_login_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name_plural = "linked identities"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["provider", "provider_subject"],
+                name="unique_provider_subject",
+            ),
+        ]
+
+    def save(self, *args, **kwargs):
+        from .emails import normalize_email
+
+        self.normalized_email = normalize_email(self.email)
+        super().save(*args, **kwargs)
+
+    def __str__(self) -> str:
+        return f"{self.get_provider_display()} identity of {self.user_id}"
+
+
 class AuditEvent(models.Model):
     """Security-relevant events.
 
@@ -149,6 +213,7 @@ class LoginAttempt(models.Model):
 
 __all__ = [
     "ScraposUser",
+    "LinkedIdentity",
     "AuditEvent",
     "LoginAttempt",
     "AUTH_SOURCE_BOOTSTRAP",

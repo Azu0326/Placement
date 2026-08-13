@@ -33,6 +33,7 @@ from .exceptions import (
     TooManyAttempts,
 )
 from .forms import LoginForm
+from .identity import SOCIAL_PROVIDERS
 from .services import auth_service
 from .services.cognito_service import CognitoService
 
@@ -66,6 +67,8 @@ def _login_context(request, form, error: str = "", **extra):
         "error": error,
         "next": request.POST.get("next") or request.GET.get("next") or "",
         "hosted_ui_enabled": cognito.hosted_ui_enabled,
+        # Slugs only — the Cognito provider names stay server-side.
+        "social_providers": list(SOCIAL_PROVIDERS) if cognito.hosted_ui_enabled else [],
         "page_title": "Sign in",
         "revoked": request.GET.get("revoked") == "1",
     }
@@ -161,13 +164,23 @@ def logout_view(request):
 
 @never_cache
 @require_http_methods(["GET", "POST"])
-def oauth_start(request):
-    """Kick off the hosted-UI authorization-code flow."""
+def oauth_start(request, provider: str = ""):
+    """Kick off the hosted-UI authorization-code flow.
+
+    With ``provider`` the browser goes straight to Google, Facebook or Apple;
+    without it, to the hosted login form. Either way the same callback and the
+    same identity resolution run afterwards.
+    """
     config = get_cognito_config()
     if not config.hosted_ui_enabled:
         return redirect(reverse("authentication:login"))
     next_url = safe_next(request, request.GET.get("next"))
-    return HttpResponseRedirect(oidc.begin(request, config, next_url=next_url))
+    try:
+        target = oidc.begin(request, config, next_url=next_url, provider=provider)
+    except AuthenticationFailed:
+        logger.warning("authentication_failure reason=oidc_unknown_provider")
+        return redirect(reverse("authentication:login"))
+    return HttpResponseRedirect(target)
 
 
 @never_cache

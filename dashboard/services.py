@@ -20,6 +20,10 @@ from authentication.roles import (
     role_from_groups,
 )
 from authentication.services.cognito_service import CognitoService
+from authentication.services.identity_service import (
+    local_user_for_cognito_username,
+    local_users_by_cognito_username,
+)
 
 #: Human labels for the Cognito status widget.
 STATUS_LABELS = {
@@ -121,7 +125,9 @@ def list_directory_users(*, search: str = "", service: CognitoService | None = N
         state, detail = _state_for(exc)
         return rows, state, detail
 
-    locals_by_username = {u.username: u for u in ScraposUser.objects.all()}
+    # Federated records are called "Google_1234…" in Cognito but not in Scrapos,
+    # so the join goes through the recorded linked identities.
+    locals_by_username = local_users_by_cognito_username()
 
     for user in cognito_users:
         groups = [name for name, members in group_members.items() if user.username in members]
@@ -162,7 +168,7 @@ def get_directory_user(username: str, *, service: CognitoService | None = None):
         state, detail = _state_for(exc)
         return None, state, detail
 
-    local = ScraposUser.objects.filter(username=username).first()
+    local = local_user_for_cognito_username(username)
     return (
         DirectoryUser(
             username=user.username,

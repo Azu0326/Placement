@@ -23,6 +23,10 @@ PERMISSION_DENIED = "permission_denied"
 SESSION_REVOKED = "session_revoked"
 COGNITO_REQUEST_FAILURE = "cognito_request_failure"
 
+# Identity linking
+IDENTITY_LINKED = "identity_linked"
+IDENTITY_DUPLICATE_DETECTED = "identity_duplicate_detected"
+
 # Administration
 USER_CREATED = "user_created"
 USER_ENABLED = "user_enabled"

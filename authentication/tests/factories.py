@@ -72,6 +72,8 @@ def signed_id_token(
     sub: str = "sub-1234",
     username: str = "jane.doe",
     email: str = "jane.doe@example.org",
+    email_verified=None,
+    identities: list[dict] | None = None,
     groups: list[str] | None = None,
     audience: str = TEST_CLIENT_ID,
     token_use: str = "id",
@@ -80,25 +82,79 @@ def signed_id_token(
     nonce: str | None = None,
     kid: str = TEST_KID,
     algorithm: str = "RS256",
+    name: str | None = "Jane Doe",
 ) -> str:
     now = int(time.time())
     claims = {
         "sub": sub,
         "cognito:username": username,
         "email": email,
-        "name": "Jane Doe",
         "aud": audience,
         "iss": issuer_override or issuer(),
         "token_use": token_use,
         "iat": now,
         "exp": now + expires_in,
     }
+    if name is not None:
+        claims["name"] = name
     if groups is not None:
         claims["cognito:groups"] = groups
     if nonce is not None:
         claims["nonce"] = nonce
+    if email_verified is not None:
+        claims["email_verified"] = email_verified
+    if identities is not None:
+        claims["identities"] = identities
 
     return jwt.encode(claims, _key(), algorithm=algorithm, headers={"kid": kid})
+
+
+#: Cognito's identity-provider names, as they appear in the ``identities`` claim.
+PROVIDER_NAMES = {"google": "Google", "facebook": "Facebook", "apple": "SignInWithApple"}
+
+
+def identity_entry(provider: str, subject: str, *, primary: bool = True) -> dict:
+    """One element of the Cognito ``identities`` claim."""
+    name = PROVIDER_NAMES[provider]
+    return {
+        "userId": subject,
+        "providerName": name,
+        "providerType": name,
+        "issuer": None,
+        "primary": primary,
+        "dateCreated": 1700000000000,
+    }
+
+
+def social_id_token(
+    provider: str,
+    *,
+    subject: str,
+    sub: str,
+    email: str = "jane.doe@example.org",
+    email_verified=True,
+    also_linked: list[tuple[str, str]] | None = None,
+    **kwargs,
+) -> str:
+    """An ID token as Cognito issues one for a federated sign-in.
+
+    ``also_linked`` adds further ``(provider, subject)`` pairs to the
+    ``identities`` claim, which is what a record linked with
+    ``AdminLinkProviderForUser`` looks like: one Cognito user, one ``sub``,
+    several providers.
+    """
+    entries = [identity_entry(provider, subject, primary=True)]
+    for other_provider, other_subject in also_linked or []:
+        entries.append(identity_entry(other_provider, other_subject, primary=False))
+
+    return signed_id_token(
+        sub=sub,
+        username=f"{PROVIDER_NAMES[provider]}_{subject}",
+        email=email,
+        email_verified=email_verified,
+        identities=entries,
+        **kwargs,
+    )
 
 
 def client_error(code: str, message: str = "", operation: str = "AdminInitiateAuth") -> ClientError:

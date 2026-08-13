@@ -184,11 +184,81 @@ one Scrapos-branded form serve both providers.
 against `auth.dncouncil.org`, matching every other DNC property. The implicit
 flow is not implemented anywhere.
 
+**Social (`/auth/social/<provider>/`).** The same authorization-code flow with
+Cognito's `identity_provider` parameter added, which skips the hosted login form
+and goes straight to the provider. Slugs and the Cognito identity-provider names
+they map to live in `authentication/identity.py` and are identical to the member
+portal's `SOCIAL_PROVIDERS`, because it is the same user pool:
+
+| Slug | Cognito identity provider |
+|---|---|
+| `google` | `Google` |
+| `facebook` | `Facebook` |
+| `apple` | `SignInWithApple` |
+
+The provider slug is a routing hint only. Which identity actually signed in is
+read back from the verified ID token, never from the parameter.
+
 Whichever path is used, the ID token is verified before a session exists:
 RS256 signature against the pool JWKS, issuer, audience (this client only),
 `token_use == "id"`, expiry, and — for the hosted UI — the nonce. The key set
 is cached for an hour and refetched when a token arrives with an unknown key
 id, so signing-key rotation needs no intervention.
+
+## One person, one Scrapos account
+
+Scrapos and member.dncouncil.org share user pool `ap-southeast-2_8MQhnosSO`
+(different app clients). A person in that pool can hold several Cognito
+records — `Google_…`, `Facebook_…`, `SignInWithApple_…`, plus a native
+email/password account — and Cognito issues a **`sub` per record, not per
+person**. Keying the Scrapos account on `sub` therefore produced a separate
+account per provider, which is the bug `authentication/services/identity_service.py`
+removes.
+
+The canonical application identity is the `ScraposUser` row. Provider identities
+hang off it as `LinkedIdentity` rows keyed on `(provider, provider_subject)` —
+the provider's own subject, the only identifier stable across Cognito records.
+This mirrors the member portal's `LinkedIdentity`/`Person` split
+(`apps/pages/services/identity_linking.py`), deliberately: two applications on
+one pool must not disagree about who someone is.
+
+Resolution order, for claims that have already passed token verification:
+
+1. a `LinkedIdentity` on `(provider, provider_subject)`, then on a previously
+   seen Cognito `sub` or `Username`;
+2. an existing account with the same **verified** normalised email;
+3. otherwise a new account.
+
+Every sign-in also records *all* identities in the token's `identities` claim.
+A record linked with `AdminLinkProviderForUser` carries every linked provider,
+so the next sign-in through any of them is an exact match at step 1 — this is
+how Cognito-side linking is consumed rather than worked around.
+
+Rules that must not be relaxed:
+
+* email matching only for verified addresses, in normalised form (strip and
+  lowercase, **no** Gmail dot-stripping or plus-address folding);
+* `email_verified` decides it when present. When absent it is trusted only for
+  Facebook (its Cognito mapping carries no such attribute and it only releases
+  verified addresses) and for native accounts (an UNCONFIRMED user cannot
+  authenticate). For Google and Apple an absent claim means *not verified*;
+* an unverified address that collides with an existing account gets an isolated
+  account, never that one;
+* two accounts sharing a verified email are **never** merged automatically. The
+  sign-in resolves to a deterministic choice, `identity_duplicate_detected` is
+  audited, and no link is persisted against the guess;
+* Apple "Hide My Email" relay addresses only ever match themselves, and never
+  overwrite a real address on an existing account;
+* the bootstrap superadmin is never a resolution target.
+
+The Scrapos username is a label assigned once at provisioning. It is never the
+resolution key and is never reassigned from `cognito:username`, which would
+otherwise rename an account to `Google_1234…` on the first social sign-in and
+collide on the unique column between two identities of one person.
+
+Nothing here calls `AdminLinkProviderForUser`, `AdminCreateUser` or any Cognito
+write during sign-in, and no Lambda trigger is required — same as the member
+portal.
 
 ## Sessions
 

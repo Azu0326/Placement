@@ -18,6 +18,7 @@ from urllib.parse import urlencode
 
 from .conf import CognitoConfig
 from .exceptions import AuthenticationFailed
+from .identity import SOCIAL_PROVIDERS
 
 SESSION_STATE = "scrapos_oidc_state"
 SESSION_NONCE = "scrapos_oidc_nonce"
@@ -29,8 +30,26 @@ def _b64url(raw: bytes) -> str:
     return base64.urlsafe_b64encode(raw).decode().rstrip("=")
 
 
-def begin(request, config: CognitoConfig, *, next_url: str = "") -> str:
-    """Store one-time parameters in the session and return the authorize URL."""
+def begin(request, config: CognitoConfig, *, next_url: str = "", provider: str = "") -> str:
+    """Store one-time parameters in the session and return the authorize URL.
+
+    ``provider`` is one of the :data:`~authentication.identity.SOCIAL_PROVIDERS`
+    slugs. Supplying it adds Cognito's ``identity_provider`` parameter, which
+    sends the browser straight to Google, Facebook or Apple instead of showing
+    the hosted login form — the same mechanism the member portal uses in
+    ``build_social_authorize_url``. Omitting it keeps the hosted form, so the
+    native email/password account is still reachable.
+
+    The provider is only a routing hint. Which identity actually signed in is
+    read back from the verified ID token, never from this parameter.
+    """
+    # Validated before anything is written, so a bad provider slug cannot
+    # leave half-started flow parameters behind in the session.
+    if provider and provider not in SOCIAL_PROVIDERS:
+        raise AuthenticationFailed(
+            "Unknown sign-in provider.", reason="oidc_unknown_provider",
+        )
+
     state = _b64url(secrets.token_bytes(32))
     nonce = _b64url(secrets.token_bytes(32))
     verifier = _b64url(secrets.token_bytes(48))
@@ -41,19 +60,20 @@ def begin(request, config: CognitoConfig, *, next_url: str = "") -> str:
     request.session[SESSION_VERIFIER] = verifier
     request.session[SESSION_NEXT] = next_url or ""
 
-    query = urlencode(
-        {
-            "response_type": "code",
-            "client_id": config.client_id,
-            "redirect_uri": config.redirect_uri,
-            "scope": "openid email profile",
-            "state": state,
-            "nonce": nonce,
-            "code_challenge": challenge,
-            "code_challenge_method": "S256",
-        }
-    )
-    return f"{config.authorize_url}?{query}"
+    params = {
+        "response_type": "code",
+        "client_id": config.client_id,
+        "redirect_uri": config.redirect_uri,
+        "scope": "openid email profile",
+        "state": state,
+        "nonce": nonce,
+        "code_challenge": challenge,
+        "code_challenge_method": "S256",
+    }
+    if provider:
+        params["identity_provider"] = SOCIAL_PROVIDERS[provider]
+
+    return f"{config.authorize_url}?{urlencode(params)}"
 
 
 def consume(request, state: str) -> tuple[str, str, str]:
