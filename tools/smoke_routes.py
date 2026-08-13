@@ -19,7 +19,15 @@ def main() -> int:
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
     os.environ.setdefault("SECRET_KEY", "ci-smoke-secret")
     os.environ.setdefault("DEBUG", "False")
-    os.environ.setdefault("ALLOWED_HOSTS", "testserver,localhost,127.0.0.1")
+    # Force testserver: CI may set ALLOWED_HOSTS without it, and setdefault
+    # would then leave Django Test Client requests returning 400 DisallowedHost.
+    hosts = {
+        h.strip()
+        for h in os.environ.get("ALLOWED_HOSTS", "").split(",")
+        if h.strip()
+    }
+    hosts.update({"testserver", "localhost", "127.0.0.1"})
+    os.environ["ALLOWED_HOSTS"] = ",".join(sorted(hosts))
     os.environ.setdefault("DB_ENGINE", "django.db.backends.sqlite3")
     os.environ.setdefault("DB_NAME", "/tmp/scrapos-smoke.sqlite3")
 

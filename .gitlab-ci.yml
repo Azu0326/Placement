@@ -25,7 +25,7 @@ variables:
   DJANGO_SETTINGS_MODULE: config.settings
   SECRET_KEY: "ci-only-throwaway-key-not-used-anywhere-else-0000000000"
   DEBUG: "False"
-  ALLOWED_HOSTS: "localhost,127.0.0.1"
+  ALLOWED_HOSTS: "localhost,127.0.0.1,testserver"
   CSRF_TRUSTED_ORIGINS: "http://localhost"
   DB_ENGINE: django.db.backends.sqlite3
   DB_NAME: /tmp/ci.sqlite3
@@ -164,12 +164,12 @@ build_push_ecr:
   artifacts:
     reports:
       dotenv: build.env
-  extends: .production_manual
+  extends: .production_on_main
 
 deploy_production:
   extends:
     - .aws_job
-    - .production_manual
+    - .production_on_main
   stage: deploy_production
   needs:
     - job: build_push_ecr
