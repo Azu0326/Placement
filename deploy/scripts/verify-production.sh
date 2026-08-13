@@ -56,13 +56,47 @@ else
     check_failed "healthz returned HTTP $STATUS"
 fi
 
-HOME_URL="https://${PRODUCTION_DOMAIN}/"
-log "Checking $HOME_URL"
-HOME_STATUS=$(curl -s -o /tmp/home.out -w '%{http_code}' --max-time 30 "$HOME_URL" || printf '000')
-if [ "$HOME_STATUS" = "200" ]; then
-    ok "home returned 200"
+LOGIN_URL="https://${PRODUCTION_DOMAIN}/login/"
+log "Checking $LOGIN_URL"
+LOGIN_STATUS=$(curl -s -o /tmp/login.out -w '%{http_code}' --max-time 30 "$LOGIN_URL" || printf '000')
+if [ "$LOGIN_STATUS" = "200" ]; then
+    ok "login page returned 200"
 else
-    check_failed "home returned HTTP $HOME_STATUS"
+    check_failed "login page returned HTTP $LOGIN_STATUS"
+fi
+
+if grep -q 'name="csrfmiddlewaretoken"' /tmp/login.out 2>/dev/null; then
+    ok "login form is CSRF protected"
+else
+    check_failed "login page has no CSRF token"
+fi
+
+# The application is closed by default: an unauthenticated request to any
+# application page must redirect to the login screen, never render it.
+HOME_URL="https://${PRODUCTION_DOMAIN}/"
+log "Checking $HOME_URL redirects when unauthenticated"
+HOME_STATUS=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "$HOME_URL" || printf '000')
+if [ "$HOME_STATUS" = "302" ]; then
+    ok "unauthenticated home redirects (HTTP 302)"
+else
+    check_failed "unauthenticated home returned HTTP $HOME_STATUS, expected 302"
+fi
+
+DASHBOARD_URL="https://${PRODUCTION_DOMAIN}/dashboard/"
+log "Checking $DASHBOARD_URL redirects when unauthenticated"
+DASH_STATUS=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "$DASHBOARD_URL" || printf '000')
+if [ "$DASH_STATUS" = "302" ]; then
+    ok "unauthenticated dashboard redirects (HTTP 302)"
+else
+    check_failed "unauthenticated dashboard returned HTTP $DASH_STATUS, expected 302"
+fi
+
+# The classic Django admin must not be reachable as the product interface.
+ADMIN_STATUS=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "https://${PRODUCTION_DOMAIN}/admin/" || printf '000')
+if [ "$ADMIN_STATUS" = "404" ] || [ "$ADMIN_STATUS" = "302" ]; then
+    ok "classic Django admin is not served (HTTP $ADMIN_STATUS)"
+else
+    check_failed "/admin/ returned HTTP $ADMIN_STATUS; the Django admin must not be exposed"
 fi
 
 log "Confirming CloudWatch log group is receiving events"

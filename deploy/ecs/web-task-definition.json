@@ -9,8 +9,16 @@
     "  - memoryReservation only (no task-level cpu/memory)",
     "  - arm64 image for t4g.medium hosts",
     "",
-    "Scrapos is a frontend demo: no Celery worker, no MySQL, no Redis.",
-    "Only SECRET_KEY is injected from Secrets Manager."
+    "No Celery worker, no MySQL, no Redis.",
+    "",
+    "Secrets come from two Secrets Manager entries, both readable by the",
+    "shared execution role (secret:outvier-*):",
+    "  outvier-scrapos-django-production  SECRET_KEY + bootstrap admin",
+    "  outvier-scrapos-cognito-production  Cognito app client (Terraform-owned)",
+    "",
+    "The bootstrap superadmin is NOT a Cognito user. Its password reaches the",
+    "container only as a Django hash; rotation is a secret update plus a",
+    "redeploy, never a code change. See docs/authentication.md."
   ],
   "family": "__WEB_FAMILY__",
   "networkMode": "bridge",
@@ -40,12 +48,37 @@
         { "name": "DB_NAME", "value": "/tmp/scrapos.sqlite3" },
         { "name": "GUNICORN_WORKERS", "value": "2" },
         { "name": "GUNICORN_TIMEOUT", "value": "60" },
-        { "name": "AWS_DEFAULT_REGION", "value": "__AWS_REGION__" }
+        { "name": "AWS_DEFAULT_REGION", "value": "__AWS_REGION__" },
+        { "name": "COGNITO_REGION", "value": "__AWS_REGION__" },
+        { "name": "COGNITO_USER_POOL_ID", "value": "__COGNITO_USER_POOL_ID__" },
+        { "name": "COGNITO_DOMAIN", "value": "__COGNITO_DOMAIN__" },
+        { "name": "COGNITO_REDIRECT_URI", "value": "https://__PRODUCTION_DOMAIN__/auth/callback/" },
+        { "name": "COGNITO_LOGOUT_REDIRECT_URI", "value": "https://__PRODUCTION_DOMAIN__/login/" },
+        { "name": "COGNITO_GROUP_ADMIN", "value": "SCRAPOS_ADMIN" },
+        { "name": "COGNITO_GROUP_EDITOR", "value": "SCRAPOS_EDITOR" },
+        { "name": "COGNITO_GROUP_VIEWER", "value": "SCRAPOS_VIEWER" },
+        { "name": "SCRAPOS_BOOTSTRAP_ADMIN_ENABLED", "value": "__BOOTSTRAP_ADMIN_ENABLED__" }
       ],
       "secrets": [
         {
           "name": "SECRET_KEY",
           "valueFrom": "__DJANGO_SECRET_ARN__:secret_key::"
+        },
+        {
+          "name": "COGNITO_CLIENT_ID",
+          "valueFrom": "__COGNITO_SECRET_ARN__:client_id::"
+        },
+        {
+          "name": "COGNITO_CLIENT_SECRET",
+          "valueFrom": "__COGNITO_SECRET_ARN__:client_secret::"
+        },
+        {
+          "name": "SCRAPOS_SUPERADMIN_USERNAME",
+          "valueFrom": "__DJANGO_SECRET_ARN__:bootstrap_admin_username::"
+        },
+        {
+          "name": "SCRAPOS_SUPERADMIN_PASSWORD_HASH",
+          "valueFrom": "__DJANGO_SECRET_ARN__:bootstrap_admin_password_hash::"
         }
       ],
       "healthCheck": {

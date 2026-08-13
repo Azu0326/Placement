@@ -21,6 +21,10 @@ variables:
   PIP_DISABLE_PIP_VERSION_CHECK: "1"
   DOCKER_DRIVER: overlay2
 
+# Placeholder Cognito values only. The pipeline never authenticates against
+# AWS from these jobs — they exist so `manage.py check` exercises the same
+# production configuration path it will run under in the container. Real values
+# arrive from Secrets Manager at task-definition render time.
 .ci_django_env: &ci_django_env
   DJANGO_SETTINGS_MODULE: config.settings
   SECRET_KEY: "ci-only-throwaway-key-not-used-anywhere-else-0000000000"
@@ -29,6 +33,14 @@ variables:
   CSRF_TRUSTED_ORIGINS: "http://localhost"
   DB_ENGINE: django.db.backends.sqlite3
   DB_NAME: /tmp/ci.sqlite3
+  COGNITO_REGION: "ap-southeast-2"
+  COGNITO_USER_POOL_ID: "ap-southeast-2_ciplaceholder"
+  COGNITO_CLIENT_ID: "ci-placeholder-client-id"
+  COGNITO_CLIENT_SECRET: "ci-placeholder-client-secret"
+  COGNITO_DOMAIN: "auth.dncouncil.org"
+  COGNITO_REDIRECT_URI: "http://localhost/auth/callback/"
+  # No bootstrap credential in CI: the hash lives only in Secrets Manager.
+  SCRAPOS_BOOTSTRAP_ADMIN_ENABLED: "False"
 
 .python_job:
   image: $PYTHON_IMAGE
@@ -103,6 +115,15 @@ secret_scan:
       if git grep -nIE "^SECRET_KEY[[:space:]]*=[[:space:]]*['\"]" -- '*.py'; then
         echo "✗ A hardcoded Django secret key is assigned at module level."; BAD=1
       fi
+      if git grep -nIE "^SCRAPOS_SUPERADMIN_PASSWORD_HASH=.+" -- . ':!*.md' ':!.env.example'; then
+        echo "✗ A bootstrap superadmin password hash is committed."; BAD=1
+      fi
+      if git grep -nIE 'pbkdf2_sha256\$[0-9]+\$' -- . ':!*.md'; then
+        echo "✗ A Django password hash is committed."; BAD=1
+      fi
+      if git grep -nIE '(COGNITO_CLIENT_SECRET|client_secret)[[:space:]]*[=:][[:space:]]*['"'"'"][A-Za-z0-9]{20,}' -- . ':!*.md'; then
+        echo "✗ A Cognito client secret appears in the repository."; BAD=1
+      fi
       if [ "$BAD" -eq 0 ]; then echo "✓ No committed secrets found"; fi
       exit "$BAD"
   rules:
@@ -117,6 +138,7 @@ test:
     <<: *ci_django_env
   script:
     - python manage.py migrate --noinput
+    - python manage.py test authentication dashboard --noinput
     - python tools/smoke_routes.py
   rules:
     - if: "$CI_PIPELINE_SOURCE == 'merge_request_event'"

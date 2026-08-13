@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-[24px] sm:text-[27px] font-semibold tracking-[-0.02em]">Roles and groups</h1>
+  <p class="text-ink-mute text-[14px] mt-1">How Cognito groups map to what people can do in Scrapos.</p>
+</div>
+
+{% if cognito_state != 'connected' %}
+  <div class="rounded-card border border-warn-500/30 bg-warn-50/50 p-4 flex items-start gap-3 mb-5">
+    <i data-lucide="circle-alert" class="text-[18px] text-warn-700 mt-0.5 shrink-0"></i>
+    <div>
+      <p class="text-[13.5px] font-medium text-warn-700">Group membership could not be read</p>
+      <p class="text-[13px] text-ink-soft mt-0.5">{{ cognito_status_detail }}</p>
+    </div>
+  </div>
+{% endif %}
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5">
+  {% for entry in mapped_groups %}
+    <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5">
+      <div class="flex items-center justify-between gap-3">
+        <h2 class="text-[14.5px] font-semibold">{{ entry.role|capfirst }}</h2>
+        <span class="text-[13px] text-ink-mute tabular">{{ entry.count }} member{{ entry.count|pluralize }}</span>
+      </div>
+      <p class="text-[12.5px] text-ink-faint mt-1 tabular">{{ entry.group }}</p>
+
+      <div class="mt-4 pt-4 border-t border-slate-100">
+        {% if entry.members %}
+          <ul class="space-y-1.5 max-h-[200px] overflow-y-auto tbl-scroll">
+            {% for member in entry.members %}
+              <li>
+                <a href="{% url 'dashboard:user_detail' member %}"
+                   class="text-[13px] text-ink-soft hover:text-primary-500 truncate block">{{ member }}</a>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-[13px] text-ink-faint">No members in this group.</p>
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<div class="bg-white rounded-card border border-slate-200/80 shadow-soft overflow-hidden">
+  <div class="px-5 py-4 border-b border-slate-100">
+    <h2 class="text-[14.5px] font-semibold">Permissions</h2>
+    <p class="text-[12.5px] text-ink-mute mt-0.5">Enforced server-side on every request. Hiding a navigation item is not authorisation.</p>
+  </div>
+  <div class="overflow-x-auto tbl-scroll">
+    <table class="w-full text-left">
+      <thead>
+        <tr class="text-[11.5px] font-medium uppercase tracking-[0.05em] text-ink-mute bg-slate-50/60">
+          <th class="px-5 py-3 font-medium">Capability</th>
+          <th class="px-5 py-3 font-medium text-center">Viewer</th>
+          <th class="px-5 py-3 font-medium text-center">Editor</th>
+          <th class="px-5 py-3 font-medium text-center">Administrator</th>
+          <th class="px-5 py-3 font-medium text-center">Bootstrap</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 text-[13px]">
+        <tr><td class="px-5 py-3">View content</td>
+          <td class="px-5 py-3 text-center text-ok-500"><i data-lucide="check" class="text-[16px]"></i></td>
+          <td class="px-5 py-3 text-center text-ok-500"><i data-lucide="check" class="text-[16px]"></i></td>
+          <td class="px-5 py-3 text-center text-ok-500"><i data-lucide="check" class="text-[16px]"></i></td>
+          <td class="px-5 py-3 text-center text-ok-500"><i data-lucide="check" class="text-[16px]"></i></td></tr>
+        <tr><td class="px-5 py-3">Create and edit content</td>
+          <td class="px-5 py-3 text-center text-ink-faint"><i data-lucide="x" class="text-[16px]"></i></td>
+          <td class="px-5 py-3 text-center text-ok-500"><i data-lucide="check" class="text-[16px]"></i></td>
+          <td class="px-5 py-3 text-center text-ok-500"><i data-lucide="check" class="text-[16px]"></i></td>
+          <td class="px-5 py-3 text-center text-ok-500"><i data-lucide="check" class="text-[16px]"></i></td></tr>
+        <tr><td class="px-5 py-3">Administer users and roles</td>
+          <td class="px-5 py-3 text-center text-ink-faint"><i data-lucide="x" class="text-[16px]"></i></td>
+          <td class="px-5 py-3 text-center text-ink-faint"><i data-lucide="x" class="text-[16px]"></i></td>
+          <td class="px-5 py-3 text-center text-ok-500"><i data-lucide="check" class="text-[16px]"></i></td>
+          <td class="px-5 py-3 text-center text-ok-500"><i data-lucide="check" class="text-[16px]"></i></td></tr>
+        <tr><td class="px-5 py-3">Read the audit log</td>
+          <td class="px-5 py-3 text-center text-ink-faint"><i data-lucide="x" class="text-[16px]"></i></td>
+          <td class="px-5 py-3 text-center text-ink-faint"><i data-lucide="x" class="text-[16px]"></i></td>
+          <td class="px-5 py-3 text-center text-ok-500"><i data-lucide="check" class="text-[16px]"></i></td>
+          <td class="px-5 py-3 text-center text-ok-500"><i data-lucide="check" class="text-[16px]"></i></td></tr>
+        <tr><td class="px-5 py-3">Recover Cognito configuration</td>
+          <td class="px-5 py-3 text-center text-ink-faint"><i data-lucide="x" class="text-[16px]"></i></td>
+          <td class="px-5 py-3 text-center text-ink-faint"><i data-lucide="x" class="text-[16px]"></i></td>
+          <td class="px-5 py-3 text-center text-ink-faint"><i data-lucide="x" class="text-[16px]"></i></td>
+          <td class="px-5 py-3 text-center text-ok-500"><i data-lucide="check" class="text-[16px]"></i></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

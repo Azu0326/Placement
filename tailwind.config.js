@@ -3,6 +3,8 @@ module.exports = {
   content: [
     './templates/**/*.html',
     './design/dnc-content-platform.html',
+    // Classes toggled from JS must be scanned too, or they are purged.
+    './static/js/*.js',
   ],
   theme: {
     extend: {

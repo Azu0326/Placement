@@ -1,0 +1,172 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Sign in · DNC Content Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body class="bg-canvas text-ink min-h-screen">
+
+<div class="min-h-screen grid lg:grid-cols-[minmax(0,1fr),480px]">
+
+  {# Brand panel — hidden on small screens so the form gets the whole viewport #}
+  <section class="hidden lg:flex flex-col justify-between bg-rail text-rail-text p-10 xl:p-14">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 grid place-items-center text-white shrink-0">
+        <i data-lucide="git-fork" class="text-[20px]"></i>
+      </div>
+      <div class="leading-tight">
+        <div class="text-white font-semibold text-[16px] tracking-tight">DNC</div>
+        <div class="text-[11.5px] text-rail-text/70">Content Platform</div>
+      </div>
+    </div>
+
+    <div class="max-w-[460px]">
+      <h1 class="text-white text-[34px] font-semibold tracking-[-0.02em] leading-[1.2]">
+        Scrape, craft and publish — from one workspace.
+      </h1>
+      <p class="text-[14.5px] text-rail-text/80 mt-4 leading-relaxed">
+        Sign in to manage scrape jobs, content and scheduled posts across every channel.
+      </p>
+
+      <ul class="mt-9 space-y-3.5">
+        <li class="flex items-center gap-3 text-[13.5px]">
+          <span class="w-8 h-8 rounded-lg bg-white/[.07] grid place-items-center shrink-0 text-accent-500">
+            <i data-lucide="globe" class="text-[16px]"></i></span>
+          Automated scraping with live execution monitoring
+        </li>
+        <li class="flex items-center gap-3 text-[13.5px]">
+          <span class="w-8 h-8 rounded-lg bg-white/[.07] grid place-items-center shrink-0 text-accent-500">
+            <i data-lucide="sparkles" class="text-[16px]"></i></span>
+          Content studio with assisted drafting
+        </li>
+        <li class="flex items-center gap-3 text-[13.5px]">
+          <span class="w-8 h-8 rounded-lg bg-white/[.07] grid place-items-center shrink-0 text-accent-500">
+            <i data-lucide="shield-check" class="text-[16px]"></i></span>
+          Single sign-on across the DNC platform
+        </li>
+      </ul>
+    </div>
+
+    <p class="text-[12px] text-rail-text/50">Digital Nomad Council</p>
+  </section>
+
+  {# Form panel #}
+  <section class="flex items-center justify-center p-5 sm:p-8 bg-surface">
+    <div class="w-full max-w-[380px]">
+
+      <div class="flex items-center gap-3 lg:hidden mb-8">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 grid place-items-center text-white shrink-0">
+          <i data-lucide="git-fork" class="text-[20px]"></i>
+        </div>
+        <div class="leading-tight">
+          <div class="font-semibold text-[16px] tracking-tight">DNC</div>
+          <div class="text-[11.5px] text-ink-mute">Content Platform</div>
+        </div>
+      </div>
+
+      <h2 class="text-[24px] font-semibold tracking-[-0.02em]">Sign in</h2>
+      <p class="text-[13.5px] text-ink-mute mt-1.5">Use your Scrapos account to continue.</p>
+
+      {% if revoked %}
+        <div role="status"
+             class="mt-5 rounded-xl border border-warn-500/30 bg-warn-50/60 px-4 py-3 flex items-start gap-2.5">
+          <i data-lucide="circle-alert" class="text-[17px] text-warn-700 mt-px shrink-0"></i>
+          <p class="text-[13px] text-warn-700">Your session ended because your account is no longer active.</p>
+        </div>
+      {% endif %}
+
+      {% if error %}
+        <div role="alert" aria-live="assertive"
+             class="mt-5 rounded-xl border border-err-500/30 bg-err-50 px-4 py-3 flex items-start gap-2.5">
+          <i data-lucide="triangle-alert" class="text-[17px] text-err-700 mt-px shrink-0"></i>
+          <p class="text-[13px] text-err-700 font-medium">{{ error }}</p>
+        </div>
+      {% endif %}
+
+      <form method="post" action="{% url 'authentication:login' %}" class="mt-6 space-y-4" novalidate
+            data-login-form>
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+
+        <div>
+          <label for="id_username" class="text-[13.5px] font-medium block mb-1.5">Username or email</label>
+          <div class="flex items-center gap-2 h-11 px-3.5 rounded-xl border border-slate-300 bg-white
+                      focus-within:border-accent-500 focus-within:ring-4 focus-within:ring-accent-500/10 transition">
+            <i data-lucide="user" class="text-[16px] text-ink-faint shrink-0"></i>
+            <input id="id_username" name="username" type="text" autocomplete="username"
+                   required autofocus spellcheck="false" autocapitalize="none"
+                   value="{{ form.username.value|default:'' }}"
+                   {% if form.username.errors %}aria-invalid="true" aria-describedby="username-error"{% endif %}
+                   class="w-full text-[13.5px] outline-none bg-transparent placeholder:text-ink-faint"
+                   placeholder="you@dncouncil.org">
+          </div>
+          {% if form.username.errors %}
+            <p id="username-error" class="text-[12.5px] text-err-700 mt-1.5">{{ form.username.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="id_password" class="text-[13.5px] font-medium block mb-1.5">Password</label>
+          <div class="flex items-center gap-2 h-11 px-3.5 rounded-xl border border-slate-300 bg-white
+                      focus-within:border-accent-500 focus-within:ring-4 focus-within:ring-accent-500/10 transition">
+            <i data-lucide="lock" class="text-[16px] text-ink-faint shrink-0"></i>
+            <input id="id_password" name="password" type="password" autocomplete="current-password" required
+                   {% if form.password.errors %}aria-invalid="true" aria-describedby="password-error"{% endif %}
+                   class="w-full text-[13.5px] outline-none bg-transparent placeholder:text-ink-faint"
+                   placeholder="••••••••••••">
+            <button type="button" data-action="toggle-password" data-target="id_password"
+                    aria-label="Show password" aria-pressed="false"
+                    class="p-1 -mr-1 rounded-lg text-ink-faint hover:text-ink-mute hover:bg-slate-100 transition shrink-0">
+              <i data-lucide="eye" class="text-[16px]"></i>
+            </button>
+          </div>
+          {% if form.password.errors %}
+            <p id="password-error" class="text-[12.5px] text-err-700 mt-1.5">{{ form.password.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <button type="submit" data-login-submit
+                class="w-full h-11 rounded-xl bg-primary-500 text-white text-[14px] font-medium
+                       hover:bg-primary-600 shadow-lift transition
+                       flex items-center justify-center gap-2
+                       disabled:opacity-60 disabled:pointer-events-none">
+          <span class="hidden" data-spinner>
+            <i data-lucide="loader-circle" class="text-[16px] animate-spin"></i>
+          </span>
+          <span data-label>Sign in</span>
+        </button>
+      </form>
+
+      {% if hosted_ui_enabled %}
+        <div class="flex items-center gap-3 my-6">
+          <span class="h-px flex-1 bg-slate-200"></span>
+          <span class="text-[11.5px] uppercase tracking-wider text-ink-faint">or</span>
+          <span class="h-px flex-1 bg-slate-200"></span>
+        </div>
+
+        <a href="{% url 'authentication:oauth_start' %}{% if next %}?next={{ next|urlencode }}{% endif %}"
+           class="w-full h-11 rounded-xl border border-slate-300 bg-white text-[14px] font-medium
+                  hover:bg-slate-50 transition flex items-center justify-center gap-2.5">
+          <i data-lucide="shield-check" class="text-[17px] text-accent-500"></i>
+          Continue with DNC single sign-on
+        </a>
+      {% endif %}
+
+      <p class="text-[12.5px] text-ink-mute mt-8 text-center leading-relaxed">
+        Trouble signing in? Contact your Scrapos administrator.
+      </p>
+    </div>
+  </section>
+</div>
+
+<script src="{% static 'vendor/lucide.min.js' %}"></script>
+<script src="{% static 'js/login.js' %}"></script>
+</body>
+</html>

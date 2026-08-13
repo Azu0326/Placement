@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-[24px] sm:text-[27px] font-semibold tracking-[-0.02em]">Audit log</h1>
+  <p class="text-ink-mute text-[14px] mt-1">Security-relevant events. Credentials and tokens are never recorded.</p>
+</div>
+
+<form method="get" class="bg-white rounded-card border border-slate-200/80 shadow-soft p-4 mb-4">
+  <div class="flex flex-col sm:flex-row sm:items-end gap-3">
+    <div class="flex-1">
+      <label for="action" class="text-[12.5px] font-medium block mb-1.5">Event type</label>
+      <select id="action" name="action" class="select h-10">
+        <option value="">All events</option>
+        {% for option in actions %}
+          <option value="{{ option }}" {% if action_filter == option %}selected{% endif %}>{{ option }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="flex gap-2">
+      <button type="submit" class="h-10 px-4 rounded-xl bg-primary-500 text-white text-[13px] font-medium hover:bg-primary-600 transition">Filter</button>
+      <a href="{% url 'dashboard:audit' %}" class="h-10 px-4 rounded-xl border border-slate-300 text-[13px] font-medium hover:bg-slate-50 transition grid place-items-center">Reset</a>
+    </div>
+  </div>
+</form>
+
+<div class="bg-white rounded-card border border-slate-200/80 shadow-soft overflow-hidden">
+  {% if events %}
+    <div class="overflow-x-auto tbl-scroll">
+      <table class="w-full text-left">
+        <thead>
+          <tr class="text-[11.5px] font-medium uppercase tracking-[0.05em] text-ink-mute bg-slate-50/60">
+            <th class="px-5 py-3 font-medium">When</th>
+            <th class="px-5 py-3 font-medium">Event</th>
+            <th class="px-5 py-3 font-medium">Actor</th>
+            <th class="px-5 py-3 font-medium">Source</th>
+            <th class="px-5 py-3 font-medium">Target</th>
+            <th class="px-5 py-3 font-medium">IP address</th>
+            <th class="px-5 py-3 font-medium">Detail</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          {% for event in events %}
+            <tr class="hover:bg-slate-50/60 transition align-top">
+              <td class="px-5 py-3 text-[13px] text-ink-mute tabular whitespace-nowrap">{{ event.created_at|date:"j M Y, H:i:s" }}</td>
+              <td class="px-5 py-3">
+                {% if event.action == 'authentication_failure' or event.action == 'permission_denied' or event.action == 'session_revoked' %}
+                  <span class="badge-err">{{ event.action }}</span>
+                {% elif event.action == 'authentication_throttled' or event.action == 'cognito_request_failure' %}
+                  <span class="badge-warn">{{ event.action }}</span>
+                {% elif event.action == 'bootstrap_admin_login' %}
+                  <span class="badge-queued">{{ event.action }}</span>
+                {% else %}
+                  <span class="badge-ok">{{ event.action }}</span>
+                {% endif %}
+              </td>
+              <td class="px-5 py-3 text-[13px] font-medium">{{ event.actor|default:"—" }}</td>
+              <td class="px-5 py-3 text-[13px] text-ink-soft">{{ event.actor_auth_source|default:"—" }}</td>
+              <td class="px-5 py-3 text-[13px] text-ink-soft break-all">{{ event.target|default:"—" }}</td>
+              <td class="px-5 py-3 text-[13px] text-ink-mute tabular">{{ event.ip_address|default:"—" }}</td>
+              <td class="px-5 py-3 text-[12.5px] text-ink-mute">
+                {% for key, value in event.metadata.items %}
+                  <span class="inline-block mr-2 whitespace-nowrap">{{ key }}=<span class="text-ink-soft">{{ value }}</span></span>
+                {% empty %}—{% endfor %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="p-10 text-center">
+      <div class="w-16 h-16 rounded-2xl bg-slate-100 text-ink-faint grid place-items-center mx-auto"><i data-lucide="scroll-text" class="text-[30px]"></i></div>
+      <h3 class="text-[17px] font-semibold mt-5">No audit events recorded</h3>
+      <p class="text-[13.5px] text-ink-mute mt-2 max-w-[360px] mx-auto leading-relaxed">
+        Sign-ins, role changes and administrative actions appear here as they happen.
+      </p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -18,5 +18,8 @@
     <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-err-500 ring-2 ring-white"></span>
   </button>
   <button type="button" class="hidden sm:grid place-items-center w-9 h-9 rounded-lg hover:bg-slate-100"><i data-lucide="circle-help" class="text-[19px]"></i></button>
-  <div class="w-9 h-9 rounded-full bg-primary-500 grid place-items-center text-white text-[12px] font-semibold shrink-0">{{ demo_user.initials }}</div>
+  {% if current_user %}
+    <div class="w-9 h-9 rounded-full bg-primary-500 grid place-items-center text-white text-[12px] font-semibold shrink-0"
+         title="{{ current_user.username }}">{{ current_user.initials }}</div>
+  {% endif %}
 </header>
