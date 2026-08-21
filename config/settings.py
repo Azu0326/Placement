@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "authentication",
     "dashboard",
+    "scraper",
     "frontend_demo",
 ]
 
@@ -113,7 +114,6 @@ if "sqlite" in DATABASES["default"]["ENGINE"]:
     # concurrent session write surfaces as "database is locked".
     DATABASES["default"]["OPTIONS"] = {
         "timeout": 20,
-        "init_command": "PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;",
     }
 else:
     DATABASES["default"].update(
@@ -229,6 +229,7 @@ LOGGING = {
         # Event names only — never credentials, tokens or client secrets.
         "scrapos.auth": {"handlers": ["console"], "level": "INFO", "propagate": False},
         "scrapos.audit": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "scrapos.scraper": {"handlers": ["console"], "level": "INFO", "propagate": False},
         "django.security": {"handlers": ["console"], "level": "INFO", "propagate": False},
     },
     "root": {"handlers": ["console"], "level": os.environ.get("LOG_LEVEL", "INFO")},
@@ -245,3 +246,29 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = _env_int("SECURE_HSTS_SECONDS", 31536000)
     SECURE_HSTS_INCLUDE_SUBDOMAINS = _env_bool("SECURE_HSTS_INCLUDE_SUBDOMAINS", True)
     SECURE_HSTS_PRELOAD = _env_bool("SECURE_HSTS_PRELOAD", False)
+
+# --- Scraper -------------------------------------------------------------
+# Caps and worker behaviour. Production is web-only (no Redis/Celery).
+SCRAPER_MAX_PAGES = _env_int("SCRAPER_MAX_PAGES", 100)
+SCRAPER_MAX_RECORDS = _env_int("SCRAPER_MAX_RECORDS", 5000)
+SCRAPER_MAX_RUN_SECONDS = _env_int("SCRAPER_MAX_RUN_SECONDS", 900)
+SCRAPER_MAX_RESPONSE_BYTES = _env_int("SCRAPER_MAX_RESPONSE_BYTES", 2_000_000)
+SCRAPER_DEFAULT_DELAY_SECONDS = float(os.environ.get("SCRAPER_DEFAULT_DELAY_SECONDS", "0.5") or 0.5)
+SCRAPER_DEFAULT_TIMEOUT_SECONDS = _env_int("SCRAPER_DEFAULT_TIMEOUT_SECONDS", 20)
+SCRAPER_MAX_CONCURRENCY = _env_int("SCRAPER_MAX_CONCURRENCY", 2)
+SCRAPER_BROWSER_CONCURRENCY = _env_int("SCRAPER_BROWSER_CONCURRENCY", 1)
+SCRAPER_BROWSER_ENABLED = _env_bool("SCRAPER_BROWSER_ENABLED", True)
+SCRAPER_INLINE_WORKER = _env_bool("SCRAPER_INLINE_WORKER", True)
+SCRAPER_EXPORT_DIRECTORY = os.environ.get(
+    "SCRAPER_EXPORT_DIRECTORY", str(BASE_DIR / "var" / "exports")
+)
+SCRAPER_EXPORT_RETENTION_HOURS = _env_int("SCRAPER_EXPORT_RETENTION_HOURS", 72)
+SCRAPER_DEFAULT_USER_AGENT = os.environ.get(
+    "SCRAPER_DEFAULT_USER_AGENT",
+    "ScrapOS/1.0 (+https://scrapos.dncouncil.org)",
+)
+SCRAPER_TEST_RATE_LIMIT = _env_int("SCRAPER_TEST_RATE_LIMIT", 20)
+SCRAPER_RUN_RATE_LIMIT = _env_int("SCRAPER_RUN_RATE_LIMIT", 10)
+SCRAPER_WORKER_POLL_SECONDS = _env_int("SCRAPER_WORKER_POLL_SECONDS", 2)
+SCRAPER_CSV_MAX_BYTES = _env_int("SCRAPER_CSV_MAX_BYTES", 1_000_000)
+SCRAPER_CSV_MAX_ROWS = _env_int("SCRAPER_CSV_MAX_ROWS", 500)

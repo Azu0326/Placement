@@ -1,0 +1,8 @@
+row_type,name,display_label,source,scope,selector_or_parameter,value_from,attribute_name,data_type,start_value,increment,fixed_value,list_values,default_value,required,multiple_values,transform,unique,include_in_output,sort_order,result_selector,detail_link_selector,follow_detail_page,pagination_mode,maximum_pages,maximum_records,wait_for_selector,enabled
+VARIABLE,page,Page Number,counter,variable,page,counter,,integer,1,1,,,,true,false,,false,false,1,,,,query_parameter,100,500,,true
+RESULT_SELECTION,scholarship_results,Scholarship Results,html_element,result_page,,text_content,,text,,,,,,true,true,,false,false,2,.scholarship-list-card,h3 a,true,query_parameter,100,500,.scholarship-list-card,true
+RESULT_FIELD,scholarship_name,Scholarship Name,html_element,result_item,h3 a,text_content,,text,,,,,,true,,trim|normalize_whitespace,,true,10,,,,,,,,true
+RESULT_FIELD,detail_url,Detail URL,html_attribute,result_item,h3 a,attribute,href,url,,,,,,true,,trim|absolute_url,true,true,20,,,,,,,,true
+RESULT_FIELD,source_page,Source Page,current_page_number,system,,current_page,,integer,,,,,,true,,,,true,30,,,,,,,,true
+DETAIL_FIELD,description,Description,html_element,detail_page,.content-body .col-span-4 p.mb-2:last-of-type,text_content,,long_text,,,,,,,,trim|normalize_whitespace,,true,50,,,,,,,,true
+DETAIL_FIELD,scraped_at,Scraped At,run_timestamp,system,,timestamp,,datetime,,,,,,true,,,,true,110,,,,,,,,true

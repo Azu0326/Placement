@@ -31,9 +31,29 @@ class DashboardView(ShellView):
     page_title = "Dashboard"
 
     def get_context_data(self, **kwargs):
+        from scraper.constants import JOB_STATUS_ARCHIVED
+        from scraper.models import ScrapedRecord, ScrapeRun
+        from scraper.services import access
+
         ctx = super().get_context_data(**kwargs)
         ctx["kpis"] = data.DASHBOARD_KPIS
-        ctx["recent_jobs"] = data.JOBS[:4]
+        user = self.request.user
+        if not getattr(user, "is_authenticated", False):
+            ctx["recent_jobs"] = []
+            ctx["scraper_kpis"] = {"job_count": 0, "run_count": 0, "record_count": 0}
+            return ctx
+        jobs = access.jobs_for(user).exclude(status=JOB_STATUS_ARCHIVED)
+        recent = []
+        for job in jobs[:4]:
+            last = job.runs.order_by("-created_at").first()
+            recent.append({"job": job, "last_run": last})
+        run_qs = ScrapeRun.objects.filter(job__owner=user)
+        ctx["recent_jobs"] = recent
+        ctx["scraper_kpis"] = {
+            "job_count": jobs.count(),
+            "run_count": run_qs.count(),
+            "record_count": ScrapedRecord.objects.filter(job__owner=user).count(),
+        }
         return ctx
 
 

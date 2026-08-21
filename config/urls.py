@@ -8,6 +8,7 @@ urlpatterns = [
     path("healthz", healthz, name="healthz"),
     path("", include("authentication.urls")),
     path("dashboard/", include("dashboard.urls")),
+    path("", include("scraper.urls")),
     path("", include("frontend_demo.urls")),
 ]
 

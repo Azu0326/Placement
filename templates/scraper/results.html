@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+<a href="{% url 'run_detail' job.id run.id %}" class="text-[13px] text-ink-mute hover:text-ink flex items-center gap-1.5 mb-4"><i data-lucide="arrow-left" class="text-[15px]"></i>Back to {{ run.display_id }}</a>
+
+<div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+  <div>
+    <h1 class="text-[24px] sm:text-[27px] font-semibold tracking-[-0.02em]">Results</h1>
+    <p class="text-ink-mute text-[14px] mt-1">{{ job.name }} · {{ run.display_id }}</p>
+  </div>
+  {% if can_edit %}
+  <div class="flex gap-2">
+    <form method="post" action="{% url 'api_export_create' job.id run.id %}">{% csrf_token %}<input type="hidden" name="format" value="csv"><button class="h-10 px-4 rounded-xl border border-slate-300 bg-white text-[13.5px] font-medium">Export scraped results CSV</button></form>
+    <form method="post" action="{% url 'api_export_create' job.id run.id %}">{% csrf_token %}<input type="hidden" name="format" value="sqlite"><button class="h-10 px-4 rounded-xl border border-slate-300 bg-white text-[13.5px] font-medium">Export scraped results SQLite</button></form>
+  </div>
+  {% endif %}
+</div>
+
+<form method="get" class="bg-white rounded-card border border-slate-200/80 shadow-soft p-3 mb-4 flex flex-wrap gap-2.5">
+  <input name="q" value="{{ search }}" placeholder="Search records…" class="input flex-1 min-w-[200px]">
+  <select name="status" class="select w-auto">
+    <option value="">All</option>
+    <option value="valid"{% if status_filter == "valid" %} selected{% endif %}>Valid</option>
+    <option value="invalid"{% if status_filter == "invalid" %} selected{% endif %}>Invalid</option>
+    <option value="failed"{% if status_filter == "failed" %} selected{% endif %}>Failed</option>
+  </select>
+  <button class="btn-secondary">Filter</button>
+</form>
+
+<div class="bg-white rounded-card border border-slate-200/80 shadow-soft overflow-hidden">
+  <div class="overflow-x-auto tbl-scroll">
+    <table class="w-full text-[13px]">
+      <thead>
+        <tr class="bg-slate-50/80 border-b border-slate-200 text-left">
+          <th class="px-4 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">#</th>
+          {% for field in fields %}
+          <th class="px-4 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">{{ field.label }}</th>
+          {% endfor %}
+          <th class="px-4 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Status</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for row in result_rows %}
+        <tr class="hover:bg-slate-50/70">
+          <td class="px-4 py-3 tabular-nums text-ink-mute">{{ row.record.sequence_number }}</td>
+          {% for value in row.values %}
+          <td class="px-4 py-3 max-w-[220px]"><div class="truncate">{{ value }}</div></td>
+          {% endfor %}
+          <td class="px-4 py-3">{{ row.record.status }}</td>
+        </tr>
+        {% empty %}
+        <tr><td class="px-4 py-8 text-ink-mute" colspan="20">No records yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

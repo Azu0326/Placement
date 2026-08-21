@@ -5,3 +5,7 @@ whitenoise>=6.7,<7.0
 boto3>=1.35,<2.0
 # ID token verification (RS256 via JWKS). The crypto extra pulls `cryptography`.
 PyJWT[crypto]>=2.9,<3.0
+httpx>=0.27,<1.0
+beautifulsoup4>=4.12,<5.0
+lxml>=5.0,<6.0
+bleach>=6.1,<7.0
