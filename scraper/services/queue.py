@@ -1,9 +1,17 @@
 """Database-backed scrape queue.
 
-Production has no Redis or Celery (see deploy/ecs/web-task-definition.json).
-Runs are claimed via a status update so multiple gunicorn workers cannot
-execute the same run. A lightweight thread polls for queued work inside the
-web process; tests call ``process_one`` / ``execute_run`` directly.
+Runs are claimed via a status update so multiple workers cannot execute the same
+run. Two dispatch routes call the same ``execute_run``:
+
+* Default: a lightweight thread inside the web process (``enqueue`` spawns a
+  thread; ``maybe_start_inline_worker`` polls for queued work under
+  ``runserver`` / ``runscraper``).
+* When ``SCRAPER_USE_CELERY`` is enabled: the run is handed to the Celery task
+  in ``scraper.tasks`` and executed by a separate ``celery -A config worker``
+  process. This is the more reliable route under gunicorn, where the in-process
+  polling thread does not start.
+
+Tests call ``process_one`` / ``execute_run`` directly.
 """
 
 from __future__ import annotations
@@ -32,6 +40,14 @@ def enqueue(run: ScrapeRun) -> ScrapeRun:
         run.status = RUN_QUEUED
         run.save(update_fields=["status"])
     if getattr(settings, "TESTING", False):
+        return run
+    if getattr(settings, "SCRAPER_USE_CELERY", False):
+        # Hand the run to a Celery worker. Imported here so that when Celery is
+        # disabled the module (and the celery dependency) is never required.
+        from scraper.tasks import execute_run_task
+
+        execute_run_task.delay(str(run.id))
+        logger.info("scraper_run_dispatched_celery run_id=%s", run.id)
         return run
     thread = threading.Thread(target=_safe_execute, args=(str(run.id),), daemon=True, name=f"scrape-run-{run.id}")
     thread.start()
@@ -75,6 +91,9 @@ def _poll_loop() -> None:
 def maybe_start_inline_worker() -> None:
     global _WORKER_STARTED
     if getattr(settings, "TESTING", False):
+        return
+    # When Celery owns dispatch, the in-process polling thread is unnecessary.
+    if getattr(settings, "SCRAPER_USE_CELERY", False):
         return
     if not getattr(settings, "SCRAPER_INLINE_WORKER", True):
         return
