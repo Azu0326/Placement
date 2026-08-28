@@ -49,14 +49,14 @@ urlpatterns = [
         name="api_run_status",
     ),
     path(
-        "scraper/api/jobs/<uuid:job_id>/runs/<uuid:run_id>/<slug:action>/",
-        views.RunActionAPI.as_view(),
-        name="api_run_action",
-    ),
-    path(
         "scraper/api/jobs/<uuid:job_id>/runs/<uuid:run_id>/export/",
         views.ExportCreateAPI.as_view(),
         name="api_export_create",
+    ),
+    path(
+        "scraper/api/jobs/<uuid:job_id>/runs/<uuid:run_id>/<slug:action>/",
+        views.RunActionAPI.as_view(),
+        name="api_run_action",
     ),
     path(
         "scraper/jobs/<uuid:job_id>/runs/<uuid:run_id>/exports/<uuid:export_id>/download/",
