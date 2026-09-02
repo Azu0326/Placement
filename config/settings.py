@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "authentication",
     "dashboard",
+    "poster",
     "frontend_demo",
 ]
 
@@ -181,6 +182,18 @@ SCRAPOS_LOGIN_THROTTLE_MAX_PER_USER = _env_int("SCRAPOS_LOGIN_THROTTLE_MAX_PER_U
 SCRAPOS_LOGIN_THROTTLE_MAX_PER_IP = _env_int("SCRAPOS_LOGIN_THROTTLE_MAX_PER_IP", 20)
 SCRAPOS_LOGIN_THROTTLE_WINDOW_MINUTES = _env_int("SCRAPOS_LOGIN_THROTTLE_WINDOW_MINUTES", 15)
 
+# --- Facebook Page publishing --------------------------------------------
+#
+# Graph API credentials for posting as a Page. Distinct from Cognito Facebook
+# Login (that is sign-in only). Tokens stay on the server — never log them or
+# put them in a template. See docs/facebook-publishing.md.
+FACEBOOK_APP_ID = os.environ.get("FACEBOOK_APP_ID", "")
+FACEBOOK_APP_SECRET = os.environ.get("FACEBOOK_APP_SECRET", "")
+FACEBOOK_PAGE_ID = os.environ.get("FACEBOOK_PAGE_ID", "")
+FACEBOOK_PAGE_ACCESS_TOKEN = os.environ.get("FACEBOOK_PAGE_ACCESS_TOKEN", "")
+FACEBOOK_GRAPH_API_VERSION = os.environ.get("FACEBOOK_GRAPH_API_VERSION", "v22.0")
+FACEBOOK_GRAPH_TIMEOUT_SECONDS = _env_int("FACEBOOK_GRAPH_TIMEOUT_SECONDS", 20)
+
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 SESSION_COOKIE_NAME = "scrapos_sessionid"
 SESSION_COOKIE_HTTPONLY = True
@@ -229,6 +242,8 @@ LOGGING = {
         # Event names only — never credentials, tokens or client secrets.
         "scrapos.auth": {"handlers": ["console"], "level": "INFO", "propagate": False},
         "scrapos.audit": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        # Event names and Graph error codes only — never Page tokens.
+        "scrapos.facebook": {"handlers": ["console"], "level": "INFO", "propagate": False},
         "django.security": {"handlers": ["console"], "level": "INFO", "propagate": False},
     },
     "root": {"handlers": ["console"], "level": os.environ.get("LOG_LEVEL", "INFO")},
