@@ -196,6 +196,10 @@ portal's `SOCIAL_PROVIDERS`, because it is the same user pool:
 | `facebook` | `Facebook` |
 | `apple` | `SignInWithApple` |
 
+Cognito Facebook Login is sign-in only. Publishing Scrapos content to a
+Facebook Page uses a separate Meta app and a Page access token — see
+`docs/facebook-publishing.md`.
+
 The provider slug is a routing hint only. Which identity actually signed in is
 read back from the verified ID token, never from the parameter.
 
