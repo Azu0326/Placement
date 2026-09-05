@@ -1,6 +1,8 @@
 Django>=5.0,<6.0
 gunicorn>=23.0,<24.0
 whitenoise>=6.7,<7.0
+# Local .env loading. Existing process environment always wins (override=False).
+python-dotenv>=1.0,<2.0
 # Cognito administration and server-side password authentication.
 boto3>=1.35,<2.0
 # ID token verification (RS256 via JWKS). The crypto extra pulls `cryptography`.

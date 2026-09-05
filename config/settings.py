@@ -2,7 +2,13 @@ import os
 import sys
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Local .env only. A missing file is a no-op. Variables already in the process
+# environment (ECS Secrets Manager, CI, a shell export) are never overwritten.
+load_dotenv(BASE_DIR / ".env")
 
 # The test runner forces DEBUG=False, which would otherwise trip the production
 # authentication checks; individual tests supply their own Cognito settings.
