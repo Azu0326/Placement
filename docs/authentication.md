@@ -296,9 +296,13 @@ are never logged.
 ## Local development
 
 ```bash
-cp .env.example .env          # then fill in
+cp .env.example .env          # then fill in (Windows: copy .env.example .env)
 python manage.py hash_bootstrap_password --generate
 ```
+
+Django loads `.env` from the project root automatically. You do not need to
+`source` or `set` the file. Values already in the process environment win, so
+production Secrets Manager injection is unchanged.
 
 Put the hash in `SCRAPOS_SUPERADMIN_PASSWORD_HASH` and sign in with the
 bootstrap account. Cognito settings can be left blank locally: with `DEBUG=True`

@@ -21,7 +21,7 @@ Integrations 画面の「Connect」ボタンや Poster のスケジュール UI 
 1. [Meta for Developers](https://developers.facebook.com/) のアカウント（作成済み）
 2. 投稿先になる **Facebook Page**（自分が管理者で、`CREATE_CONTENT` ができること）
 3. その Page を所有する Facebook アカウントで、developers.facebook.com にログインできること
-4. ローカルなら Scrapos の `.env`（git には入れない）
+4. ローカルなら Scrapos の `.env`（git には入れない。`manage.py` が自動で読む）
 
 個人プロフィールのタイムラインへ API で投稿することはできません。対象は Page だけです。
 
@@ -96,7 +96,7 @@ Explorer のユーザー用トークンは **1〜2 時間** で切れます。�
 
 ## 5. Scrapos で長い Page トークンに交換する
 
-`.env` にアプリ資格情報だけ入れます（Page トークンはまだ空でよい）。
+`.env.example` を `.env` にコピーし、アプリ資格情報だけ入れます（Page トークンはまだ空でよい）。Windows なら `copy .env.example .env`。Django が `.env` を自動で読むので、`set` や `source` は不要です。
 
 ```bash
 FACEBOOK_APP_ID=<アプリ ID>
@@ -107,7 +107,7 @@ FACEBOOK_GRAPH_API_VERSION=v22.0
 Explorer で今出した **User Token** を渡し、交換します。
 
 ```bash
-python manage.py exchange_facebook_token --user-token '<Explorer の User Token>'
+python manage.py exchange_facebook_token --user-token "<Explorer の User Token>"
 ```
 
 標準出力に次が出ます。
