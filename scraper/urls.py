@@ -16,6 +16,11 @@ urlpatterns = [
     path("scraper/execution/", views.ExecutionView.as_view(), name="execution"),
     path("scraper/api/field-name/", views.slugify_field_api, name="api_field_name"),
     path("scraper/api/config-csv/template/", views.config_csv_template, name="api_config_csv_template"),
+    path(
+        "scraper/api/ai/generate-config/",
+        views.AIGenerateConfigAPI.as_view(),
+        name="api_ai_generate_config",
+    ),
     path("scraper/api/jobs/<uuid:job_id>/config.csv", views.config_csv_export, name="api_config_csv_export"),
     path(
         "scraper/api/jobs/<uuid:job_id>/config-csv/preview/",

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from datetime import timedelta
+from urllib.parse import urlparse
 
 from django.conf import settings
 from django.core.paginator import Paginator
@@ -33,6 +34,7 @@ from scraper.constants import (
 )
 from scraper.models import ExportArtifact, PageTestCache, ScrapeField, ScrapeJob, ScrapeRun, VariableParameter
 from scraper.services import access
+from scraper.services.ai_config import AIConfigError, generate_config_from_url
 from scraper.services.exporters import artifact_path, request_export
 from scraper.services.fetcher import fetch_page
 from scraper.services.html_parser import looks_like_javascript_app
@@ -432,6 +434,47 @@ class ConfigCsvImportAPI(EditorView):
         except (UnicodeDecodeError, json.JSONDecodeError):
             return _json_error("The CSV could not be read as UTF-8.")
         return _json_ok(job=job_to_wizard(job), summary=result["summary"])
+
+
+def _ai_config_error_message(exc: Exception) -> str:
+    text = str(exc)
+    if "OPENAI_API_KEY" in text or "api key" in text.lower():
+        return "AI configuration is not available."
+    return text or "Could not generate a config from that URL."
+
+
+@method_decorator(require_POST, name="dispatch")
+class AIGenerateConfigAPI(EditorView):
+    def post(self, request):
+        try:
+            throttle_check(
+                f"ai-config:{request.user.pk}",
+                limit=getattr(settings, "SCRAPER_TEST_RATE_LIMIT", 20),
+                window_seconds=60,
+            )
+        except Throttled:
+            return _json_error("Too many AI config requests. Try again shortly.", status=429)
+        payload = {}
+        if request.content_type == "application/json":
+            try:
+                payload = json.loads(request.body or "{}")
+            except json.JSONDecodeError:
+                return _json_error("Invalid JSON.")
+        url = (request.POST.get("url") or payload.get("url") or "").strip()
+        if not url:
+            return _json_error("Enter a URL.")
+        parsed = urlparse(url)
+        if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+            return _json_error("Enter an http or https URL.")
+        try:
+            config = generate_config_from_url(url)
+        except AIConfigError as exc:
+            return _json_error(_ai_config_error_message(exc))
+        except (FetchError, RequestPolicyError) as exc:
+            return _json_error(str(exc))
+        except Exception:
+            return _json_error("Could not generate a config from that URL.")
+        return _json_ok(config=config)
 
 
 @method_decorator(require_POST, name="dispatch")
