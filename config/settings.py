@@ -2,7 +2,10 @@ import os
 import sys
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env", override=False)
 
 # The test runner forces DEBUG=False, which would otherwise trip the production
 # authentication checks; individual tests supply their own Cognito settings.

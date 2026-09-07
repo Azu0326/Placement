@@ -581,9 +581,14 @@
     if (csvModal) csvModal.classList.add("hidden");
   }
 
+  let pendingCsvText = "";
+  let pendingAiRows = null;
+  let pendingAiUrl = "";
+
   async function postCsv(path, extra) {
     const data = extra || new FormData();
     if (csvFile && csvFile.files[0] && !data.has("file")) data.append("file", csvFile.files[0]);
+    else if (pendingCsvText && !data.has("file") && !data.has("csv")) data.set("csv", pendingCsvText);
     data.set("mode", csvMode());
     if (document.getElementById("csvReplaceConfirm") && document.getElementById("csvReplaceConfirm").checked) {
       data.set("confirm_replace", "true");
@@ -592,7 +597,15 @@
     return response.json();
   }
 
-  document.getElementById("cfgImportCsv")?.addEventListener("click", openCsvModal);
+  document.getElementById("cfgImportCsv")?.addEventListener("click", () => {
+    pendingCsvText = "";
+    pendingAiRows = null;
+    pendingAiUrl = "";
+    openCsvModal();
+  });
+  csvFile?.addEventListener("change", () => {
+    pendingCsvText = "";
+  });
   document.getElementById("cfgAddManual")?.addEventListener("click", () => {
     const add = document.getElementById("addVariable") || root.querySelector("[data-add-field]");
     if (add) add.click();
@@ -633,6 +646,12 @@
       return;
     }
     Object.assign(state, body.job);
+    if (pendingAiRows) {
+      applyAiSelectionExtras(pendingAiRows, pendingAiUrl);
+      pendingAiRows = null;
+      pendingAiUrl = "";
+    }
+    pendingCsvText = "";
     closeCsvModal();
     render();
   });
@@ -642,6 +661,176 @@
     link.href = URL.createObjectURL(blob);
     link.download = "configuration_import_errors.csv";
     link.click();
+  });
+
+  const CSV_HEADERS = [
+    "row_type",
+    "name",
+    "display_label",
+    "source",
+    "scope",
+    "selector_or_parameter",
+    "value_from",
+    "attribute_name",
+    "data_type",
+    "start_value",
+    "increment",
+    "fixed_value",
+    "list_values",
+    "default_value",
+    "required",
+    "multiple_values",
+    "transform",
+    "unique",
+    "include_in_output",
+    "sort_order",
+    "result_selector",
+    "detail_link_selector",
+    "follow_detail_page",
+    "pagination_mode",
+    "maximum_pages",
+    "maximum_records",
+    "wait_for_selector",
+    "enabled",
+  ];
+  const aiScanModal = document.getElementById("aiScanModal");
+  const aiScanUrl = document.getElementById("aiScanUrl");
+  const aiScanError = document.getElementById("aiScanError");
+  const aiScanGenerate = document.getElementById("aiScanGenerate");
+
+  function csvEscape(value) {
+    const text = value == null ? "" : String(value);
+    if (/[",\n\r]/.test(text)) return `"${text.replace(/"/g, '""')}"`;
+    return text;
+  }
+
+  function rowsToCsv(rows) {
+    const lines = [CSV_HEADERS.join(",")];
+    (rows || []).forEach((row) => {
+      lines.push(CSV_HEADERS.map((key) => csvEscape(row[key])).join(","));
+    });
+    return lines.join("\n");
+  }
+
+  function showAiScanError(message) {
+    if (!aiScanError) return;
+    if (!message) {
+      aiScanError.classList.add("hidden");
+      aiScanError.textContent = "";
+      return;
+    }
+    aiScanError.classList.remove("hidden");
+    aiScanError.textContent = message;
+  }
+
+  function openAiScanModal() {
+    if (!aiScanModal) return;
+    showAiScanError("");
+    if (aiScanUrl && !aiScanUrl.value) aiScanUrl.value = state.start_url || "";
+    aiScanModal.classList.remove("hidden");
+    aiScanModal.setAttribute("aria-hidden", "false");
+    if (window.lucide) window.lucide.createIcons();
+    if (aiScanUrl) aiScanUrl.focus();
+  }
+
+  function closeAiScanModal() {
+    if (!aiScanModal || (aiScanGenerate && aiScanGenerate.disabled)) return;
+    aiScanModal.classList.add("hidden");
+    aiScanModal.setAttribute("aria-hidden", "true");
+  }
+
+  function setAiScanLoading(busy) {
+    if (!aiScanGenerate) return;
+    aiScanGenerate.disabled = busy;
+    aiScanGenerate.textContent = busy ? "Generating…" : "Generate";
+    if (aiScanUrl) aiScanUrl.disabled = busy;
+  }
+
+  async function postConfigCsv(path, csvText) {
+    const data = new FormData();
+    data.set("csv", csvText);
+    data.set("mode", "merge");
+    const response = await fetch(path, { method: "POST", headers: { "X-CSRFToken": csrf() }, body: data });
+    return response.json();
+  }
+
+  function csvImportError(body) {
+    if (body && body.error) return body.error;
+    const invalid = ((body && body.rows) || []).find((row) => !row.valid);
+    if (invalid && invalid.errors && invalid.errors[0] && invalid.errors[0].message) {
+      return invalid.errors[0].message;
+    }
+    return "The generated config could not be imported.";
+  }
+
+  function applyAiSelectionExtras(rows, scannedUrl) {
+    const selection =
+      (rows || []).find((row) => String(row.row_type || "").toUpperCase() === "RESULT_SELECTION") || {};
+    if (scannedUrl && !state.start_url) state.start_url = scannedUrl;
+    const pagination = Object.assign({}, state.pagination_settings || {});
+    if (selection.url_template) {
+      state.url_template = selection.url_template;
+      pagination.url_template = selection.url_template;
+    }
+    if (selection.pagination_mode) pagination.mode = selection.pagination_mode;
+    if (selection.next_button_selector) pagination.next_button_selector = selection.next_button_selector;
+    state.pagination_settings = pagination;
+  }
+
+  async function generateAiConfig() {
+    const url = ((aiScanUrl && aiScanUrl.value) || "").trim();
+    if (!url) {
+      showAiScanError("Enter a URL.");
+      return;
+    }
+    showAiScanError("");
+    setAiScanLoading(true);
+    try {
+      const generated = await api(meta.aiGenerateUrl || "/scraper/api/ai/generate-config/", { url });
+      if (!generated.ok) {
+        showAiScanError(generated.error || "Could not generate a config from that URL.");
+        return;
+      }
+      const rows = generated.config;
+      if (!Array.isArray(rows) || !rows.length) {
+        showAiScanError("The model returned no config rows.");
+        return;
+      }
+      const csv = rowsToCsv(rows);
+      const preview = await postConfigCsv(`/scraper/api/jobs/${meta.jobId}/config-csv/preview/`, csv);
+      if (!preview.ok || !preview.can_import) {
+        showAiScanError(csvImportError(preview));
+        return;
+      }
+      pendingCsvText = csv;
+      pendingAiRows = rows;
+      pendingAiUrl = url;
+      closeAiScanModal();
+      openCsvModal();
+      document.getElementById("csvPreviewBtn")?.click();
+    } catch (err) {
+      showAiScanError("Could not generate a config from that URL.");
+    } finally {
+      setAiScanLoading(false);
+    }
+  }
+
+  document.getElementById("cfgScanAi")?.addEventListener("click", openAiScanModal);
+  document.getElementById("aiScanClose")?.addEventListener("click", closeAiScanModal);
+  document.getElementById("aiScanGenerate")?.addEventListener("click", generateAiConfig);
+  aiScanModal?.addEventListener("click", (event) => {
+    if (!event.target.closest("[data-ai-scan-body]")) closeAiScanModal();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && aiScanModal && !aiScanModal.classList.contains("hidden")) {
+      closeAiScanModal();
+    }
+  });
+  aiScanUrl?.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      generateAiConfig();
+    }
   });
 
   render();
