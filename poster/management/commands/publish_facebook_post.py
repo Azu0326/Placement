@@ -1,10 +1,12 @@
-"""Publish a Scrapos content item (or a free-text message) to a Facebook Page.
+"""Publish a Scrapos content item or scraped record to a Facebook Page.
 
 Tokens are read from the environment. They are never printed, even on failure.
 
     python manage.py publish_facebook_post --message "Hello from Scrapos"
-    python manage.py publish_facebook_post --content-id CT-902
-    python manage.py publish_facebook_post --content-id CT-902 --dry-run
+    python manage.py publish_facebook_post --link "https://example.org/guide"
+    python manage.py publish_facebook_post --image-url "https://example.org/hero.jpg"
+    python manage.py publish_facebook_post --record-id <scraped-record-uuid>
+    python manage.py publish_facebook_post --record-id <uuid> --with-image --dry-run
 """
 
 from __future__ import annotations
@@ -17,6 +19,7 @@ from django.utils.timezone import is_naive, make_aware
 
 from poster.exceptions import FacebookNotConfigured, FacebookPublishError
 from poster.services.facebook_service import FacebookPageService, format_content_message
+from poster.services.scraped import payload_from_record
 
 
 def _lookup_content(content_id: str) -> dict:
@@ -28,6 +31,16 @@ def _lookup_content(content_id: str) -> dict:
         known = ", ".join(row["id"] for row in CONTENT_ITEMS)
         raise CommandError(f"Unknown content id {needle!r}. Known demo ids: {known}.")
     return item
+
+
+def _lookup_record(record_id: str):
+    from scraper.models import ScrapedRecord
+
+    needle = (record_id or "").strip()
+    try:
+        return ScrapedRecord.objects.get(pk=needle)
+    except (ScrapedRecord.DoesNotExist, ValueError) as exc:
+        raise CommandError(f"Unknown scraped record {needle!r}.") from exc
 
 
 def _parse_schedule(value: str) -> int:
@@ -42,19 +55,28 @@ def _parse_schedule(value: str) -> int:
 
 
 class Command(BaseCommand):
-    help = "Publish Scrapos content to the configured Facebook Page."
+    help = "Publish Scrapos content or a scraped record to the configured Facebook Page."
 
     def add_arguments(self, parser):
-        parser.add_argument("--message", help="Post body. Overrides --content-id when both are set.")
+        parser.add_argument("--message", help="Post body. Overrides --content-id / --record-id text.")
         parser.add_argument(
             "--content-id",
-            help="Demo content id (for example CT-902). Used until content lives in the database.",
+            help="Demo content id (for example CT-902).",
+        )
+        parser.add_argument(
+            "--record-id",
+            help="ScrapedRecord UUID. Maps title/link/image fields onto a Page post.",
         )
         parser.add_argument("--link", default="", help="Optional URL attached to the post.")
         parser.add_argument(
             "--image-url",
             default="",
             help="Public image URL. Publishes a photo post instead of a feed post.",
+        )
+        parser.add_argument(
+            "--with-image",
+            action="store_true",
+            help="When using --record-id, publish a photo if the row has an image URL.",
         )
         parser.add_argument(
             "--schedule-at",
@@ -68,11 +90,21 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         message = (options.get("message") or "").strip()
+        link = (options.get("link") or "").strip()
+        image_url = (options.get("image_url") or "").strip()
         content_id = (options.get("content_id") or "").strip()
-        if not message and content_id:
+        record_id = (options.get("record_id") or "").strip()
+
+        if record_id:
+            draft = payload_from_record(_lookup_record(record_id), include_image=options["with_image"])
+            message = message or draft.message
+            link = link or draft.link
+            image_url = image_url or draft.image_url
+        elif not message and content_id:
             message = format_content_message(_lookup_content(content_id))
-        if not message and not options.get("link") and not options.get("image_url"):
-            raise CommandError("Pass --message, --content-id, --link or --image-url.")
+
+        if not message and not link and not image_url:
+            raise CommandError("Pass --message, --content-id, --record-id, --link or --image-url.")
 
         scheduled_unix = None
         if options.get("schedule_at"):
@@ -81,10 +113,10 @@ class Command(BaseCommand):
         if options["dry_run"]:
             self.stdout.write("Dry run — Facebook was not called.")
             self.stdout.write(f"message: {message}")
-            if options.get("link"):
-                self.stdout.write(f"link: {options['link']}")
-            if options.get("image_url"):
-                self.stdout.write(f"image_url: {options['image_url']}")
+            if link:
+                self.stdout.write(f"link: {link}")
+            if image_url:
+                self.stdout.write(f"image_url: {image_url}")
             if scheduled_unix is not None:
                 when = datetime.fromtimestamp(scheduled_unix).isoformat()
                 self.stdout.write(f"scheduled_unix: {scheduled_unix} ({when})")
@@ -94,8 +126,8 @@ class Command(BaseCommand):
         try:
             published = service.publish(
                 message=message,
-                link=options.get("link") or "",
-                image_url=options.get("image_url") or "",
+                link=link,
+                image_url=image_url,
                 scheduled_unix=scheduled_unix,
             )
         except FacebookNotConfigured as exc:

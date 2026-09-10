@@ -36,6 +36,16 @@ def records_for(user):
     return ScrapedRecord.objects.filter(job__owner=user)
 
 
+def get_record(user, record_id, run=None) -> ScrapedRecord:
+    qs = records_for(user)
+    if run is not None:
+        qs = qs.filter(run=run)
+    try:
+        return qs.get(pk=record_id)
+    except ScrapedRecord.DoesNotExist as exc:
+        raise Http404("No such record.") from exc
+
+
 def get_export(user, export_id) -> ExportArtifact:
     try:
         return ExportArtifact.objects.filter(run__job__owner=user).get(pk=export_id)
