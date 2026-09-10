@@ -4,7 +4,7 @@ Meta Graph API（Pages API）を使い、Scrapos のコンテンツを **Faceboo
 
 この機能は **Cognito の Facebook ログインとは別物** です。ログイン用の Identity Provider は「誰が Scrapos に入れるか」だけを扱い、Page への投稿権限は持ちません。投稿用には Meta Developer のアプリと **Page Access Token** が必要です。
 
-現状の Scrapos はコンテンツがまだデータベースではなくデモデータです。投稿の実体は `poster.services.facebook_service.FacebookPageService` と、次の管理コマンドです。
+投稿の実体は `poster.services.facebook_service.FacebookPageService` です。スクレイプ結果（`ScrapedRecord`）は Results 画面の **Post** か、`--record-id` で Page に送れます。デモ id（`CT-902`）もまだ使えます。
 
 | コマンド | 用途 |
 |---|---|
@@ -145,6 +145,12 @@ python manage.py publish_facebook_post --content-id CT-902 --dry-run
 
 # デモコンテンツを即時投稿
 python manage.py publish_facebook_post --content-id CT-902
+
+# スクレイプ 1 件（title / scholarship_name + detail_url）
+python manage.py publish_facebook_post --record-id "<ScrapedRecord の UUID>"
+
+# 画像 URL がある行を写真投稿にする
+python manage.py publish_facebook_post --record-id "<UUID>" --with-image
 
 # 本文を直接指定
 python manage.py publish_facebook_post --message "2月入学のリマインダーです。"

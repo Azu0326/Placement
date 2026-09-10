@@ -16,5 +16,3 @@ celery>=5.3,<6.0
 redis>=5.0,<6.0
 # AI-assisted scraper config from a URL (OPENAI_API_KEY).
 openai>=1.0,<2.0
-# Local .env loading. Existing environment variables still win (override=False).
-python-dotenv>=1.0,<2.0

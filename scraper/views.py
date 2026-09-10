@@ -7,6 +7,7 @@ from datetime import timedelta
 from urllib.parse import urlparse
 
 from django.conf import settings
+from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import FileResponse, HttpResponse, HttpResponseBadRequest, JsonResponse
@@ -58,6 +59,11 @@ from scraper.services.ssrf import RequestPolicyError
 from scraper.services.url_template import infer_page_template
 from scraper.services.validation import JobValidationError, field_name_from_label, validate_job_payload
 from scraper.throttling import Throttled, check as throttle_check
+
+from poster.conf import get_facebook_config
+from poster.exceptions import FacebookNotConfigured, FacebookPublishError
+from poster.services.facebook_service import FacebookPageService
+from poster.services.scraped import payload_from_record
 
 from . import constants as C
 
@@ -247,6 +253,7 @@ class RunRecordsView(ViewerView):
                 "fields": fields,
                 "search": q,
                 "status_filter": status,
+                "facebook_ready": get_facebook_config().is_publish_configured,
                 "crumb": f"Scraper / Jobs / {job.name} / Results",
             }
         )
@@ -697,6 +704,54 @@ def run_status_api(request, job_id, run_id):
         error_summary=run.error_summary,
         events=events,
     )
+
+
+@method_decorator(require_POST, name="dispatch")
+class PublishScrapedFacebookAPI(EditorView):
+    """Publish one owned scraped record to the configured Facebook Page."""
+
+    def post(self, request, job_id, run_id, record_id):
+        job = access.get_job(request.user, job_id)
+        run = access.get_run(request.user, run_id, job=job)
+        record = access.get_record(request.user, record_id, run=run)
+        try:
+            throttle_check(
+                f"facebook:{request.user.pk}",
+                limit=getattr(settings, "SCRAPER_RUN_RATE_LIMIT", 10),
+                window_seconds=60,
+            )
+        except Throttled:
+            return self._fail(request, job, run, "Too many Facebook publish requests.", status=429)
+        include_image = str(
+            request.POST.get("include_image") or ""
+        ).lower() in {"1", "true", "yes", "on"}
+        if request.content_type == "application/json":
+            try:
+                payload = json.loads(request.body or "{}")
+            except json.JSONDecodeError:
+                return _json_error("Invalid JSON.")
+            include_image = bool(payload.get("include_image")) or include_image
+        try:
+            draft = payload_from_record(record, include_image=include_image)
+            published = FacebookPageService().publish(
+                message=draft.message,
+                link=draft.link,
+                image_url=draft.image_url,
+            )
+        except FacebookNotConfigured as exc:
+            return self._fail(request, job, run, str(exc), status=400)
+        except FacebookPublishError as exc:
+            return self._fail(request, job, run, str(exc), status=400)
+        if request.content_type != "application/json":
+            messages.success(request, f"Published Facebook post {published.post_id}")
+            return redirect("run_records", job.id, run.id)
+        return _json_ok(post_id=published.post_id, page_id=published.page_id)
+
+    def _fail(self, request, job, run, message, status=400):
+        if request.content_type != "application/json":
+            messages.error(request, message)
+            return redirect("run_records", job.id, run.id)
+        return _json_error(message, status=status)
 
 
 @method_decorator(require_POST, name="dispatch")

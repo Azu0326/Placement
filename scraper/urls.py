@@ -59,6 +59,11 @@ urlpatterns = [
         name="api_export_create",
     ),
     path(
+        "scraper/api/jobs/<uuid:job_id>/runs/<uuid:run_id>/records/<uuid:record_id>/facebook/",
+        views.PublishScrapedFacebookAPI.as_view(),
+        name="api_publish_facebook_record",
+    ),
+    path(
         "scraper/api/jobs/<uuid:job_id>/runs/<uuid:run_id>/<slug:action>/",
         views.RunActionAPI.as_view(),
         name="api_run_action",

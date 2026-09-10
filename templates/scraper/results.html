@@ -3,6 +3,8 @@
 {% block content %}
 <a href="{% url 'run_detail' job.id run.id %}" class="text-[13px] text-ink-mute hover:text-ink flex items-center gap-1.5 mb-4"><i data-lucide="arrow-left" class="text-[15px]"></i>Back to {{ run.display_id }}</a>
 
+{% include "dashboard/_messages.html" %}
+
 <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
   <div>
     <h1 class="text-[24px] sm:text-[27px] font-semibold tracking-[-0.02em]">Results</h1>
@@ -37,6 +39,9 @@
           <th class="px-4 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">{{ field.label }}</th>
           {% endfor %}
           <th class="px-4 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Status</th>
+          {% if can_edit %}
+          <th class="px-4 py-3 font-medium text-ink-mute text-[11.5px] uppercase tracking-wider">Facebook</th>
+          {% endif %}
         </tr>
       </thead>
       <tbody class="divide-y divide-slate-100">
@@ -47,6 +52,14 @@
           <td class="px-4 py-3 max-w-[220px]"><div class="truncate">{{ value }}</div></td>
           {% endfor %}
           <td class="px-4 py-3">{{ row.record.status }}</td>
+          {% if can_edit %}
+          <td class="px-4 py-3">
+            <form method="post" action="{% url 'api_publish_facebook_record' job.id run.id row.record.id %}">
+              {% csrf_token %}
+              <button type="submit" class="h-8 px-2.5 rounded-lg border border-slate-300 bg-white text-[12px] font-medium text-ink-soft hover:bg-slate-50"{% if not facebook_ready %} title="Connect a Facebook Page in .env first"{% endif %}>Post</button>
+            </form>
+          </td>
+          {% endif %}
         </tr>
         {% empty %}
         <tr><td class="px-4 py-8 text-ink-mute" colspan="20">No records yet.</td></tr>
