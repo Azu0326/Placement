@@ -1,6 +1,25 @@
+from urllib.parse import urlparse
+
 from django.views.generic import TemplateView
 
 from . import data
+
+
+def _source_domain(url: str) -> str:
+    host = (urlparse(url or "").hostname or "").lower()
+    if host.startswith("www."):
+        host = host[4:]
+    return host
+
+
+def _source_badge(domain: str) -> str:
+    label = domain.split(".")[0] if domain else ""
+    letters = "".join(ch for ch in label if ch.isalpha())[:2]
+    return letters.upper() or "—"
+
+
+def _count_label(n: int, singular: str, plural: str) -> str:
+    return f"{n} {singular if n == 1 else plural}"
 
 
 class ShellView(TemplateView):
@@ -31,9 +50,29 @@ class DashboardView(ShellView):
     page_title = "Dashboard"
 
     def get_context_data(self, **kwargs):
+        from scraper.constants import JOB_STATUS_ARCHIVED
+        from scraper.models import ScrapedRecord, ScrapeRun
+        from scraper.services import access
+
         ctx = super().get_context_data(**kwargs)
         ctx["kpis"] = data.DASHBOARD_KPIS
-        ctx["recent_jobs"] = data.JOBS[:4]
+        user = self.request.user
+        if not getattr(user, "is_authenticated", False):
+            ctx["recent_jobs"] = []
+            ctx["scraper_kpis"] = {"job_count": 0, "run_count": 0, "record_count": 0}
+            return ctx
+        jobs = access.jobs_for(user).exclude(status=JOB_STATUS_ARCHIVED)
+        recent = []
+        for job in jobs[:4]:
+            last = job.runs.order_by("-created_at").first()
+            recent.append({"job": job, "last_run": last})
+        run_qs = ScrapeRun.objects.filter(job__owner=user)
+        ctx["recent_jobs"] = recent
+        ctx["scraper_kpis"] = {
+            "job_count": jobs.count(),
+            "run_count": run_qs.count(),
+            "record_count": ScrapedRecord.objects.filter(job__owner=user).count(),
+        }
         return ctx
 
 
@@ -98,6 +137,45 @@ class ScrapedView(ShellView):
     nav_group = "g-studio"
     crumb = "Content Studio / Scraped"
     page_title = "Scraped content"
+
+    def get_context_data(self, **kwargs):
+        from scraper.services import access
+
+        ctx = super().get_context_data(**kwargs)
+        user = self.request.user
+        if not getattr(user, "is_authenticated", False):
+            ctx["scraped_runs"] = []
+            return ctx
+        runs = (
+            access.runs_for(user)
+            .filter(records_created__gt=0)
+            .select_related("job")
+            .order_by("-created_at")[:30]
+        )
+        scraped_runs = []
+        for run in runs:
+            domain = _source_domain(run.job.start_url)
+            records = run.records_created
+            pages = run.pages_completed
+            scraped_runs.append(
+                {
+                    "source_badge": _source_badge(domain),
+                    "source_domain": domain or "—",
+                    "title": run.job.name,
+                    "description": (
+                        f"{_count_label(records, 'record', 'records')} from "
+                        f"{_count_label(pages, 'page', 'pages')}"
+                    ),
+                    "record_count": records,
+                    "page_count": pages,
+                    "date": run.finished_at or run.started_at or run.created_at,
+                    "job_id": str(run.job.id),
+                    "run_id": str(run.id),
+                    "source_url": run.job.start_url,
+                }
+            )
+        ctx["scraped_runs"] = scraped_runs
+        return ctx
 
 
 class ContentListView(ShellView):

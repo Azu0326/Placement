@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<a href="{% url 'job_detail' job.id %}" class="text-[13px] text-ink-mute hover:text-ink flex items-center gap-1.5 mb-4"><i data-lucide="arrow-left" class="text-[15px]"></i>Back to {{ job.name }}</a>
+
+<div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+  <div>
+    <div class="flex items-center gap-3">
+      <h1 class="text-[24px] sm:text-[27px] font-semibold tracking-[-0.02em] tabular-nums">{{ run.display_id }}</h1>
+      <span id="runStatus">{% include "partials/_status_badge.html" with status=run.display_status show_dot=True %}</span>
+    </div>
+    <p class="text-[13.5px] text-ink-mute mt-1">{{ job.name }} · <span id="runPhase">{{ run.current_phase|default:"—" }}</span></p>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    {% if can_edit %}
+    <form method="post" action="{% url 'api_run_action' job.id run.id 'pause' %}">{% csrf_token %}<button class="h-10 px-4 rounded-xl border border-slate-300 bg-white text-[13.5px] font-medium">Pause</button></form>
+    <form method="post" action="{% url 'api_run_action' job.id run.id 'cancel' %}">{% csrf_token %}<button class="h-10 px-4 rounded-xl border border-slate-300 bg-white text-[13.5px] font-medium">Cancel</button></form>
+    <form method="post" action="{% url 'api_run_action' job.id run.id 'retry' %}">{% csrf_token %}<button class="h-10 px-4 rounded-xl border border-slate-300 bg-white text-[13.5px] font-medium">Retry</button></form>
+    {% endif %}
+    <a href="{% url 'run_records' job.id run.id %}" class="h-10 px-4 rounded-xl border border-slate-300 bg-white text-[13.5px] font-medium grid place-items-center">Results</a>
+    {% if can_edit %}
+    <form method="post" action="{% url 'api_export_create' job.id run.id %}" class="inline">{% csrf_token %}<input type="hidden" name="format" value="csv"><button class="h-10 px-4 rounded-xl border border-slate-300 bg-white text-[13.5px] font-medium">Export scraped results CSV</button></form>
+    <form method="post" action="{% url 'api_export_create' job.id run.id %}" class="inline">{% csrf_token %}<input type="hidden" name="format" value="sqlite"><button class="h-10 px-4 rounded-xl border border-slate-300 bg-white text-[13.5px] font-medium">Export scraped results SQLite</button></form>
+    {% endif %}
+  </div>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-3 mb-6">
+  <div class="bg-white rounded-xl border border-slate-200/80 shadow-soft p-4"><div class="text-[11.5px] text-ink-faint uppercase tracking-wider">Page</div><div id="mPage" class="text-[15px] font-semibold mt-1.5 tabular-nums">{{ run.current_page }}</div></div>
+  <div class="bg-white rounded-xl border border-slate-200/80 shadow-soft p-4"><div class="text-[11.5px] text-ink-faint uppercase tracking-wider">Pages done</div><div id="mPages" class="text-[15px] font-semibold mt-1.5 tabular-nums">{{ run.pages_completed }}</div></div>
+  <div class="bg-white rounded-xl border border-slate-200/80 shadow-soft p-4"><div class="text-[11.5px] text-ink-faint uppercase tracking-wider">Discovered</div><div id="mDisc" class="text-[15px] font-semibold mt-1.5 tabular-nums">{{ run.records_discovered }}</div></div>
+  <div class="bg-white rounded-xl border border-slate-200/80 shadow-soft p-4"><div class="text-[11.5px] text-ink-faint uppercase tracking-wider">Saved</div><div id="mSaved" class="text-[15px] font-semibold mt-1.5 tabular-nums">{{ run.records_created }}</div></div>
+  <div class="bg-white rounded-xl border border-slate-200/80 shadow-soft p-4"><div class="text-[11.5px] text-ink-faint uppercase tracking-wider">Skipped</div><div id="mSkip" class="text-[15px] font-semibold mt-1.5 tabular-nums">{{ run.records_skipped }}</div></div>
+  <div class="bg-white rounded-xl border border-slate-200/80 shadow-soft p-4"><div class="text-[11.5px] text-ink-faint uppercase tracking-wider">Failed</div><div id="mFail" class="text-[15px] font-semibold mt-1.5 tabular-nums">{{ run.records_failed }}</div></div>
+</div>
+
+<div class="h-1.5 rounded-full bg-slate-100 mb-6 overflow-hidden"><div id="runBar" class="h-full bar-run" style="width: 20%"></div></div>
+
+<div class="bg-white rounded-card border border-slate-200/80 shadow-soft">
+  <div class="px-5 h-14 flex items-center border-b border-slate-100"><h2 class="text-[15px] font-semibold">Recent events</h2></div>
+  <ol id="runEvents" class="p-5 space-y-2 font-mono text-[12px] text-ink-soft">
+    {% for event in events %}
+    <li><span class="text-ink-faint">{{ event.created_at|date:"H:i:s" }}</span> {{ event.message }}</li>
+    {% empty %}
+    <li class="text-ink-mute">Waiting for the worker…</li>
+    {% endfor %}
+  </ol>
+</div>
+{% endblock %}
+
+{% block page_js %}
+<script src="{% static 'js/scraper-run.js' %}" data-status-url="{% url 'api_run_status' job.id run.id %}"></script>
+{% endblock %}

@@ -4,14 +4,6 @@ from . import views
 
 urlpatterns = [
     path("", views.DashboardView.as_view(), name="dashboard"),
-    path("scraper/jobs/", views.JobsView.as_view(), name="jobs"),
-    path("scraper/jobs/new/", views.JobNewView.as_view(), name="job_new"),
-    path(
-        "scraper/jobs/<slug:job_id>/",
-        views.JobDetailView.as_view(),
-        name="job_detail",
-    ),
-    path("scraper/execution/", views.ExecutionView.as_view(), name="execution"),
     path("studio/scraped/", views.ScrapedView.as_view(), name="scraped"),
     path("studio/content/", views.ContentListView.as_view(), name="content_list"),
     path(

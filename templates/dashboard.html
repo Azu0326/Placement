@@ -8,8 +8,10 @@
     </div>
     <div class="flex items-center gap-2.5">
       <button onclick="window.location='{% url 'content_list' %}'" class="h-10 px-4 rounded-xl border border-slate-300 bg-white text-[13.5px] font-medium hover:bg-slate-50 shadow-soft transition">Create content</button>
+      {% if can_edit %}
       <button onclick="window.location='{% url 'job_new' %}'" class="h-10 px-4 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-[13.5px] font-medium shadow-lift transition flex items-center gap-2">
         <i data-lucide="plus" class="text-[16px]"></i>New scrape job</button>
+      {% endif %}
     </div>
   </div>
 
@@ -21,9 +23,9 @@
         <div class="w-10 h-10 rounded-xl bg-primary-50 text-primary-600 grid place-items-center"><i data-lucide="globe" class="text-[19px]"></i></div>
         <span class="text-[12px] font-medium text-ok-700 bg-ok-50 px-2 py-1 rounded-lg flex items-center gap-1"><i data-lucide="trending-up" class="text-[13px]"></i>+12%</span>
       </div>
-      <div class="mt-4 text-[30px] font-semibold tracking-[-0.02em] tabular-nums">1,284</div>
+      <div class="mt-4 text-[30px] font-semibold tracking-[-0.02em] tabular-nums">{{ scraper_kpis.job_count }}</div>
       <div class="text-[13px] text-ink-mute mt-0.5">Scrape jobs</div>
-      <div class="text-[12px] text-ink-faint mt-2">+12% this month</div>
+      <div class="text-[12px] text-ink-faint mt-2">Reusable jobs you own</div>
     </div>
 
     <div class="bg-white rounded-card border border-slate-200/80 shadow-soft p-5 relative overflow-hidden">
@@ -68,42 +70,34 @@
         <button onclick="window.location='{% url 'jobs' %}'" class="text-[13px] font-medium text-primary-600 hover:text-primary-700 flex items-center gap-1">View all <i data-lucide="arrow-right" class="text-[14px]"></i></button>
       </div>
       <div class="divide-y divide-slate-100">
-        <div onclick="window.location='{% url 'job_detail' 'SC-1284' %}'" class="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50/70 cursor-pointer transition">
-          <div class="w-9 h-9 rounded-lg bg-ok-50 text-ok-700 grid place-items-center shrink-0"><i data-lucide="check" class="text-[17px]"></i></div>
-          <div class="min-w-0 flex-1">
-            <div class="text-[13.5px] font-medium truncate">search.studyaustralia.gov.au/courses</div>
-            <div class="text-[12px] text-ink-faint mt-0.5">#SC-1284 · Page 10 · 8.4 sec</div>
-          </div>
-          <span class="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-ok-700 bg-ok-50 border border-ok-500/20 px-2.5 py-1 rounded-lg">COMPLETED</span>
-          <span class="text-[12px] text-ink-faint hidden md:block tabular-nums w-[52px] text-right">02:52</span>
-        </div>
-        <div onclick="window.location='{% url 'job_detail' 'SC-1284' %}'" class="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50/70 cursor-pointer transition">
-          <div class="w-9 h-9 rounded-lg bg-ok-50 text-ok-700 grid place-items-center shrink-0"><i data-lucide="check" class="text-[17px]"></i></div>
-          <div class="min-w-0 flex-1">
-            <div class="text-[13.5px] font-medium truncate">search.studyaustralia.gov.au/courses</div>
-            <div class="text-[12px] text-ink-faint mt-0.5">#SC-1283 · Page 1 · 6.1 sec</div>
-          </div>
-          <span class="hidden sm:inline-flex text-[11px] font-semibold tracking-wide text-ok-700 bg-ok-50 border border-ok-500/20 px-2.5 py-1 rounded-lg">COMPLETED</span>
-          <span class="text-[12px] text-ink-faint hidden md:block tabular-nums w-[52px] text-right">02:41</span>
-        </div>
-        <div onclick="window.location='{% url 'job_detail' 'SC-1284' %}'" class="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50/70 cursor-pointer transition">
+        {% for row in recent_jobs %}
+        <div onclick="window.location='{% url 'job_detail' row.job.id %}'" class="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50/70 cursor-pointer transition">
+          {% if row.last_run.display_status == "FAILED" %}
           <div class="w-9 h-9 rounded-lg bg-err-50 text-err-700 grid place-items-center shrink-0"><i data-lucide="triangle-alert" class="text-[17px]"></i></div>
-          <div class="min-w-0 flex-1">
-            <div class="text-[13.5px] font-medium truncate">search.studyaustralia.gov.au/scholarships</div>
-            <div class="text-[12px] text-err-700 mt-0.5">#SC-1282 · Page 2 · Worker did not complete in time</div>
-          </div>
-          <span class="hidden sm:inline-flex text-[11px] font-semibold tracking-wide text-err-700 bg-err-50 border border-err-500/25 px-2.5 py-1 rounded-lg">FAILED</span>
-          <span class="text-[12px] text-ink-faint hidden md:block tabular-nums w-[52px] text-right">02:19</span>
-        </div>
-        <div class="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50/70 cursor-pointer transition">
+          {% elif row.last_run.display_status == "RUNNING" or row.last_run.display_status == "QUEUED" %}
           <div class="w-9 h-9 rounded-lg bg-accent-50 text-accent-600 grid place-items-center shrink-0 pulse-dot"><i data-lucide="loader-circle" class="text-[17px]"></i></div>
+          {% elif row.last_run.display_status == "COMPLETED" %}
+          <div class="w-9 h-9 rounded-lg bg-ok-50 text-ok-700 grid place-items-center shrink-0"><i data-lucide="check" class="text-[17px]"></i></div>
+          {% else %}
+          <div class="w-9 h-9 rounded-lg bg-slate-100 text-ink-soft grid place-items-center shrink-0"><i data-lucide="file-text" class="text-[17px]"></i></div>
+          {% endif %}
           <div class="min-w-0 flex-1">
-            <div class="text-[13.5px] font-medium truncate">nomadlist.com/australia</div>
-            <div class="text-[12px] text-ink-faint mt-0.5">#SC-1281 · Page 3 · Parsing content</div>
+            <div class="text-[13.5px] font-medium truncate">{{ row.job.name }}</div>
+            <div class="text-[12px] text-ink-faint mt-0.5">{{ row.job.display_id }}{% if row.last_run %} · Page {{ row.last_run.current_page|default:"—" }}{% endif %}</div>
           </div>
-          <span class="hidden sm:inline-flex text-[11px] font-semibold tracking-wide text-accent-600 bg-accent-50 border border-accent-500/25 px-2.5 py-1 rounded-lg">RUNNING</span>
-          <span class="text-[12px] text-ink-faint hidden md:block tabular-nums w-[52px] text-right">02:04</span>
+          {% if row.last_run %}
+            {% include "partials/_status_badge.html" with status=row.last_run.display_status class="hidden sm:inline-flex" %}
+          {% else %}
+            <span class="hidden sm:inline-flex text-[11px] font-semibold tracking-wide text-ink-mute bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg">{{ row.job.get_status_display }}</span>
+          {% endif %}
+          <span class="text-[12px] text-ink-faint hidden md:block tabular-nums w-[52px] text-right">{{ row.job.updated_at|date:"H:i" }}</span>
         </div>
+        {% empty %}
+        <div class="px-5 py-10 text-center text-ink-mute text-[13px]">
+          No scrape jobs yet.
+          {% if can_edit %}<a href="{% url 'job_new' %}" class="text-primary-600 font-medium">Create one</a>.{% endif %}
+        </div>
+        {% endfor %}
       </div>
     </div>
 
@@ -146,7 +140,7 @@
     <div class="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-0 md:flex md:items-stretch">
       <div class="flex-1 rounded-xl border border-slate-200 p-4 md:rounded-r-none">
         <div class="flex items-center gap-2 text-ink-mute"><i data-lucide="download" class="text-[15px]"></i><span class="text-[12px] font-medium uppercase tracking-wide">Scraped</span></div>
-        <div class="text-[24px] font-semibold mt-2 tabular-nums">1,176</div>
+        <div class="text-[24px] font-semibold mt-2 tabular-nums">{{ scraper_kpis.record_count }}</div>
       </div>
       <div class="hidden md:grid place-items-center w-9 text-ink-faint"><i data-lucide="chevron-right" class="text-[18px]"></i></div>
       <div class="flex-1 rounded-xl border border-slate-200 p-4">

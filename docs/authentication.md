@@ -309,7 +309,7 @@ bootstrap account. Cognito settings can be left blank locally: with `DEBUG=True`
 Cognito sign-in is simply unavailable and the form says so.
 
 ```bash
-python manage.py test authentication dashboard
+python manage.py test authentication dashboard scraper
 python tools/smoke_routes.py
 ```
 
