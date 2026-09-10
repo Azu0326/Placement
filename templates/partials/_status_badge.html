@@ -10,6 +10,10 @@
     </span>
   {% elif s == "QUEUED" %}
     <span class="badge-queued{% if class %} {{ class }}{% endif %}">QUEUED</span>
+  {% elif s == "PAUSED" %}
+    <span class="badge-warn{% if class %} {{ class }}{% endif %}">PAUSED</span>
+  {% elif s == "CANCELLED" %}
+    <span class="badge border border-slate-200 bg-slate-50 text-ink-mute{% if class %} {{ class }}{% endif %}">CANCELLED</span>
   {% else %}
     <span class="badge border border-slate-200 bg-slate-50 text-ink-mute{% if class %} {{ class }}{% endif %}">{{ status }}</span>
   {% endif %}

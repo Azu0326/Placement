@@ -138,7 +138,7 @@ test:
     <<: *ci_django_env
   script:
     - python manage.py migrate --noinput
-    - python manage.py test authentication dashboard --noinput
+    - python manage.py test authentication dashboard scraper --noinput
     - python tools/smoke_routes.py
   rules:
     - if: "$CI_PIPELINE_SOURCE == 'merge_request_event'"

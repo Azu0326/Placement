@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import os
 import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -66,7 +67,9 @@ def main() -> int:
     hosts.update({"testserver", "localhost", "127.0.0.1"})
     os.environ["ALLOWED_HOSTS"] = ",".join(sorted(hosts))
     os.environ.setdefault("DB_ENGINE", "django.db.backends.sqlite3")
-    os.environ.setdefault("DB_NAME", "/tmp/scrapos-smoke.sqlite3")
+    os.environ.setdefault(
+        "DB_NAME", str(Path(tempfile.gettempdir()) / "scrapos-smoke.sqlite3")
+    )
 
     django.setup()
 

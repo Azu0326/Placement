@@ -5,6 +5,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env", override=False)
 
 # Local .env only. A missing file is a no-op. Variables already in the process
 # environment (ECS Secrets Manager, CI, a shell export) are never overwritten.
@@ -63,6 +64,7 @@ INSTALLED_APPS = [
     "authentication",
     "dashboard",
     "poster",
+    "scraper",
     "frontend_demo",
 ]
 
@@ -120,7 +122,6 @@ if "sqlite" in DATABASES["default"]["ENGINE"]:
     # concurrent session write surfaces as "database is locked".
     DATABASES["default"]["OPTIONS"] = {
         "timeout": 20,
-        "init_command": "PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;",
     }
 else:
     DATABASES["default"].update(
@@ -250,6 +251,7 @@ LOGGING = {
         "scrapos.audit": {"handlers": ["console"], "level": "INFO", "propagate": False},
         # Event names and Graph error codes only — never Page tokens.
         "scrapos.facebook": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "scrapos.scraper": {"handlers": ["console"], "level": "INFO", "propagate": False},
         "django.security": {"handlers": ["console"], "level": "INFO", "propagate": False},
     },
     "root": {"handlers": ["console"], "level": os.environ.get("LOG_LEVEL", "INFO")},
@@ -266,3 +268,62 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = _env_int("SECURE_HSTS_SECONDS", 31536000)
     SECURE_HSTS_INCLUDE_SUBDOMAINS = _env_bool("SECURE_HSTS_INCLUDE_SUBDOMAINS", True)
     SECURE_HSTS_PRELOAD = _env_bool("SECURE_HSTS_PRELOAD", False)
+
+# --- Scraper -------------------------------------------------------------
+# Caps and worker behaviour. Production is web-only (no Redis/Celery).
+SCRAPER_MAX_PAGES = _env_int("SCRAPER_MAX_PAGES", 100)
+SCRAPER_MAX_RECORDS = _env_int("SCRAPER_MAX_RECORDS", 5000)
+SCRAPER_MAX_RUN_SECONDS = _env_int("SCRAPER_MAX_RUN_SECONDS", 900)
+SCRAPER_MAX_RESPONSE_BYTES = _env_int("SCRAPER_MAX_RESPONSE_BYTES", 2_000_000)
+SCRAPER_DEFAULT_DELAY_SECONDS = float(os.environ.get("SCRAPER_DEFAULT_DELAY_SECONDS", "0.5") or 0.5)
+SCRAPER_DEFAULT_TIMEOUT_SECONDS = _env_int("SCRAPER_DEFAULT_TIMEOUT_SECONDS", 20)
+SCRAPER_MAX_CONCURRENCY = _env_int("SCRAPER_MAX_CONCURRENCY", 2)
+SCRAPER_BROWSER_CONCURRENCY = _env_int("SCRAPER_BROWSER_CONCURRENCY", 1)
+SCRAPER_BROWSER_ENABLED = _env_bool("SCRAPER_BROWSER_ENABLED", True)
+SCRAPER_INLINE_WORKER = _env_bool("SCRAPER_INLINE_WORKER", True)
+SCRAPER_EXPORT_DIRECTORY = os.environ.get(
+    "SCRAPER_EXPORT_DIRECTORY", str(BASE_DIR / "var" / "exports")
+)
+SCRAPER_EXPORT_RETENTION_HOURS = _env_int("SCRAPER_EXPORT_RETENTION_HOURS", 72)
+SCRAPER_DEFAULT_USER_AGENT = os.environ.get(
+    "SCRAPER_DEFAULT_USER_AGENT",
+    "ScrapOS/1.0 (+https://scrapos.dncouncil.org)",
+)
+SCRAPER_TEST_RATE_LIMIT = _env_int("SCRAPER_TEST_RATE_LIMIT", 20)
+SCRAPER_RUN_RATE_LIMIT = _env_int("SCRAPER_RUN_RATE_LIMIT", 10)
+SCRAPER_WORKER_POLL_SECONDS = _env_int("SCRAPER_WORKER_POLL_SECONDS", 2)
+SCRAPER_CSV_MAX_BYTES = _env_int("SCRAPER_CSV_MAX_BYTES", 1_000_000)
+SCRAPER_CSV_MAX_ROWS = _env_int("SCRAPER_CSV_MAX_ROWS", 500)
+
+# --- Celery / Redis ------------------------------------------------------
+# Optional background dispatcher for scrape runs. When SCRAPER_USE_CELERY is
+# on, scraper.services.queue.enqueue hands each run to a Celery task instead of
+# the in-process thread; a separate worker (celery -A config worker) executes
+# it. The Celery task only calls execute_run(), so the orchestrator and
+# extraction engine are unchanged. Default off so existing behaviour (the
+# database-backed in-process queue) is preserved until Celery is explicitly
+# enabled and verified in an environment.
+SCRAPER_USE_CELERY = _env_bool("SCRAPER_USE_CELERY", False)
+
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379/0")
+CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", CELERY_BROKER_URL)
+
+# Serialisation: JSON only (never pickle) so a task payload can carry no code.
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_ACCEPT_CONTENT = ["json"]
+
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_ENABLE_UTC = True
+
+# A run is a long single unit of work: one worker process, one task at a time,
+# acknowledge only after completion so a killed worker's run is redelivered
+# rather than lost. The hard time limit tracks the scraper's own runtime cap.
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1
+CELERY_TASK_ACKS_LATE = True
+CELERY_TASK_TIME_LIMIT = SCRAPER_MAX_RUN_SECONDS + 60
+CELERY_TASK_SOFT_TIME_LIMIT = SCRAPER_MAX_RUN_SECONDS
+
+# In tests, run tasks synchronously in-process so no broker is needed.
+CELERY_TASK_ALWAYS_EAGER = TESTING
+CELERY_TASK_EAGER_PROPAGATES = TESTING
