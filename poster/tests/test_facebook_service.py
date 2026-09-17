@@ -43,6 +43,7 @@ def service(responses=None, **overrides) -> tuple[FacebookPageService, FakeTrans
             app_secret=overrides.get("app_secret", config.app_secret),
             graph_api_version=overrides.get("graph_api_version", config.graph_api_version),
             timeout_seconds=overrides.get("timeout_seconds", config.timeout_seconds),
+            instagram_account_id=overrides.get("instagram_account_id", config.instagram_account_id),
         )
     return FacebookPageService(config, transport), transport
 

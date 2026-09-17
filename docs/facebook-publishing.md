@@ -210,5 +210,6 @@ App Review では、レビュアーが「Scrapos が Page に投稿する」流�
 - Poster / Schedule / Calendar からこのサービスを呼ぶジョブ
 - コンテンツの本番モデル（いまはデモ行）
 - Instagram 投稿（別 API。Facebook Page に紐づく Professional アカウントが必要）
+- Instagram コメントの作成 / 取得 / 返信 / 削除は `docs/instagram-comments.md`
 
 それらを足すときも、Graph API への呼び出しは `FacebookPageService` だけに閉じ、トークンは設定または暗号化ストアに置いてください。
