@@ -30,11 +30,17 @@ class FacebookPageConfig:
     app_secret: str
     graph_api_version: str
     timeout_seconds: int
+    instagram_account_id: str = ""
 
     @property
     def is_publish_configured(self) -> bool:
         """True when a feed or photo post can be attempted."""
         return bool(self.page_id and self.page_access_token)
+
+    @property
+    def is_instagram_comments_configured(self) -> bool:
+        """True when Instagram comment calls can be attempted."""
+        return bool(self.page_access_token and (self.instagram_account_id or self.page_id))
 
     @property
     def can_exchange_tokens(self) -> bool:
@@ -62,4 +68,5 @@ def get_facebook_config() -> FacebookPageConfig:
         app_secret=_setting("FACEBOOK_APP_SECRET"),
         graph_api_version=_setting("FACEBOOK_GRAPH_API_VERSION", "v22.0") or "v22.0",
         timeout_seconds=timeout_seconds,
+        instagram_account_id=_setting("INSTAGRAM_ACCOUNT_ID"),
     )

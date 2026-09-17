@@ -57,3 +57,13 @@ class FacebookPublishFailed(FacebookPublishError):
 
     def __init__(self, message: str = "The Facebook post could not be published."):
         super().__init__(message)
+
+
+class InstagramNotConfigured(FacebookPublishError):
+    """Instagram account or Page token is missing."""
+
+    def __init__(
+        self,
+        message: str = "Instagram comments are not configured. Ask an administrator to connect the account.",
+    ):
+        super().__init__(message)

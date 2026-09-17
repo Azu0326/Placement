@@ -200,6 +200,8 @@ FACEBOOK_PAGE_ID = os.environ.get("FACEBOOK_PAGE_ID", "")
 FACEBOOK_PAGE_ACCESS_TOKEN = os.environ.get("FACEBOOK_PAGE_ACCESS_TOKEN", "")
 FACEBOOK_GRAPH_API_VERSION = os.environ.get("FACEBOOK_GRAPH_API_VERSION", "v22.0")
 FACEBOOK_GRAPH_TIMEOUT_SECONDS = _env_int("FACEBOOK_GRAPH_TIMEOUT_SECONDS", 20)
+# Instagram Professional account linked to the Page. Used for comment moderation.
+INSTAGRAM_ACCOUNT_ID = os.environ.get("INSTAGRAM_ACCOUNT_ID", "")
 
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 SESSION_COOKIE_NAME = "scrapos_sessionid"

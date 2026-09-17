@@ -313,7 +313,7 @@ class FacebookPageService:
         data: bytes | None = None
         headers = {"Accept": "application/json", "User-Agent": "Scrapos/1.0"}
 
-        if method == "GET":
+        if method in {"GET", "DELETE"}:
             if token:
                 query["access_token"] = token
             url = f"{self._config.graph_base_url}{path}"
